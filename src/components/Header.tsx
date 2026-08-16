@@ -51,7 +51,7 @@ export default function Header() {
       </div>
 
       {/* Main header */}
-      <div className="max-w-7xl mx-auto px-4 py-1 md:py-3 flex items-center justify-between gap-2 min-w-0">
+      <div className="max-w-7xl mx-auto px-4 py-1 md:py-2 flex items-center justify-between gap-2 min-w-0">
         <Link href="/" className="flex items-center gap-0 min-w-0 overflow-hidden flex-shrink-0" style={{ maxWidth: "calc(100vw - 110px)" }}>
           <div className="mt-0 md:mt-[10px]" style={{ flexShrink: 0 }}>
             <LogoViewerWrapper />
