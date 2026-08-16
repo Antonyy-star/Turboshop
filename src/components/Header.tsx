@@ -197,45 +197,59 @@ export default function Header() {
         </nav>
       </header>
 
-      {/* ─── MOBILE MENU DROPDOWN ─── */}
+      {/* ─── MOBILE MENU ─── */}
       {mounted && menuOpen && createPortal(
-        <>
-          {/* Backdrop — tap outside to close */}
-          <div
-            onClick={() => setMenuOpen(false)}
-            style={{ position: "fixed", inset: 0, zIndex: 99998 }}
-          />
-          {/* Dropdown — solid black, sits just below the header */}
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 99999,
+          backgroundColor: "#111111",
+          display: "flex",
+          flexDirection: "column",
+        }}>
+          {/* X button row — same height as the real header so it feels flush */}
           <div style={{
-            position: "fixed",
-            top: headerHeight,
-            left: 0,
-            right: 0,
-            zIndex: 99999,
-            backgroundColor: "#111111",
-            borderTop: "1px solid #222",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.8)",
+            height: headerHeight || 80,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            padding: "0 8px",
+            borderBottom: "1px solid #222",
           }}>
-            {categories.map((cat) => (
-              <Link
-                key={cat.name}
-                href={cat.href}
-                onClick={() => setMenuOpen(false)}
-                style={{
-                  display: "block",
-                  padding: "16px 20px",
-                  fontSize: 16,
-                  fontWeight: 500,
-                  color: "#ffffff",
-                  textDecoration: "none",
-                  borderBottom: "1px solid #1f1f1f",
-                }}
-              >
-                {cat.name}
-              </Link>
-            ))}
+            <button
+              onClick={() => setMenuOpen(false)}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 8, color: "#fff" }}
+              aria-label="Stäng meny"
+            >
+              <svg width="26" height="26" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-        </>,
+
+          {/* Nav links */}
+          {categories.map((cat) => (
+            <Link
+              key={cat.name}
+              href={cat.href}
+              onClick={() => setMenuOpen(false)}
+              style={{
+                display: "block",
+                padding: "16px 20px",
+                fontSize: 16,
+                fontWeight: 500,
+                color: "#ffffff",
+                textDecoration: "none",
+                borderBottom: "1px solid #1f1f1f",
+              }}
+            >
+              {cat.name}
+            </Link>
+          ))}
+        </div>,
         document.body
       )}
     </>
