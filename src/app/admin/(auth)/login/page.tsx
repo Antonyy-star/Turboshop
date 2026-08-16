@@ -32,7 +32,6 @@ export default function AdminLogin() {
       <div style={{ width: "100%", maxWidth: 400, padding: "0 16px" }}>
         <div style={{ textAlign: "center", marginBottom: 32, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <LogoViewerWrapper silver />
-          <p style={{ color: "#666", marginTop: 8, fontSize: 14 }}>Admin Dashboard</p>
         </div>
 
         <form onSubmit={handleLogin} style={{ background: "#141414", border: "1px solid #222", borderRadius: 16, padding: 32 }}>
