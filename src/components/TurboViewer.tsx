@@ -78,12 +78,13 @@ export default function TurboViewer() {
         turboObj = obj;
 
         if (bladeMesh) {
-          bladeMesh.geometry.computeBoundingBox();
+          const bm = bladeMesh as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>;
+          bm.geometry.computeBoundingBox();
           const bc = new THREE.Vector3();
-          bladeMesh.geometry.boundingBox!.getCenter(bc);
-          bladeMesh.geometry.translate(-bc.x, -bc.y, -bc.z);
-          bladeMesh.position.add(bc);
-          bladeMeshRef = bladeMesh;
+          bm.geometry.boundingBox!.getCenter(bc);
+          bm.geometry.translate(-bc.x, -bc.y, -bc.z);
+          bm.position.add(bc);
+          bladeMeshRef = bm;
         }
       });
 
