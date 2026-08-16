@@ -9,7 +9,7 @@ export default function LogoViewerWrapper() {
   const [size, setSize] = useState<number | null>(null);
 
   useEffect(() => {
-    const update = () => setSize(window.innerWidth < 768 ? 64 : 112);
+    const update = () => setSize(window.innerWidth < 768 ? 64 : 140);
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
