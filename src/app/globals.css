@@ -164,6 +164,20 @@ body {
   }
 }
 
+.wordmark-img {
+  height: 34px;
+  width: auto;
+  max-width: 200px;
+  margin-left: -4px;
+}
+
+@media (min-width: 768px) {
+  .wordmark-img {
+    height: 48px;
+    max-width: 280px;
+  }
+}
+
 @keyframes mobileMenuIn {
   from { transform: translateY(-6px); }
   to   { transform: translateY(0); }
