@@ -80,9 +80,9 @@ export default async function CategoryPage({
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 py-8 flex gap-6">
-          {/* Sidebar */}
-          <aside className="w-56 flex-shrink-0">
+        <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
+          {/* Sidebar — hidden on mobile */}
+          <aside className="hidden md:block w-56 flex-shrink-0">
             <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
               <h3 className="font-bold text-sm text-gray-900 mb-3 uppercase tracking-wide">Varumärke</h3>
               <ul className="space-y-2">

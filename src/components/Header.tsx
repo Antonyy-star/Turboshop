@@ -51,15 +51,17 @@ export default function Header() {
       </div>
 
       {/* Main header */}
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-        <Link href="/" className="flex-shrink-0 flex items-center gap-0">
-          <div style={{ marginTop: 10 }}>
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2 min-w-0">
+        <Link href="/" className="flex items-center gap-0 min-w-0 overflow-hidden flex-shrink-0" style={{ maxWidth: "calc(100vw - 110px)" }}>
+          <div style={{ marginTop: 10, flexShrink: 0 }}>
             <LogoViewerWrapper />
           </div>
+          {/* wordmark: hidden on mobile (< 640px), shown on sm+ */}
           <img
             src="/3d%20Logo/turboteknik_wordmark_transparent.png"
             alt="TurboTeknik"
-            style={{ height: 28, width: "auto", marginLeft: -8 }}
+            className="hidden sm:block"
+            style={{ height: 24, width: "auto", maxWidth: 160, marginLeft: -8 }}
           />
         </Link>
 
