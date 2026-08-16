@@ -77,12 +77,12 @@ export default function LogoViewer() {
       (gltf) => {
         gltf.scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
-            const color = colorMap[child.name] ?? 0x111111;
-            child.material = new THREE.MeshStandardMaterial({
-              color,
-              metalness: metalnessMap[child.name] ?? 0.9,
-              roughness: roughnessMap[child.name] ?? 0.15,
-            });
+            const name = child.name || child.parent?.name || "";
+            const isRed = name.toLowerCase().includes("red");
+            const color = isRed ? 0xcc0000 : (colorMap[name] ?? 0x111111);
+            const metalness = isRed ? 0.7 : 0.95;
+            const roughness = isRed ? 0.3 : 0.1;
+            child.material = new THREE.MeshStandardMaterial({ color, metalness, roughness });
           }
         });
         const box = new THREE.Box3().setFromObject(gltf.scene);
