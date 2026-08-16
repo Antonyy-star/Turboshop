@@ -41,8 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="sv" className={`${geistSans.variable} h-full antialiased`}>
       <head>
-        <link rel="preload" href="/3d%20Logo/Logo.obj" as="fetch" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
         <meta name="theme-color" content="#111827" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>

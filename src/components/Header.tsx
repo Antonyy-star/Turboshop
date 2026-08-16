@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import AdvancedBadge from "./AdvancedBadge";
-import LogoViewerWrapper from "./LogoViewerWrapper";
+import LogoIcon from "./LogoIcon";
 
 const brandLogos = [
   { name: "Garrett", logo: "/brands/kisspng-turbocharger-garrett-airesearch-business-engine-in-garrett-5b3dfc697c5e14.6655578415307889695094.jpg" },
@@ -53,8 +53,8 @@ export default function Header() {
       {/* Main header */}
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2 min-w-0">
         <Link href="/" className="flex items-center gap-0 min-w-0 overflow-hidden flex-shrink-0" style={{ maxWidth: "calc(100vw - 110px)" }}>
-          <div style={{ marginTop: 10, flexShrink: 0 }}>
-            <LogoViewerWrapper />
+          <div style={{ marginTop: 6, flexShrink: 0 }}>
+            <LogoIcon size={82} />
           </div>
           <img
             src="/3d%20Logo/turboteknik_wordmark_transparent.png"
