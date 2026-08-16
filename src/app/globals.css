@@ -173,9 +173,9 @@ body {
 
 @media (min-width: 768px) {
   .wordmark-img {
-    height: 48px;
-    width: 360px;
-    max-width: 360px;
+    height: 38px;
+    width: 420px;
+    max-width: 420px;
   }
 }
 
