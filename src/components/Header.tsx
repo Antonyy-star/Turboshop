@@ -54,21 +54,6 @@ export default function Header() {
       {/* Header — never changes */}
       <header className="bg-white sticky top-0 z-50">
 
-        {/* Top bar — desktop only */}
-        <div className="hidden md:block bg-black text-white text-xs py-2">
-          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <span>📞 +46 72 911 00 35</span>
-              <span>✉️ info@ttturbo.se</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link href="/account" className="hover:text-gray-300 transition">Logga in</Link>
-              <span className="text-gray-600">|</span>
-              <Link href="/account/register" className="hover:text-gray-300 transition">Registrera</Link>
-            </div>
-          </div>
-        </div>
-
         {/* Main row */}
         <div className="max-w-7xl mx-auto px-4 py-1 md:py-2 flex items-center justify-between gap-2">
           <Link href="/" className="flex items-center gap-0 flex-shrink-0" style={{ maxWidth: "calc(100vw - 110px)" }}>
