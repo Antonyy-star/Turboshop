@@ -69,7 +69,8 @@ export default async function Home() {
       <Header />
       <main>
         {/* Hero */}
-        <section className="relative text-white py-52 md:py-16 overflow-hidden" style={{ backgroundColor: "#111827" }}>
+        <style>{`@media (max-width: 767px) { .hero-section { padding-top: 208px; padding-bottom: 208px; } }`}</style>
+        <section className="hero-section relative text-white md:py-16 overflow-hidden" style={{ backgroundColor: "#111827" }}>
           <div className="absolute inset-0 z-0" style={{
             backgroundImage: "url('/Images/Turboteknik.png')",
             backgroundSize: "contain", backgroundPosition: "center", backgroundRepeat: "no-repeat",
