@@ -48,6 +48,13 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
         </button>
       </div>
 
+      {initialProducts.length === 0 ? (
+        <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, padding: 60, textAlign: "center" }}>
+          <Package size={36} color="#333" style={{ margin: "0 auto 16px" }} />
+          <p style={{ color: "#555", fontSize: 15, marginBottom: 8 }}>Inga produkter ännu</p>
+          <p style={{ color: "#444", fontSize: 13 }}>Klicka på "+ Ny produkt" för att lägga till din första produkt.</p>
+        </div>
+      ) : (
       <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -123,6 +130,7 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
           </tbody>
         </table>
       </div>
+      )}
 
       {/* New product modal */}
       {showForm && (

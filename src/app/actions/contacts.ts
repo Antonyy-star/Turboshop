@@ -11,7 +11,6 @@ export async function markContactHandled(
   handledByName: string,
 ) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
   const { error } = await supabase.from("contact_submissions").update({
     status: "handled",
     handled_by_email: handledByEmail,
@@ -19,14 +18,15 @@ export async function markContactHandled(
     handled_at: new Date().toISOString(),
   }).eq("id", contactId);
   if (error) throw new Error(error.message);
-  await logActivity(supabase, user!, {
+  revalidatePath("/admin/orders");
+  const { data: authData } = await supabase.auth.getUser();
+  await logActivity(supabase, authData?.user, {
     action_type: "contact_handled",
     entity_type: "contact",
     entity_id: contactId,
     entity_name: contactName,
     metadata: { handled_by_name: handledByName, handled_by_email: handledByEmail },
   });
-  revalidatePath("/admin/orders");
 }
 
 export async function reopenContact(contactId: string) {
@@ -43,18 +43,22 @@ export async function reopenContact(contactId: string) {
 
 export async function getAdminList(): Promise<{ email: string; name: string }[]> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("activity_log")
-    .select("admin_email, admin_name")
-    .order("created_at", { ascending: false })
-    .limit(200);
-  const seen = new Set<string>();
-  const admins: { email: string; name: string }[] = [];
-  for (const row of data ?? []) {
-    if (!seen.has(row.admin_email)) {
-      seen.add(row.admin_email);
-      admins.push({ email: row.admin_email, name: row.admin_name || row.admin_email });
+  try {
+    const { data } = await supabase
+      .from("activity_log")
+      .select("admin_email, admin_name")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    const seen = new Set<string>();
+    const admins: { email: string; name: string }[] = [];
+    for (const row of data ?? []) {
+      if (!seen.has(row.admin_email)) {
+        seen.add(row.admin_email);
+        admins.push({ email: row.admin_email, name: row.admin_name || row.admin_email });
+      }
     }
+    return admins;
+  } catch {
+    return [];
   }
-  return admins;
 }
