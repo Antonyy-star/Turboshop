@@ -174,18 +174,33 @@ export default function Home() {
 
         {/* Varför oss */}
         <section className="bg-black text-white py-12">
-          <div className="max-w-7xl mx-auto px-4">
-            <h2 className="text-2xl font-bold text-center mb-8">Varför välja TurboTeknik?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <h2 className="text-2xl font-bold text-center mb-10 px-4">Varför välja TurboTeknik?</h2>
+          <div className="relative overflow-hidden">
+            {/* Left fade */}
+            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 z-10"
+              style={{ background: "linear-gradient(to right, #000 30%, transparent)" }} />
+            {/* Right fade */}
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 z-10"
+              style={{ background: "linear-gradient(to left, #000 30%, transparent)" }} />
+
+            <div className="feature-track">
               {[
-                { icon: "🔧", title: "Expertkunskap", desc: "Vårt team är turbospecialister med decennier av erfarenhet." },
-                { icon: "📦", title: "Snabb leverans", desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över." },
-                { icon: "✅", title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning." },
-              ].map((item) => (
-                <div key={item.title} className="text-center">
-                  <div className="text-4xl mb-3">{item.icon}</div>
-                  <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-                  <p className="text-gray-400 text-sm">{item.desc}</p>
+                { icon: "🔧", title: "Expertkunskap", desc: "Vårt team är turbospecialister med decennier av erfarenhet.", delay: "0s" },
+                { icon: "📦", title: "Snabb leverans", desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över.", delay: "1s" },
+                { icon: "✅", title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning.", delay: "2s" },
+                { icon: "🔧", title: "Expertkunskap", desc: "Vårt team är turbospecialister med decennier av erfarenhet.", delay: "0s" },
+                { icon: "📦", title: "Snabb leverans", desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över.", delay: "1s" },
+                { icon: "✅", title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning.", delay: "2s" },
+              ].map((item, i) => (
+                <div key={i} style={{ width: 300, flexShrink: 0, paddingRight: 24 }}>
+                  <div
+                    className="feature-card p-7 text-center h-full"
+                    style={{ animationDelay: item.delay }}
+                  >
+                    <div className="text-4xl mb-4">{item.icon}</div>
+                    <h3 className="font-bold text-lg mb-2 text-white">{item.title}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>

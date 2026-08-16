@@ -101,3 +101,41 @@ body {
 .gear-spin:hover {
   animation: spin-gear 8s linear infinite reverse;
 }
+
+/* Feature card marquee */
+@keyframes feature-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes card-glow {
+  0%, 100% {
+    box-shadow: 0 0 18px rgba(220, 38, 38, 0.18), 0 4px 20px rgba(0,0,0,0.5);
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(220, 38, 38, 0.38), 0 4px 20px rgba(0,0,0,0.5);
+    border-color: rgba(220, 38, 38, 0.6);
+  }
+}
+
+.feature-track {
+  display: flex;
+  width: max-content;
+  animation: feature-scroll 22s linear infinite;
+}
+
+.feature-track:hover {
+  animation-play-state: paused;
+}
+
+.feature-track:hover .feature-card {
+  animation-play-state: paused;
+}
+
+.feature-card {
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 18px;
+  background: #191919;
+  animation: card-glow 3s ease-in-out infinite;
+}
