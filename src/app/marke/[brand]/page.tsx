@@ -118,6 +118,7 @@ export default async function BrandPage({
     badge: string | null;
     image: string | null;
     isReal: boolean;
+    in_stock: boolean;
   };
 
   const realFromDb: Product[] = (dbProducts && dbProducts.length > 0)
@@ -131,6 +132,7 @@ export default async function BrandPage({
         badge: p.badge ?? null,
         image: p.images?.[0] ?? null,
         isReal: true,
+        in_stock: p.in_stock !== false,
       }))
     : getProductsByBrand(brand).map((p: RealProduct) => ({
         id: p.id,
@@ -142,12 +144,13 @@ export default async function BrandPage({
         badge: p.badge,
         image: p.images[0] ?? null,
         isReal: true,
+        in_stock: true,
       }));
 
   const generatedProducts = generateBrandProducts(brand, Math.max(0, meta.count - realFromDb.length));
   const allProducts: Product[] = [
     ...realFromDb,
-    ...generatedProducts.map((p) => ({ ...p, id: p.id, image: null, isReal: false })),
+    ...generatedProducts.map((p) => ({ ...p, id: p.id, image: null, isReal: false, in_stock: true })),
   ];
 
   const currentPage = Math.max(1, parseInt(sida ?? "1", 10));
@@ -254,6 +257,12 @@ export default async function BrandPage({
                       <span className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-0.5 rounded ${product.badge === "Rea" ? "bg-red-600" : "bg-green-600"}`}>
                         {product.badge}
                       </span>
+                    )}
+                    {product.isReal && product.in_stock && (
+                      <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">I lager</span>
+                    )}
+                    {product.isReal && !product.in_stock && (
+                      <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">Slut</span>
                     )}
                   </div>
                   <div className="p-3">
