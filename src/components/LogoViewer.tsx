@@ -75,14 +75,27 @@ export default function LogoViewer() {
     loader.load(
       "/3d%20Logo/Logo.pack.glb",
       (gltf) => {
+        const colorConfig = [
+          { name: "Black_1", color: 0x111111, metalness: 0.95, roughness: 0.1 },
+          { name: "Black_2", color: 0x111111, metalness: 0.95, roughness: 0.1 },
+          { name: "Red_1",   color: 0xcc0000, metalness: 0.7,  roughness: 0.3 },
+          { name: "Red_2",   color: 0xcc0000, metalness: 0.7,  roughness: 0.3 },
+          { name: "Red_3",   color: 0xcc0000, metalness: 0.7,  roughness: 0.3 },
+        ];
+        colorConfig.forEach(({ name, color, metalness, roughness }) => {
+          const node = gltf.scene.getObjectByName(name);
+          if (node) {
+            node.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                child.material = new THREE.MeshStandardMaterial({ color, metalness, roughness });
+              }
+            });
+          }
+        });
+        // Fallback: any mesh still using default material gets dark color
         gltf.scene.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            const name = child.name || child.parent?.name || "";
-            const isRed = name.toLowerCase().includes("red");
-            const color = isRed ? 0xcc0000 : (colorMap[name] ?? 0x111111);
-            const metalness = isRed ? 0.7 : 0.95;
-            const roughness = isRed ? 0.3 : 0.1;
-            child.material = new THREE.MeshStandardMaterial({ color, metalness, roughness });
+          if (child instanceof THREE.Mesh && !Array.isArray(child.material) && !(child.material as THREE.MeshStandardMaterial).color) {
+            child.material = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.95, roughness: 0.1 });
           }
         });
         const box = new THREE.Box3().setFromObject(gltf.scene);
