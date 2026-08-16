@@ -155,3 +155,13 @@ body {
   background: #191919;
   animation: card-glow 3s ease-in-out infinite;
 }
+
+@keyframes mobileMenuIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes mobileMenuOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}

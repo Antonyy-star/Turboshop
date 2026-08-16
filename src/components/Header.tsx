@@ -32,6 +32,7 @@ const categories = [
 export default function Header() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef<HTMLElement>(null);
@@ -47,15 +48,26 @@ export default function Header() {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [mobileOpen]);
+  const menuVisible = mobileOpen || isClosing;
+
+  const openMenu = () => setMobileOpen(true);
+
+  const closeMenu = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setMobileOpen(false);
+      setIsClosing(false);
+    }, 220);
+  };
 
   return (
     <>
-      <header ref={headerRef} className="bg-white sticky top-0 z-50">
-        {/* Top bar — hidden on mobile */}
+      {/* Header — turns black on mobile when menu is open */}
+      <header
+        ref={headerRef}
+        className={`sticky top-0 z-50 transition-colors duration-200 ${menuVisible ? "bg-black md:bg-white" : "bg-white"}`}
+      >
+        {/* Top bar — desktop only */}
         <div className="bg-black text-white text-xs py-2 hidden md:block">
           <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -70,7 +82,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Main header */}
+        {/* Main row */}
         <div className="max-w-7xl mx-auto px-4 py-1 md:py-2 flex items-center justify-between gap-2 min-w-0">
           <Link href="/" className="flex items-center gap-0 min-w-0 overflow-hidden flex-shrink-0" style={{ maxWidth: "calc(100vw - 110px)" }}>
             <div className="mt-0 md:mt-[10px]" style={{ flexShrink: 0 }}>
@@ -80,11 +92,15 @@ export default function Header() {
               src="/3d%20Logo/turboteknik_wordmark_transparent.png"
               alt="TurboTeknik"
               className="hidden sm:block"
-              style={{ height: 34, width: "auto", maxWidth: 200, marginLeft: -4, flexShrink: 1 }}
+              style={{
+                height: 34, width: "auto", maxWidth: 200, marginLeft: -4, flexShrink: 1,
+                filter: menuVisible ? "brightness(0) invert(1)" : "none",
+                transition: "filter 0.2s",
+              }}
             />
           </Link>
 
-          {/* Search — hidden on mobile */}
+          {/* Search — desktop only */}
           <div className="hidden md:flex flex-1 max-w-xl">
             <input
               type="text"
@@ -104,28 +120,42 @@ export default function Header() {
               <span className="text-sm font-medium hidden sm:inline">Varukorg (0)</span>
             </Link>
 
-            {/* Hamburger — mobile only */}
+            {/* Hamburger — mobile only, turns white when menu open */}
             <button
-              className="md:hidden p-2 text-gray-700"
-              onClick={() => setMobileOpen(!mobileOpen)}
+              className={`md:hidden p-2 transition-colors duration-200 ${menuVisible ? "text-white" : "text-gray-700"}`}
+              onClick={() => mobileOpen ? closeMenu() : openMenu()}
               aria-label="Meny"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              {mobileOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Mobile search */}
+        {/* Mobile search — styling adapts to black background when open */}
         <div className="md:hidden px-4 pb-1">
           <div className="flex">
-            <input type="text" placeholder="Sök..." className="w-full border border-gray-300 rounded-l-md px-3 py-2 text-sm focus:outline-none focus:border-red-500" />
+            <input
+              type="text"
+              placeholder="Sök..."
+              className={`w-full border rounded-l-md px-3 py-2 text-sm focus:outline-none focus:border-red-500 transition-colors duration-200 ${
+                menuVisible
+                  ? "border-gray-700 bg-gray-900 text-white placeholder-gray-500"
+                  : "border-gray-300 bg-white text-black placeholder-gray-400"
+              }`}
+            />
             <button className="bg-red-600 text-white px-3 py-2 rounded-r-md text-sm">Sök</button>
           </div>
         </div>
 
-        {/* Desktop nav */}
+        {/* Desktop nav — unchanged */}
         <nav className="bg-black text-white hidden md:block">
           <div className="max-w-7xl mx-auto px-4">
             <ul className="flex items-center">
@@ -197,35 +227,55 @@ export default function Header() {
         </nav>
       </header>
 
-      {mounted && mobileOpen && createPortal(
+      {/* Mobile dropdown portal */}
+      {mounted && (mobileOpen || isClosing) && createPortal(
         <>
-          {/* Backdrop — closes menu on tap */}
-          <div
-            onClick={() => setMobileOpen(false)}
-            style={{ position: "fixed", inset: 0, zIndex: 9998 }}
-          />
-          {/* Dropdown panel — just below the header */}
+          {/* Transparent backdrop to close on outside tap */}
+          <div onClick={closeMenu} style={{ position: "fixed", inset: 0, zIndex: 9998 }} />
+
+          {/* Dropdown panel with slide animation */}
           <div style={{
             position: "fixed",
             top: headerHeight,
             left: 0,
             right: 0,
             zIndex: 9999,
-            backgroundColor: "#111",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+            backgroundColor: "#000",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
+            animation: isClosing
+              ? "mobileMenuOut 220ms ease forwards"
+              : "mobileMenuIn 220ms ease forwards",
           }}>
             <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
               {categories.map((cat) => (
-                <li key={cat.name} style={{ borderBottom: "1px solid #1f2937" }}>
+                <li key={cat.name} style={{ borderBottom: "1px solid #1a1a1a" }}>
                   <Link
                     href={(cat as any).href ?? `/kategori/${cat.name.toLowerCase()}`}
-                    style={{ display: "block", padding: "14px 20px", fontSize: 15, fontWeight: 500, color: "#fff", textDecoration: "none" }}
-                    onClick={() => setMobileOpen(false)}
+                    style={{ display: "block", padding: "15px 20px", fontSize: 15, fontWeight: 500, color: "#fff", textDecoration: "none" }}
+                    onClick={closeMenu}
                   >
                     {cat.name}
                   </Link>
                 </li>
               ))}
+
+              {/* Gå tillbaka */}
+              <li style={{ borderTop: "1px solid #1f2937" }}>
+                <button
+                  onClick={closeMenu}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    width: "100%", padding: "14px 20px",
+                    fontSize: 14, fontWeight: 500, color: "#ef4444",
+                    background: "none", border: "none", cursor: "pointer",
+                  }}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Gå tillbaka
+                </button>
+              </li>
             </ul>
           </div>
         </>,
