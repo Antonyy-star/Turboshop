@@ -7,7 +7,6 @@ import TurboViewerWrapper from "@/components/TurboViewerWrapper";
 
 const categories = [
   { name: "Kompletta turboladdare", icon: "⚙️", desc: "OEM & eftermarknads turbos", href: "/kategori/turboladdare" },
-  { name: "Patroner (CHRA)", icon: "🔩", desc: "Kärnenheter för alla märken", href: "/kategori/chra" },
   { name: "Kompressorhjul", icon: "🌀", desc: "Billet & OEM-ersättningar", href: "/kategori/kompressorhjul" },
   { name: "Packningar & tätningar", icon: "🛡️", desc: "Kompletta packningssatser", href: "/kategori/packningar" },
   { name: "Prestandadelar", icon: "🏎️", desc: "Intercoolers, BOV, grenrör", href: "/kategori/prestanda" },
