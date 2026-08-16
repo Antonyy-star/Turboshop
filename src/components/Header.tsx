@@ -196,11 +196,6 @@ export default function Header() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link href="/kontakt" className="block px-4 py-3 text-sm font-medium hover:bg-red-600 transition" onClick={() => setMobileOpen(false)}>
-                📞 +46 72 911 00 35
-              </Link>
-            </li>
           </ul>
         </div>
       )}
