@@ -23,10 +23,22 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+  const path = request.nextUrl.pathname;
+
+  if (path.startsWith("/admin") && path !== "/admin/login") {
+    if (!user) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
+  }
+
+  if (path === "/admin/login" && user) {
+    return NextResponse.redirect(new URL("/admin", request.url));
+  }
+
   return supabaseResponse;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif)$).*)"],
 };
