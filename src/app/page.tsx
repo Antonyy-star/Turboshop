@@ -78,18 +78,18 @@ export default async function Home() {
             WebkitMaskImage: "radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 75%)",
           }} />
           <div className="absolute inset-0 z-0 bg-gradient-to-r from-black via-black/60 to-black" />
-          <div className="relative z-10 max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-4 md:gap-8">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1">
-              <p className="text-red-400 font-semibold text-[11px] md:text-sm uppercase tracking-widest mb-1 md:mb-3">{hero.eyebrow}</p>
-              <h1 className="text-[20px] md:text-5xl font-black leading-tight mb-2 md:mb-4" style={{ whiteSpace: "pre-line" }}>
+              <p className="text-red-400 font-semibold text-[11px] md:text-sm uppercase tracking-widest mb-3">{hero.eyebrow}</p>
+              <h1 className="text-[20px] md:text-5xl font-black leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {hero.heading}
               </h1>
-              <p className="text-gray-400 text-[13px] md:text-lg mb-3 md:mb-8 max-w-md">{hero.subtext}</p>
-              <div className="flex gap-2 md:gap-3 flex-wrap">
-                <Link href={hero.button1_href} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 md:px-6 md:py-3 rounded-md transition text-[13px] md:text-base">
+              <p className="text-gray-400 text-[13px] md:text-lg mb-6 md:mb-8 max-w-md">{hero.subtext}</p>
+              <div className="flex gap-3 flex-wrap">
+                <Link href={hero.button1_href} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
                   {hero.button1_label}
                 </Link>
-                <Link href={hero.button2_href} className="border border-gray-500 hover:border-white text-white font-semibold px-4 py-2 md:px-6 md:py-3 rounded-md transition text-[13px] md:text-base">
+                <Link href={hero.button2_href} className="border border-gray-500 hover:border-white text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
                   {hero.button2_label}
                 </Link>
               </div>
@@ -108,8 +108,8 @@ export default async function Home() {
               <h2 className="text-[22px] md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {feature1.heading}
               </h2>
-              <p className="text-[13px] md:text-base leading-[1.5] md:leading-relaxed mb-6 text-gray-400">{feature1.body}</p>
-              <Link href={feature1.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 md:px-6 md:py-3 rounded-md transition text-[13px] md:text-sm">
+              <p className="text-[13px] md:text-base leading-relaxed mb-6 text-gray-400">{feature1.body}</p>
+              <Link href={feature1.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition text-sm">
                 {feature1.button_label}
               </Link>
             </div>
@@ -129,8 +129,8 @@ export default async function Home() {
               <h2 className="text-[22px] md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {feature2.heading}
               </h2>
-              <p className="text-[13px] md:text-base leading-[1.5] md:leading-relaxed mb-6 text-gray-400">{feature2.body}</p>
-              <Link href={feature2.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 md:px-6 md:py-3 rounded-md transition text-[13px] md:text-sm">
+              <p className="text-[13px] md:text-base leading-relaxed mb-6 text-gray-400">{feature2.body}</p>
+              <Link href={feature2.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition text-sm">
                 {feature2.button_label}
               </Link>
             </div>
