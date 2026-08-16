@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { normalizeArticle } from "@/lib/normalize";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,21 +23,37 @@ export default async function SearchPage({
     const { data } = await supabase
       .from("products")
       .select("id,name,brand,sku,price,images,category,badge,in_stock")
-      .or(`name.ilike.%${query}%,sku.ilike.%${query}%,brand.ilike.%${query}%,description.ilike.%${query}%`)
-      .limit(48);
+      .limit(500);
 
     const lower = query.toLowerCase();
-    const score = (p: any) => {
-      const sku = (p.sku ?? "").toLowerCase();
-      const name = p.name.toLowerCase();
-      if (sku === lower) return 0;
-      if (sku.startsWith(lower)) return 1;
-      if (name === lower) return 2;
-      if (name.startsWith(lower)) return 3;
-      if (sku.includes(lower)) return 4;
-      return 5;
+    const normQ = normalizeArticle(query);
+
+    const matches = (data ?? []).filter((p) => {
+      const normSku = normalizeArticle(p.sku ?? "");
+      const normName = normalizeArticle(p.name);
+      const nameLower = p.name.toLowerCase();
+      const brandLower = p.brand.toLowerCase();
+      return (
+        normSku.includes(normQ) ||
+        normName.includes(normQ) ||
+        nameLower.includes(lower) ||
+        brandLower.includes(lower)
+      );
+    });
+
+    const score = (p: { sku: string | null; name: string }) => {
+      const normSku = normalizeArticle(p.sku ?? "");
+      const nameLower = p.name.toLowerCase();
+      if (normSku === normQ) return 0;
+      if (normSku.startsWith(normQ)) return 1;
+      if (nameLower === lower) return 2;
+      if (nameLower.startsWith(lower)) return 3;
+      if (normSku.includes(normQ)) return 4;
+      if (nameLower.includes(lower)) return 5;
+      return 6;
     };
-    results = (data ?? []).sort((a, b) => score(a) - score(b));
+
+    results = matches.sort((a, b) => score(a) - score(b));
   }
 
   return (
