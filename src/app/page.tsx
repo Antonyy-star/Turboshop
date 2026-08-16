@@ -9,7 +9,7 @@ const categories = [
   { name: "Kompletta turboladdare", icon: "⚙️", desc: "OEM & eftermarknads turbos", href: "/kategori/turboladdare" },
   { name: "Kompressorhjul", icon: "🌀", desc: "Billet & OEM-ersättningar", href: "/kategori/kompressorhjul" },
   { name: "Packningar & tätningar", icon: "🛡️", desc: "Kompletta packningssatser", href: "/kategori/packningar" },
-  { name: "Reparationsutrustning", icon: "🔧", desc: "Balansering & testverktyg", href: "/kategori/utrustning" },
+  { name: "Reparations Kit", icon: "🔧", desc: "Balansering & testverktyg", href: "/kategori/utrustning" },
 ];
 
 const brands = [
