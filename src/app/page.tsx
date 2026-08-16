@@ -71,16 +71,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Förtroendesrad */}
-        <section className="lava-bar text-white py-3">
-          <div className="max-w-7xl mx-auto px-4 flex flex-wrap justify-center gap-3 text-xs md:text-sm font-medium">
-            <span>✅ 10 000+ delar i lager</span>
-            <span>🚚 Snabb leverans</span>
-            <span>🔒 Säkra betalningar</span>
-            <span>🛠️ Expertsupport</span>
-            <span>↩️ Enkel retur</span>
-          </div>
-        </section>
+        {/* Decorative accent strip */}
+        <div className="lava-bar" style={{ height: 6 }} />
 
         {/* Kategorier */}
         <section className="max-w-7xl mx-auto px-4 py-12">
