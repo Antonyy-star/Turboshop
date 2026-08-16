@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { saveContent } from "@/app/actions/content";
 import { X, Save, ImageIcon, FileText, Layers } from "lucide-react";
 
 export type SiteContent = {
@@ -57,24 +57,25 @@ export default function ContentEditor({ initialContent }: { initialContent: Site
   async function handleSave() {
     if (!editing || !draft) return;
 
-    // Basic validation — check no required string field is empty
-    const flat = JSON.stringify(draft);
-    if (flat.includes('""')) {
+    // Basic validation — no required string field empty
+    const allStrings = (obj: any): string[] =>
+      typeof obj === "string" ? [obj] : typeof obj === "object" && obj !== null
+        ? Object.values(obj).flatMap(allStrings) : [];
+
+    if (allStrings(draft).some(v => v.trim() === "")) {
       setStatus({ type: "error", msg: "Fyll i alla obligatoriska fält." });
       return;
     }
 
     setSaving(true);
     setStatus(null);
-    const supabase = createClient();
-    const { error } = await supabase.from("site_content").upsert({ key: editing, content: draft, updated_at: new Date().toISOString() });
-
-    if (error) {
-      setStatus({ type: "error", msg: "Något gick fel. Försök igen." });
-    } else {
+    try {
+      await saveContent(editing, draft);
       setContent(prev => ({ ...prev, [editing]: draft }));
-      setStatus({ type: "success", msg: "Sparat! Ändringarna syns direkt på hemsidan." });
+      setStatus({ type: "success", msg: "Sparat! Hemsidan uppdateras direkt." });
       setTimeout(closeEdit, 1500);
+    } catch (e: any) {
+      setStatus({ type: "error", msg: e?.message ?? "Något gick fel. Försök igen." });
     }
     setSaving(false);
   }
