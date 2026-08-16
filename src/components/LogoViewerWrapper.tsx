@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 const LogoViewer = dynamic(() => import("./LogoViewer"), { ssr: false });
 
-export default function LogoViewerWrapper() {
+export default function LogoViewerWrapper({ silver = false }: { silver?: boolean }) {
   const [size, setSize] = useState<number | null>(null);
 
   useEffect(() => {
@@ -16,5 +16,5 @@ export default function LogoViewerWrapper() {
   }, []);
 
   if (!size) return null;
-  return <LogoViewer size={size} />;
+  return <LogoViewer size={size} silver={silver} />;
 }

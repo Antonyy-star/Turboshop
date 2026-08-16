@@ -31,7 +31,7 @@ export default function AdminLogin() {
     <div style={{ minHeight: "100vh", background: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 400, padding: "0 16px" }}>
         <div style={{ textAlign: "center", marginBottom: 32, display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <LogoViewerWrapper />
+          <LogoViewerWrapper silver />
           <p style={{ color: "#666", marginTop: 8, fontSize: 14 }}>Admin Dashboard</p>
         </div>
 

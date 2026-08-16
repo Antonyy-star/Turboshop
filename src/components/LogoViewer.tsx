@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
-export default function LogoViewer({ size = 112 }: { size?: number }) {
+export default function LogoViewer({ size = 112, silver = false }: { size?: number; silver?: boolean }) {
   const SIZE = size;
   const mountRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
@@ -74,9 +74,12 @@ export default function LogoViewer({ size = 112 }: { size?: number }) {
     loader.load(
       "/3d%20Logo/Logo.pack.glb",
       (gltf) => {
+        const blackColor    = silver ? 0xb8bec6 : 0x111111;
+        const blackMetal    = silver ? 1.0      : 0.95;
+        const blackRoughness = silver ? 0.06    : 0.1;
         const colorConfig = [
-          { name: "Black_1", color: 0x111111, metalness: 0.95, roughness: 0.1 },
-          { name: "Black_2", color: 0x111111, metalness: 0.95, roughness: 0.1 },
+          { name: "Black_1", color: blackColor, metalness: blackMetal, roughness: blackRoughness },
+          { name: "Black_2", color: blackColor, metalness: blackMetal, roughness: blackRoughness },
           { name: "Red_1",   color: 0xcc0000, metalness: 0.7,  roughness: 0.3 },
           { name: "Red_2",   color: 0xcc0000, metalness: 0.7,  roughness: 0.3 },
           { name: "Red_3",   color: 0xcc0000, metalness: 0.7,  roughness: 0.3 },
