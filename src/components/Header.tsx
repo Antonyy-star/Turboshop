@@ -56,12 +56,10 @@ export default function Header() {
           <div style={{ marginTop: 10, flexShrink: 0 }}>
             <LogoViewerWrapper />
           </div>
-          {/* wordmark: hidden on mobile (< 640px), shown on sm+ */}
           <img
             src="/3d%20Logo/turboteknik_wordmark_transparent.png"
             alt="TurboTeknik"
-            className="hidden sm:block"
-            style={{ height: 24, width: "auto", maxWidth: 160, marginLeft: -8 }}
+            style={{ height: 22, width: "auto", maxWidth: 130, marginLeft: -4, flexShrink: 1 }}
           />
         </Link>
 
