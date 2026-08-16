@@ -45,6 +45,8 @@ export default function ProductForm({ onClose, onSaved }: Props) {
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState("");
 
+  const [description, setDescription] = useState("");
+
   const [imageMode, setImageMode] = useState<"url" | "upload">("url");
   const [imageUrl, setImageUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -121,6 +123,7 @@ export default function ProductForm({ onClose, onSaved }: Props) {
         sku: sku.trim(),
         price: Number(price),
         images: finalImageUrl ? [finalImageUrl] : [],
+        description: description.trim(),
       });
 
       onSaved();
@@ -288,6 +291,18 @@ export default function ProductForm({ onClose, onSaved }: Props) {
                     style={{ width: "100%", background: "#0a0a0a", border: "1px solid #333", borderRadius: 8, padding: "10px 12px", color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" }}
                   />
                 </div>
+              </div>
+
+              {/* Description */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", color: "#999", fontSize: 12, marginBottom: 6 }}>Produktbeskrivning</label>
+                <textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="Beskriv produkten — specifikationer, kompatibilitet, egenskaper..."
+                  rows={3}
+                  style={{ width: "100%", background: "#0a0a0a", border: "1px solid #333", borderRadius: 8, padding: "10px 12px", color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit" }}
+                />
               </div>
 
               {/* Image section */}

@@ -10,6 +10,7 @@ export async function createProduct(data: {
   sku: string;
   price: number;
   images: string[];
+  description: string;
 }) {
   const supabase = await createClient();
   const id = `prod_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
