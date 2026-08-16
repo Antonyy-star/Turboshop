@@ -75,20 +75,25 @@ export default function Home() {
         <div className="lava-bar" style={{ height: 6 }} />
 
         {/* Kategorier */}
-        <section className="max-w-7xl mx-auto px-4 py-12">
-          <h2 className="text-2xl font-bold mb-6 text-black">Handla efter kategori</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.name}
-                href={cat.href}
-                className="group border border-gray-200 rounded-lg p-4 text-center hover:border-red-500 hover:shadow-md transition"
-              >
-                <div className="text-3xl mb-2">{cat.icon}</div>
-                <h3 className="font-semibold text-sm text-black group-hover:text-red-600 transition leading-tight">{cat.name}</h3>
-                <p className="text-xs text-gray-500 mt-1">{cat.desc}</p>
-              </Link>
-            ))}
+        <section className="bg-black py-12">
+          <div className="max-w-7xl mx-auto px-4">
+            <h2 className="text-2xl font-bold mb-6 text-white">Handla efter kategori</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.name}
+                  href={cat.href}
+                  className="feature-card block p-4 text-center no-underline"
+                  style={{ textDecoration: "none", transition: "transform 0.2s ease, box-shadow 0.2s ease" }}
+                  onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.04)")}
+                  onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+                >
+                  <div className="text-3xl mb-2">{cat.icon}</div>
+                  <h3 className="font-semibold text-sm text-white leading-tight">{cat.name}</h3>
+                  <p className="text-xs text-gray-400 mt-1">{cat.desc}</p>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
