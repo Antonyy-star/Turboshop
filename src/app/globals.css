@@ -110,12 +110,12 @@ body {
 
 @keyframes card-glow {
   0%, 100% {
-    box-shadow: 0 0 18px rgba(220, 38, 38, 0.18), 0 4px 20px rgba(0,0,0,0.5);
-    border-color: rgba(220, 38, 38, 0.3);
+    box-shadow: 0 0 6px rgba(220, 38, 38, 0.08), 0 4px 20px rgba(0,0,0,0.5);
+    border-color: rgba(220, 38, 38, 0.2);
   }
   50% {
-    box-shadow: 0 0 32px rgba(220, 38, 38, 0.38), 0 4px 20px rgba(0,0,0,0.5);
-    border-color: rgba(220, 38, 38, 0.6);
+    box-shadow: 0 0 14px rgba(220, 38, 38, 0.2), 0 4px 20px rgba(0,0,0,0.5);
+    border-color: rgba(220, 38, 38, 0.4);
   }
 }
 
