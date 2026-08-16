@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import AdvancedBadge from "./AdvancedBadge";
@@ -41,19 +41,9 @@ export default function Header() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
-  useEffect(() => {
-    const measure = () => { if (headerRef.current) setHeaderHeight(headerRef.current.offsetHeight); };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, []);
-
-  // Lock body scroll when menu is open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -61,8 +51,8 @@ export default function Header() {
 
   return (
     <>
-      {/* ─── HEADER (never changes, no mobile state) ─── */}
-      <header ref={headerRef} className={`sticky top-0 z-50 transition-colors duration-150 ${menuOpen ? "bg-black md:bg-white" : "bg-white"}`}>
+      {/* Header — never changes */}
+      <header className="bg-white sticky top-0 z-50">
 
         {/* Top bar — desktop only */}
         <div className="hidden md:block bg-black text-white text-xs py-2">
@@ -93,7 +83,6 @@ export default function Header() {
             />
           </Link>
 
-          {/* Desktop search */}
           <div className="hidden md:flex flex-1 max-w-xl">
             <input type="text" placeholder="Sök på artikelnummer, varumärke eller modell..." className="w-full border border-gray-300 rounded-l-md px-4 py-2 text-sm focus:outline-none focus:border-red-500" />
             <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-r-md transition text-sm">Sök</button>
@@ -107,21 +96,14 @@ export default function Header() {
               <span className="text-sm font-medium hidden sm:inline">Varukorg (0)</span>
             </Link>
 
-            {/* Hamburger / X — mobile only */}
             <button
-              className={`md:hidden p-2 transition-colors duration-150 ${menuOpen ? "text-white" : "text-gray-700"}`}
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Meny"
+              className="md:hidden p-2 text-gray-700"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Öppna meny"
             >
-              {menuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
           </div>
         </div>
@@ -129,13 +111,7 @@ export default function Header() {
         {/* Mobile search */}
         <div className="md:hidden px-4 pb-2">
           <div className="flex">
-            <input
-              type="text"
-              placeholder="Sök..."
-              className={`w-full border rounded-l-md px-3 py-2 text-sm focus:outline-none focus:border-red-500 transition-colors duration-150 ${
-                menuOpen ? "border-gray-600 bg-gray-900 text-white placeholder-gray-500" : "border-gray-300 bg-white text-black"
-              }`}
-            />
+            <input type="text" placeholder="Sök..." className="w-full border border-gray-300 rounded-l-md px-3 py-2 text-sm focus:outline-none focus:border-red-500" />
             <button className="bg-red-600 text-white px-3 py-2 rounded-r-md text-sm">Sök</button>
           </div>
         </div>
@@ -203,58 +179,68 @@ export default function Header() {
         </nav>
       </header>
 
-      {/* ─── MOBILE MENU ─── */}
+      {/* Mobile menu — full screen solid black overlay */}
       {mounted && menuOpen && createPortal(
         <div style={{
           position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
+          inset: 0,
           zIndex: 99999,
-          backgroundColor: "#111111",
+          backgroundColor: "#000000",
           display: "flex",
           flexDirection: "column",
         }}>
-          {/* X button row — same height as the real header so it feels flush */}
-          <div style={{
-            height: headerHeight || 80,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            padding: "0 8px",
-            borderBottom: "1px solid #222",
-          }}>
+          {/* Top row: wordmark + X */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid #222" }}>
+            <Link href="/" onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
+              <span style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
+                TURBO<span style={{ color: "#ef4444" }}>TEKNIK</span>
+              </span>
+            </Link>
             <button
               onClick={() => setMenuOpen(false)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: 8, color: "#fff" }}
               aria-label="Stäng meny"
             >
-              <svg width="26" height="26" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
           {/* Nav links */}
-          {categories.map((cat) => (
-            <Link
-              key={cat.name}
-              href={cat.href}
+          <nav style={{ flex: 1 }}>
+            {categories.map((cat) => (
+              <Link
+                key={cat.name}
+                href={cat.href}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "block",
+                  padding: "18px 20px",
+                  fontSize: 17,
+                  fontWeight: 600,
+                  color: "#ffffff",
+                  textDecoration: "none",
+                  borderBottom: "1px solid #1a1a1a",
+                }}
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Gå tillbaka */}
+          <div style={{ padding: "16px 20px", borderTop: "1px solid #222" }}>
+            <button
               onClick={() => setMenuOpen(false)}
-              style={{
-                display: "block",
-                padding: "16px 20px",
-                fontSize: 16,
-                fontWeight: 500,
-                color: "#ffffff",
-                textDecoration: "none",
-                borderBottom: "1px solid #1f1f1f",
-              }}
+              style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: 15, fontWeight: 600, padding: 0 }}
             >
-              {cat.name}
-            </Link>
-          ))}
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Gå tillbaka
+            </button>
+          </div>
         </div>,
         document.body
       )}
