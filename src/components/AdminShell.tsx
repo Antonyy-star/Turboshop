@@ -84,7 +84,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       )}
 
       {/* Main content */}
-      <main style={{ flex: 1 }} className="md:ml-60 ml-0 pt-20 md:pt-8 px-8 pb-8">
+      <main style={{ flex: 1, marginLeft: 0, padding: 32 }} className="md:ml-60">
+        {/* Spacer to clear the fixed mobile top bar (56px) */}
+        <div className="md:hidden" style={{ height: 56 }} />
         {children}
       </main>
     </div>
