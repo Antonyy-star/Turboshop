@@ -101,20 +101,20 @@ export default async function Home() {
         <div className="lava-bar" style={{ height: 6 }} />
 
         {/* Feature section 1 — text left, image right */}
-        <section className="bg-black py-6 md:py-16">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-3 md:gap-16">
+        <section className="bg-black py-16">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-10 md:gap-16">
             <div className="flex-1">
-              <p className="text-red-500 text-[11px] md:text-sm font-semibold uppercase tracking-widest mb-1 md:mb-3">{feature1.eyebrow}</p>
-              <h2 className="text-[22px] md:text-4xl font-black text-white leading-tight mb-2 md:mb-4" style={{ whiteSpace: "pre-line" }}>
+              <p className="text-red-500 text-[11px] md:text-sm font-semibold uppercase tracking-widest mb-3">{feature1.eyebrow}</p>
+              <h2 className="text-[22px] md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {feature1.heading}
               </h2>
-              <p className="text-[13px] md:text-base leading-[1.5] md:leading-relaxed mb-3 md:mb-6 text-gray-400">{feature1.body}</p>
+              <p className="text-[13px] md:text-base leading-[1.5] md:leading-relaxed mb-6 text-gray-400">{feature1.body}</p>
               <Link href={feature1.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 md:px-6 md:py-3 rounded-md transition text-[13px] md:text-sm">
                 {feature1.button_label}
               </Link>
             </div>
             <div className="flex-1 w-full">
-              <div className="rounded-xl overflow-hidden h-36 md:h-80">
+              <div className="rounded-2xl overflow-hidden" style={{ height: 320 }}>
                 <img src={feature1.image} alt="" className="w-full h-full object-cover" />
               </div>
             </div>
@@ -122,20 +122,20 @@ export default async function Home() {
         </section>
 
         {/* Feature section 2 — image left, text right */}
-        <section className="bg-black py-6 md:py-16" style={{ borderTop: "1px solid #111" }}>
-          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row-reverse items-center gap-3 md:gap-16">
+        <section className="bg-black py-16" style={{ borderTop: "1px solid #111" }}>
+          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row-reverse items-center gap-10 md:gap-16">
             <div className="flex-1">
-              <p className="text-red-500 text-[11px] md:text-sm font-semibold uppercase tracking-widest mb-1 md:mb-3">{feature2.eyebrow}</p>
-              <h2 className="text-[22px] md:text-4xl font-black text-white leading-tight mb-2 md:mb-4" style={{ whiteSpace: "pre-line" }}>
+              <p className="text-red-500 text-[11px] md:text-sm font-semibold uppercase tracking-widest mb-3">{feature2.eyebrow}</p>
+              <h2 className="text-[22px] md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {feature2.heading}
               </h2>
-              <p className="text-[13px] md:text-base leading-[1.5] md:leading-relaxed mb-3 md:mb-6 text-gray-400">{feature2.body}</p>
+              <p className="text-[13px] md:text-base leading-[1.5] md:leading-relaxed mb-6 text-gray-400">{feature2.body}</p>
               <Link href={feature2.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 md:px-6 md:py-3 rounded-md transition text-[13px] md:text-sm">
                 {feature2.button_label}
               </Link>
             </div>
             <div className="flex-1 w-full">
-              <div className="rounded-xl overflow-hidden h-36 md:h-80">
+              <div className="rounded-2xl overflow-hidden" style={{ height: 320 }}>
                 <img src={feature2.image} alt="" className="w-full h-full object-cover" />
               </div>
             </div>
@@ -165,17 +165,16 @@ export default async function Home() {
         </section>
 
         {/* Varför oss */}
-        <section className="bg-black text-white py-10 md:py-12">
-          <h2 className="text-[22px] md:text-2xl font-bold text-center mb-5 md:mb-10 px-4">Varför välja TurboTeknik?</h2>
+        <section className="bg-black text-white py-12">
+          <h2 className="text-[20px] md:text-2xl font-bold text-center mb-10 px-4">Varför välja TurboTeknik?</h2>
           <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-center gap-4 md:gap-6">
             {why.cards.map((card: { title: string; desc: string }, i: number) => {
               const Icon = whyIcons[i];
               return (
-                <div key={i} className="feature-card flex-1 p-4 md:p-8 text-center">
-                  <Icon size={24} className="mx-auto mb-2 md:mb-4 md:hidden" color="#DC2626" strokeWidth={1.8} />
-                  <Icon size={32} className="mx-auto mb-4 hidden md:block" color="#DC2626" strokeWidth={1.8} />
-                  <h3 className="font-bold text-[15px] md:text-lg mb-1 md:mb-2 text-white">{card.title}</h3>
-                  <p className="text-gray-400 text-[13px] md:text-sm leading-[1.5] md:leading-relaxed">{card.desc}</p>
+                <div key={i} className="feature-card flex-1 p-6 md:p-8 text-center">
+                  <Icon size={32} className="mx-auto mb-4" color="#DC2626" strokeWidth={1.8} />
+                  <h3 className="font-bold text-[14px] md:text-lg mb-2 text-white">{card.title}</h3>
+                  <p className="text-gray-400 text-[13px] md:text-sm leading-relaxed">{card.desc}</p>
                 </div>
               );
             })}
