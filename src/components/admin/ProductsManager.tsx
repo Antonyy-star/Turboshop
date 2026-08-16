@@ -62,16 +62,29 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
               <tr key={p.id} style={{ borderBottom: "1px solid #1a1a1a" }}>
                 <td style={{ padding: "14px 16px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    {p.images?.[0] ? (
-                      <img src={p.images[0]} alt={p.name} style={{ width: 40, height: 40, objectFit: "contain", background: "#1a1a1a", borderRadius: 6 }} />
-                    ) : (
-                      <div style={{ width: 40, height: 40, background: "#1a1a1a", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <Package size={18} color="#555" />
-                      </div>
-                    )}
+                    {/* All images as overlapping thumbnails */}
+                    <div style={{ display: "flex", flexShrink: 0 }}>
+                      {p.images && p.images.length > 0 ? (
+                        p.images.slice(0, 5).map((img: string, idx: number) => (
+                          <div key={idx} style={{ width: 36, height: 36, borderRadius: 6, background: "#1a1a1a", border: "2px solid #141414", marginLeft: idx === 0 ? 0 : -8, overflow: "hidden", position: "relative", zIndex: p.images.length - idx }}>
+                            <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                          </div>
+                        ))
+                      ) : (
+                        <div style={{ width: 36, height: 36, background: "#1a1a1a", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Package size={16} color="#555" />
+                        </div>
+                      )}
+                      {p.images && p.images.length > 5 && (
+                        <div style={{ width: 36, height: 36, borderRadius: 6, background: "#222", border: "2px solid #141414", marginLeft: -8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#888", fontWeight: 600 }}>
+                          +{p.images.length - 5}
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 500 }}>{p.name}</p>
                       {p.sku && <p style={{ fontSize: 11, color: "#555", marginTop: 2 }}>{p.sku}</p>}
+                      {p.images?.length > 0 && <p style={{ fontSize: 10, color: "#444", marginTop: 1 }}>{p.images.length} {p.images.length === 1 ? "bild" : "bilder"}</p>}
                     </div>
                   </div>
                 </td>
