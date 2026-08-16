@@ -4,11 +4,29 @@ import ImageGallery from "@/components/ImageGallery";
 import Link from "next/link";
 import { getProductById } from "@/lib/realProducts";
 import { getRealProductById } from "@/lib/parseProducts";
+import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = getRealProductById(id) ?? getProductById(id);
+
+  // Check DB first, then fall back to hardcoded data
+  const supabase = await createClient();
+  const { data: dbProduct } = await supabase.from("products").select("*").eq("id", id).single();
+
+  const product = dbProduct
+    ? {
+        id: dbProduct.id,
+        name: dbProduct.name,
+        brand: dbProduct.brand,
+        price: dbProduct.price,
+        originalPrice: dbProduct.original_price ?? null,
+        sku: dbProduct.sku ?? "",
+        images: dbProduct.images ?? [],
+        badge: dbProduct.badge ?? null,
+        description: dbProduct.description ?? "",
+      }
+    : (getRealProductById(id) ?? getProductById(id));
 
   if (!product) notFound();
 
@@ -23,7 +41,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <span>›</span>
             <Link href="/kategori/turboladdare" className="hover:text-red-600 transition">Turboladdare</Link>
             <span>›</span>
-            <Link href={`/marke/${product.brand.toLowerCase()}`} className="hover:text-red-600 transition">{product.brand}</Link>
+            <Link href={`/marke/${product.brand.toLowerCase().replace(/\s+/g, "-")}`} className="hover:text-red-600 transition">{product.brand}</Link>
             <span>›</span>
             <span className="text-black font-medium">{product.name}</span>
           </div>
@@ -55,12 +73,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
               {/* Add to cart */}
               <div className="flex gap-3 mb-6">
-                <input
-                  type="number"
-                  defaultValue={1}
-                  min={1}
-                  className="w-16 border border-gray-300 rounded-md px-3 py-3 text-sm text-center focus:outline-none focus:border-red-500"
-                />
+                <input type="number" defaultValue={1} min={1}
+                  className="w-16 border border-gray-300 rounded-md px-3 py-3 text-sm text-center focus:outline-none focus:border-red-500" />
                 <button className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-md transition text-sm">
                   Lägg i varukorg
                 </button>
