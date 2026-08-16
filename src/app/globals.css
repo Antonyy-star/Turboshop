@@ -125,12 +125,13 @@ body {
   animation: feature-scroll 22s linear infinite;
 }
 
-.feature-track:hover {
-  animation-play-state: paused;
-}
-
-.feature-track:hover .feature-card {
-  animation-play-state: paused;
+@media (hover: hover) {
+  .feature-track:hover {
+    animation-play-state: paused;
+  }
+  .feature-track:hover .feature-card {
+    animation-play-state: paused;
+  }
 }
 
 .feature-card {
