@@ -168,11 +168,6 @@ export default function Header() {
                   )}
                 </li>
               ))}
-              <li className="ml-auto">
-                <Link href="/erbjudanden" className="px-4 py-3 text-sm font-medium text-red-400 hover:text-red-300 transition block">
-                  🔥 Heta erbjudanden
-                </Link>
-              </li>
             </ul>
           </div>
         </nav>
