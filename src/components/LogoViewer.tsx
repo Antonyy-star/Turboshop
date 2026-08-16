@@ -5,9 +5,8 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
-const SIZE = 112;
-
-export default function LogoViewer() {
+export default function LogoViewer({ size = 112 }: { size?: number }) {
+  const SIZE = size;
   const mountRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
