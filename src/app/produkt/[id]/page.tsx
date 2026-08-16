@@ -25,8 +25,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         images: dbProduct.images ?? [],
         badge: dbProduct.badge ?? null,
         description: dbProduct.description ?? "",
+        in_stock: dbProduct.in_stock !== false,
       }
-    : (getRealProductById(id) ?? getProductById(id));
+    : { ...(getRealProductById(id) ?? getProductById(id)), in_stock: true };
 
   if (!product) notFound();
 
@@ -67,8 +68,17 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
               {/* Stock */}
               <div className="flex items-center gap-2 mb-6">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span>
-                <span className="text-sm text-green-700 font-medium">I lager — skickas inom 1–2 arbetsdagar</span>
+                {product.in_stock ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span>
+                    <span className="text-sm text-green-700 font-medium">I lager — skickas inom 1–2 arbetsdagar</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+                    <span className="text-sm text-red-600 font-medium">Slut i lager</span>
+                  </>
+                )}
               </div>
 
               {/* Add to cart */}

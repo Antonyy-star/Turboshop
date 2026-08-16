@@ -38,6 +38,7 @@ type DisplayProduct = {
   badge: string | null;
   images: string[];
   real: boolean;
+  in_stock: boolean;
 };
 
 export default async function CategoryPage({
@@ -70,9 +71,10 @@ export default async function CategoryPage({
         badge: p.badge ?? null,
         images: p.images ?? [],
         real: true,
+        in_stock: p.in_stock !== false,
       }))
     : (slug === "turboladdare"
-        ? getAllRealProducts().map((p: ParsedProduct) => ({ ...p, real: true }))
+        ? getAllRealProducts().map((p: ParsedProduct) => ({ ...p, real: true, in_stock: true }))
         : []);
 
   const generated = generateProducts(1480).map((p) => ({
@@ -80,6 +82,7 @@ export default async function CategoryPage({
     id: String(p.id),
     images: [] as string[],
     real: false,
+    in_stock: true,
   }));
 
   // Real/DB products first, generated fill the rest (no duplicate SKUs)
@@ -181,8 +184,11 @@ export default async function CategoryPage({
                         {product.badge}
                       </span>
                     )}
-                    {product.real && (
+                    {product.real && product.in_stock && (
                       <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">I lager</span>
+                    )}
+                    {product.real && !product.in_stock && (
+                      <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">Slut</span>
                     )}
                   </div>
                   <div className="p-3">
