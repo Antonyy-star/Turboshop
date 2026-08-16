@@ -142,23 +142,29 @@ export default function Home() {
         </section>
 
         {/* Varumärken */}
-        <section className="bg-gray-50 py-8 overflow-hidden">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide text-center mb-6">Toppvarumärken</h2>
+        <section className="bg-black py-8 overflow-hidden">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide text-center mb-6">Toppvarumärken</h2>
           <div className="relative">
+            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 z-10"
+              style={{ background: "linear-gradient(to right, #000 30%, transparent)" }} />
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 z-10"
+              style={{ background: "linear-gradient(to left, #000 30%, transparent)" }} />
             <div className="flex items-center animate-marquee" style={{ width: "max-content" }}>
               {[...brands, ...brands].map((brand, i) => (
                 <Link
                   key={i}
                   href={`/marke/${brand.name.toLowerCase().replace(/\s+/g, "-")}`}
-                  className="mx-4 flex-shrink-0 bg-white border border-gray-200 rounded-xl px-6 py-4 flex items-center justify-center hover:border-red-400 hover:shadow-md transition group"
-                  style={{ width: 140, height: 80 }}
+                  className="feature-card mx-3 flex-shrink-0 flex items-center justify-center p-3"
+                  style={{ width: 130, height: 76, textDecoration: "none" }}
                 >
-                  <img
-                    src={brand.logo}
-                    alt={brand.name}
-                    className="max-w-full max-h-full object-contain transition duration-300"
-                    style={{ maxWidth: 110, maxHeight: 50 }}
-                  />
+                  <div className="bg-white rounded-md flex items-center justify-center" style={{ width: 100, height: 50, padding: "5px 8px" }}>
+                    <img
+                      src={brand.logo}
+                      alt={brand.name}
+                      className="max-w-full max-h-full object-contain"
+                      style={{ maxWidth: 86, maxHeight: 38 }}
+                    />
+                  </div>
                 </Link>
               ))}
             </div>
