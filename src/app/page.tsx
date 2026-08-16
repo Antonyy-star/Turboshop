@@ -90,8 +90,8 @@ export default function Home() {
               </Link>
             </div>
             <div className="flex-1 w-full">
-              <div className="rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid #333", height: 320, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span className="text-gray-600 text-sm">Bild kommer här</span>
+              <div className="rounded-2xl overflow-hidden" style={{ height: 320 }}>
+                <img src="/Images/bilden1.jpeg" alt="" className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
@@ -113,8 +113,8 @@ export default function Home() {
               </Link>
             </div>
             <div className="flex-1 w-full">
-              <div className="rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid #333", height: 320, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span className="text-gray-600 text-sm">Bild kommer här</span>
+              <div className="rounded-2xl overflow-hidden" style={{ height: 320 }}>
+                <img src="/Images/teknik1.jpeg" alt="" className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
