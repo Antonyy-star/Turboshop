@@ -157,11 +157,11 @@ body {
 }
 
 @keyframes mobileMenuIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(-6px); }
+  to   { transform: translateY(0); }
 }
 
 @keyframes mobileMenuOut {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-8px); }
+  from { transform: translateY(0); opacity: 1; }
+  to   { transform: translateY(-4px); opacity: 0; }
 }
