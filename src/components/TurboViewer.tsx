@@ -54,7 +54,7 @@ export default function TurboViewer() {
 
       const loader = new OBJLoader();
       loader.load("/images/NEWbase.obj", (obj) => {
-        let bladeMesh: THREE.Mesh | null = null;
+        let bladeMesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial> | null = null;
 
         obj.children.forEach((child) => {
           if (child instanceof THREE.Mesh) {
@@ -63,7 +63,7 @@ export default function TurboViewer() {
               metalness: 0.95,
               roughness: 0.15,
             });
-            if (child.name === "model.001") bladeMesh = child;
+            if (child.name === "model.001") bladeMesh = child as THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>;
           }
         });
 

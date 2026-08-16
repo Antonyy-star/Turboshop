@@ -47,6 +47,7 @@ export default async function CategoryPage({
 
   const generated = generateProducts(1480).map((p) => ({
     ...p,
+    id: String(p.id),
     images: [] as string[],
     real: false,
   }));
