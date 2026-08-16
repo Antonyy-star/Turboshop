@@ -1,108 +1,108 @@
 "use client";
 
-import { useState } from "react";
-import { CheckCircle, RotateCcw, ChevronDown, X, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CheckCircle, RotateCcw, User, AlertCircle } from "lucide-react";
 import { markContactHandled, reopenContact, getAdminList } from "@/app/actions/contacts";
 import { useRouter } from "next/navigation";
 
 interface Admin { email: string; name: string; }
+interface Props { submissions: any[]; currentAdmin: Admin; }
 
-interface Props {
-  submissions: any[];
-  currentAdmin: { email: string; name: string };
+function initials(name: string) {
+  return name.split(/[\s@]/)[0].slice(0, 2).toUpperCase();
 }
 
-function HandlerPicker({ contact, currentAdmin, onDone }: { contact: any; currentAdmin: Admin; onDone: () => void }) {
-  const [admins, setAdmins] = useState<Admin[]>([currentAdmin]);
-  const [selected, setSelected] = useState<Admin>(currentAdmin);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [loadedAdmins, setLoadedAdmins] = useState(false);
+function AdminPicker({ contact, currentAdmin, onDone }: { contact: any; currentAdmin: Admin; onDone: () => void }) {
+  const [admins, setAdmins]   = useState<Admin[]>([currentAdmin]);
+  const [saving, setSaving]   = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
+  const [loaded, setLoaded]   = useState(false);
 
-  async function openDropdown() {
-    setOpen(v => !v);
-    if (!loadedAdmins) {
-      setLoading(true);
-      const list = await getAdminList();
-      // Merge: current admin always first, then others
+  useEffect(() => {
+    getAdminList().then(list => {
       const others = list.filter(a => a.email !== currentAdmin.email);
       setAdmins([currentAdmin, ...others]);
-      setLoadedAdmins(true);
-      setLoading(false);
+      setLoaded(true);
+    });
+  }, []);
+
+  async function pick(admin: Admin) {
+    if (saving) return;
+    setSaving(admin.email);
+    setError(null);
+    try {
+      const fullName = `${contact.fornamn ?? ""} ${contact.efternamn ?? ""}`.trim();
+      await markContactHandled(contact.id, fullName || contact.email, admin.email, admin.name);
+      onDone();
+    } catch (e: any) {
+      setError(e?.message ?? "Något gick fel — kontrollera att du kört SQL-migrationen i Supabase.");
+      setSaving(null);
     }
   }
 
-  async function confirm() {
-    setSaving(true);
-    const fullName = `${contact.fornamn ?? ""} ${contact.efternamn ?? ""}`.trim();
-    await markContactHandled(contact.id, fullName || contact.email, selected.email, selected.name);
-    onDone();
-  }
-
   return (
-    <div style={{ background: "#0f0f0f", border: "1px solid #222", borderRadius: 10, padding: 16, marginTop: 12 }}>
-      <p style={{ fontSize: 12, color: "#888", marginBottom: 10 }}>Vem hanterade detta?</p>
+    <div style={{ background: "#0f0f0f", border: "1px solid #333", borderRadius: 10, padding: 16, marginTop: 12 }}>
+      <p style={{ fontSize: 12, color: "#999", fontWeight: 600, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        Vem hanterade detta? Klicka för att bekräfta.
+      </p>
 
-      {/* Dropdown */}
-      <div style={{ position: "relative", marginBottom: 12 }}>
-        <button
-          onClick={openDropdown}
-          style={{ width: "100%", background: "#1a1a1a", border: "1px solid #333", borderRadius: 8, padding: "9px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", color: "#fff" }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <User size={13} color="#fff" />
-            </div>
-            <div style={{ textAlign: "left" }}>
-              <p style={{ fontSize: 13, fontWeight: 500 }}>{selected.name}</p>
-              <p style={{ fontSize: 11, color: "#555" }}>{selected.email}</p>
-            </div>
-          </div>
-          <ChevronDown size={15} color="#666" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
-        </button>
+      {!loaded ? (
+        <p style={{ fontSize: 13, color: "#555", padding: "8px 0" }}>Laddar admins...</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {admins.map(a => {
+            const isSaving = saving === a.email;
+            const isDisabled = saving !== null;
+            return (
+              <button
+                key={a.email}
+                onClick={() => pick(a)}
+                disabled={isDisabled}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  background: isSaving ? "#1a3a1a" : "#1a1a1a",
+                  border: `1px solid ${isSaving ? "#22c55e" : "#2a2a2a"}`,
+                  borderRadius: 8, padding: "10px 14px", cursor: isDisabled ? "not-allowed" : "pointer",
+                  opacity: isDisabled && !isSaving ? 0.5 : 1, transition: "all 0.15s", textAlign: "left",
+                }}
+              >
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0, color: "#fff" }}>
+                  {initials(a.name)}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>
+                    {a.name}
+                    {a.email === currentAdmin.email && <span style={{ color: "#666", fontWeight: 400, fontSize: 11 }}> (du)</span>}
+                  </p>
+                  <p style={{ fontSize: 11, color: "#555" }}>{a.email}</p>
+                </div>
+                {isSaving && (
+                  <div style={{ width: 16, height: 16, border: "2px solid #22c55e", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite", flexShrink: 0 }} />
+                )}
+                {!isSaving && !isDisabled && (
+                  <CheckCircle size={15} color="#555" style={{ flexShrink: 0 }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
-        {open && (
-          <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "#1a1a1a", border: "1px solid #333", borderRadius: 8, zIndex: 50, overflow: "hidden" }}>
-            {loading ? (
-              <p style={{ padding: "12px 14px", fontSize: 13, color: "#666" }}>Laddar admins...</p>
-            ) : (
-              admins.map(a => (
-                <button
-                  key={a.email}
-                  onClick={() => { setSelected(a); setOpen(false); }}
-                  style={{ width: "100%", background: selected.email === a.email ? "#2a0000" : "transparent", border: "none", padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer", borderBottom: "1px solid #222" }}
-                >
-                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <User size={14} color="#fff" />
-                  </div>
-                  <div style={{ textAlign: "left" }}>
-                    <p style={{ fontSize: 13, fontWeight: 500, color: "#fff" }}>{a.name}</p>
-                    <p style={{ fontSize: 11, color: "#555" }}>{a.email}</p>
-                  </div>
-                  {selected.email === a.email && <CheckCircle size={14} color="#dc2626" style={{ marginLeft: "auto" }} />}
-                </button>
-              ))
-            )}
-          </div>
-        )}
-      </div>
-
-      <button
-        onClick={confirm}
-        disabled={saving}
-        style={{ width: "100%", background: saving ? "#333" : "#dc2626", color: "#fff", border: "none", borderRadius: 8, padding: "9px", fontSize: 13, fontWeight: 600, cursor: saving ? "not-allowed" : "pointer" }}
-      >
-        {saving ? "Sparar..." : "Bekräfta — markera som hanterad"}
-      </button>
+      {error && (
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#1a0000", border: "1px solid #3a0000", borderRadius: 8, padding: "10px 12px", marginTop: 12 }}>
+          <AlertCircle size={15} color="#ef4444" style={{ flexShrink: 0, marginTop: 1 }} />
+          <p style={{ fontSize: 12, color: "#ef4444", lineHeight: 1.5 }}>{error}</p>
+        </div>
+      )}
     </div>
   );
 }
 
 export default function ContactsManager({ submissions, currentAdmin }: Props) {
-  const [tab, setTab] = useState<"open" | "handled">("open");
+  const [tab, setTab]           = useState<"open" | "handled">("open");
   const [pickingId, setPickingId] = useState<string | null>(null);
   const [reopening, setReopening] = useState<string | null>(null);
+  const [reopenError, setReopenError] = useState<string | null>(null);
   const router = useRouter();
 
   const open    = submissions.filter(s => !s.status || s.status === "open");
@@ -110,22 +110,43 @@ export default function ContactsManager({ submissions, currentAdmin }: Props) {
 
   async function handleReopen(id: string) {
     setReopening(id);
-    await reopenContact(id);
+    setReopenError(null);
+    try {
+      await reopenContact(id);
+      router.refresh();
+    } catch (e: any) {
+      setReopenError(e?.message ?? "Något gick fel");
+    }
     setReopening(null);
+  }
+
+  function handleDone() {
+    setPickingId(null);
     router.refresh();
   }
 
   return (
     <div>
+      {/* Spinner keyframe */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Kontaktförfrågningar</h1>
         <p style={{ color: "#666", fontSize: 14 }}>{open.length} öppna · {handled.length} hanterade</p>
       </div>
 
+      {reopenError && (
+        <div style={{ display: "flex", gap: 8, background: "#1a0000", border: "1px solid #3a0000", borderRadius: 8, padding: "10px 14px", marginBottom: 16 }}>
+          <AlertCircle size={15} color="#ef4444" style={{ flexShrink: 0 }} />
+          <p style={{ fontSize: 13, color: "#ef4444" }}>{reopenError}</p>
+        </div>
+      )}
+
       {/* Tabs */}
       <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "#0f0f0f", border: "1px solid #1f1f1f", borderRadius: 10, padding: 4, width: "fit-content" }}>
         {([["open", `Öppna (${open.length})`], ["handled", `Hanterade (${handled.length})`]] as const).map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)} style={{ background: tab === key ? "#dc2626" : "transparent", color: tab === key ? "#fff" : "#666", border: "none", borderRadius: 7, padding: "8px 18px", fontSize: 13, fontWeight: 500, cursor: "pointer", transition: "all 0.15s" }}>
+          <button key={key} onClick={() => { setTab(key); setPickingId(null); }}
+            style={{ background: tab === key ? "#dc2626" : "transparent", color: tab === key ? "#fff" : "#666", border: "none", borderRadius: 7, padding: "8px 18px", fontSize: 13, fontWeight: 500, cursor: "pointer", transition: "all 0.15s" }}>
             {label}
           </button>
         ))}
@@ -139,7 +160,9 @@ export default function ContactsManager({ submissions, currentAdmin }: Props) {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {(tab === "open" ? open : handled).map((s: any) => (
-            <div key={s.id} style={{ background: "#141414", border: `1px solid ${s.status === "handled" ? "#14532d33" : "#1f1f1f"}`, borderRadius: 12, padding: 20 }}>
+            <div key={s.id} style={{ background: "#141414", border: `1px solid ${s.status === "handled" ? "#14532d55" : "#1f1f1f"}`, borderRadius: 12, padding: 20 }}>
+
+              {/* Header */}
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
                 <div>
                   <p style={{ fontSize: 15, fontWeight: 600 }}>{s.fornamn} {s.efternamn}</p>
@@ -153,6 +176,7 @@ export default function ContactsManager({ submissions, currentAdmin }: Props) {
                 </div>
               </div>
 
+              {/* Fields */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginBottom: 12 }}>
                 {[
                   { label: "E-post", value: s.email },
@@ -174,11 +198,11 @@ export default function ContactsManager({ submissions, currentAdmin }: Props) {
                 </div>
               )}
 
-              {/* Handled by info */}
+              {/* Who handled it (handled tab) */}
               {s.status === "handled" && s.handled_by_name && (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#0d1f0d", border: "1px solid #14532d44", borderRadius: 8, padding: "8px 12px", marginBottom: 12 }}>
-                  <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <User size={12} color="#fff" />
+                <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#0d1f0d", border: "1px solid #14532d55", borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                    {initials(s.handled_by_name)}
                   </div>
                   <p style={{ fontSize: 12, color: "#4ade80" }}>
                     Hanterades av <strong>{s.handled_by_name}</strong>
@@ -187,7 +211,7 @@ export default function ContactsManager({ submissions, currentAdmin }: Props) {
                 </div>
               )}
 
-              {/* Actions */}
+              {/* Action buttons */}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                 <a href={`mailto:${s.email}`} style={{ background: "#1f1f1f", color: "#ccc", textDecoration: "none", borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 500, border: "1px solid #2a2a2a" }}>
                   Svara via e-post
@@ -196,16 +220,22 @@ export default function ContactsManager({ submissions, currentAdmin }: Props) {
                 {s.status !== "handled" ? (
                   <button
                     onClick={() => setPickingId(pickingId === s.id ? null : s.id)}
-                    style={{ background: pickingId === s.id ? "#1a2a1a" : "#0d1f0d", color: "#4ade80", border: `1px solid ${pickingId === s.id ? "#22c55e" : "#14532d"}`, borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+                    style={{
+                      background: pickingId === s.id ? "#1a2a1a" : "#0d1f0d",
+                      color: "#4ade80",
+                      border: `1px solid ${pickingId === s.id ? "#22c55e" : "#14532d"}`,
+                      borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 500,
+                      cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+                    }}
                   >
                     <CheckCircle size={14} />
-                    Markera hanterad
+                    {pickingId === s.id ? "Avbryt" : "Markera hanterad"}
                   </button>
                 ) : (
                   <button
                     onClick={() => handleReopen(s.id)}
                     disabled={reopening === s.id}
-                    style={{ background: "#1a1a1a", color: "#888", border: "1px solid #2a2a2a", borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+                    style={{ background: "#1a1a1a", color: "#888", border: "1px solid #2a2a2a", borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 500, cursor: reopening === s.id ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6 }}
                   >
                     <RotateCcw size={13} />
                     {reopening === s.id ? "..." : "Återöppna"}
@@ -213,13 +243,9 @@ export default function ContactsManager({ submissions, currentAdmin }: Props) {
                 )}
               </div>
 
-              {/* Handler picker inline */}
+              {/* Admin picker — opens below actions */}
               {pickingId === s.id && (
-                <HandlerPicker
-                  contact={s}
-                  currentAdmin={currentAdmin}
-                  onDone={() => { setPickingId(null); router.refresh(); }}
-                />
+                <AdminPicker contact={s} currentAdmin={currentAdmin} onDone={handleDone} />
               )}
             </div>
           ))}

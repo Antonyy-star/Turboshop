@@ -35,7 +35,7 @@ export async function updateProduct(id: string, data: {
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { error } = await supabase.from("products").update(data).eq("id", id);
+  const { error } = await supabase.from("products").upsert({ id, ...data });
   if (error) throw new Error(error.message);
   await logActivity(supabase, user!, { action_type: "product_updated", entity_type: "product", entity_id: id, entity_name: data.name, metadata: { brand: data.brand, price: data.price } });
   revalidatePath("/admin/products");
