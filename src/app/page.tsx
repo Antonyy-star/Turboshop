@@ -86,10 +86,10 @@ export default async function Home() {
               </h1>
               <p className="text-gray-400 text-[9px] md:text-lg mb-6 md:mb-8 max-w-md">{hero.subtext}</p>
               <div className="flex gap-3 flex-wrap">
-                <Link href={hero.button1_href} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
+                <Link href={hero.button1_href} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-2 py-0.5 md:px-6 md:py-3 rounded-md transition text-[8px] md:text-base">
                   {hero.button1_label}
                 </Link>
-                <Link href={hero.button2_href} className="border border-gray-500 hover:border-white text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
+                <Link href={hero.button2_href} className="border border-gray-500 hover:border-white text-white font-semibold px-2 py-0.5 md:px-6 md:py-3 rounded-md transition text-[8px] md:text-base">
                   {hero.button2_label}
                 </Link>
               </div>
