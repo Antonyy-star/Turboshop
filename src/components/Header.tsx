@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import AdvancedBadge from "./AdvancedBadge";
 import LogoViewerWrapper from "./LogoViewerWrapper";
+import SearchBar from "./SearchBar";
 
 const brandLogos = [
   { name: "Garrett", logo: "/brands/kisspng-turbocharger-garrett-airesearch-business-engine-in-garrett-5b3dfc697c5e14.6655578415307889695094.jpg" },
@@ -68,8 +69,7 @@ export default function Header() {
           </Link>
 
           <div className="hidden md:flex flex-1 max-w-xl">
-            <input type="text" placeholder="Sök på artikelnummer, varumärke eller modell..." className="w-full border border-gray-300 rounded-l-md px-4 py-2 text-sm focus:outline-none focus:border-red-500" />
-            <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-r-md transition text-sm">Sök</button>
+            <SearchBar />
           </div>
 
           <div className="flex items-center gap-3">
@@ -100,10 +100,7 @@ export default function Header() {
 
         {/* Mobile search */}
         <div className="md:hidden px-4 pb-2">
-          <div className="flex">
-            <input type="text" placeholder="Sök..." className="w-full border border-gray-300 rounded-l-md px-3 py-2 text-sm focus:outline-none focus:border-red-500" />
-            <button className="bg-red-600 text-white px-3 py-2 rounded-r-md text-sm">Sök</button>
-          </div>
+          <SearchBar mobile />
         </div>
 
         {/* Desktop nav */}
