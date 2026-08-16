@@ -121,6 +121,33 @@ export async function updateProduct(id: string, data: {
   });
 }
 
+export async function updateProductStock(id: string, in_stock: boolean) {
+  const supabase = await createClient();
+  const { data: prod } = await supabase
+    .from("products")
+    .select("name, in_stock")
+    .eq("id", id)
+    .single();
+
+  const { error } = await supabase
+    .from("products")
+    .update({ in_stock })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidateAll();
+  const { data: authData } = await supabase.auth.getUser();
+  await logActivity(supabase, authData?.user, {
+    action_type: "product_updated",
+    entity_type: "product",
+    entity_id: id,
+    entity_name: prod?.name ?? id,
+    metadata: {
+      lager_ändrat: `${prod?.in_stock ? "I lager" : "Slut"} → ${in_stock ? "I lager" : "Slut"}`,
+    },
+  });
+}
+
 export async function deleteProduct(id: string) {
   const supabase = await createClient();
   const { data: prod } = await supabase

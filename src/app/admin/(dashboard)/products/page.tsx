@@ -6,8 +6,8 @@ export default async function AdminProducts() {
   const supabase = await createClient();
   const { data: existing } = await supabase.from("products").select("id").limit(1);
 
-  // Auto-seed real products into DB on first visit
   if (!existing || existing.length === 0) {
+    // First-time seed: insert all real products
     await supabase.from("products").upsert(
       realProducts.map(p => ({
         id: p.id,
@@ -24,6 +24,13 @@ export default async function AdminProducts() {
       })),
       { ignoreDuplicates: true }
     );
+  } else {
+    // Fix products seeded before the category column existed (category = null)
+    await supabase
+      .from("products")
+      .update({ category: "Turboladdare" })
+      .is("category", null)
+      .in("id", realProducts.map(p => p.id));
   }
 
   const { data: products } = await supabase

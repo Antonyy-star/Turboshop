@@ -189,8 +189,8 @@ export default async function BrandPage({
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 py-8 flex gap-6">
-          <aside className="w-56 flex-shrink-0">
+        <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
+          <aside className="hidden md:block w-56 flex-shrink-0">
             <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
               <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Kategori</h3>
               <ul className="space-y-2">

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Package, Pencil, Trash2 } from "lucide-react";
 import ProductForm from "@/components/admin/ProductForm";
 import EditProductForm from "@/components/admin/EditProductForm";
-import { deleteProduct } from "@/app/actions/products";
+import { deleteProduct, updateProductStock } from "@/app/actions/products";
 import { useRouter } from "next/navigation";
 
 export default function ProductsManager({ initialProducts }: { initialProducts: any[] }) {
@@ -12,7 +12,20 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
   const [editProduct, setEditProduct] = useState<any | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [togglingStock, setTogglingStock] = useState<string | null>(null);
   const router = useRouter();
+
+  async function handleToggleStock(id: string, current: boolean) {
+    if (togglingStock) return;
+    setTogglingStock(id);
+    try {
+      await updateProductStock(id, !current);
+      router.refresh();
+    } catch {
+      alert("Kunde inte uppdatera lagerstatus. Försök igen.");
+    }
+    setTogglingStock(null);
+  }
 
   function handleSaved() {
     setShowForm(false);
@@ -56,7 +69,8 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
         </div>
       ) : (
       <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
           <thead>
             <tr style={{ borderBottom: "1px solid #1f1f1f", background: "#0f0f0f" }}>
               {["Produkt", "Varumärke", "Kategori", "Pris", "Status", ""].map((h, i) => (
@@ -99,13 +113,21 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
                 <td style={{ padding: "14px 16px", fontSize: 14, color: "#999" }}>{p.category ?? "—"}</td>
                 <td style={{ padding: "14px 16px", fontSize: 14, fontWeight: 600 }}>{Number(p.price).toLocaleString("sv-SE")} kr</td>
                 <td style={{ padding: "14px 16px" }}>
-                  <span style={{
-                    background: p.in_stock !== false ? "#14532d" : "#450a0a",
-                    color: p.in_stock !== false ? "#4ade80" : "#f87171",
-                    fontSize: 12, fontWeight: 500, padding: "3px 8px", borderRadius: 6,
-                  }}>
-                    {p.in_stock !== false ? "I lager" : "Slut"}
-                  </span>
+                  <button
+                    onClick={() => handleToggleStock(p.id, p.in_stock !== false)}
+                    disabled={togglingStock === p.id}
+                    title="Klicka för att växla lagerstatus"
+                    style={{
+                      background: togglingStock === p.id ? "#1a1a1a" : (p.in_stock !== false ? "#14532d" : "#450a0a"),
+                      color: p.in_stock !== false ? "#4ade80" : "#f87171",
+                      fontSize: 12, fontWeight: 500, padding: "3px 8px", borderRadius: 6,
+                      border: "none", cursor: togglingStock === p.id ? "wait" : "pointer",
+                      opacity: togglingStock === p.id ? 0.6 : 1,
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {togglingStock === p.id ? "..." : (p.in_stock !== false ? "I lager" : "Slut")}
+                  </button>
                 </td>
                 <td style={{ padding: "14px 16px" }}>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
@@ -129,6 +151,7 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
             ))}
           </tbody>
         </table>
+        </div>
       </div>
       )}
 
