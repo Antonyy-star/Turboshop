@@ -44,9 +44,8 @@ export default function Footer() {
 
         {/* Kontakt */}
         <div>
-          <div className="flex items-center gap-3 pb-2 border-b border-red-600/25 mb-3">
+          <div className="pb-2 border-b border-red-600/25 mb-3">
             <h4 className="font-semibold text-sm uppercase tracking-widest">Kontakt</h4>
-            <OpenStatusBadge />
           </div>
           <ul className="space-y-2 text-gray-400 text-sm">
             <li>📞 +46 72 911 00 35</li>
@@ -68,7 +67,10 @@ export default function Footer() {
           </div>
 
           <div className="text-gray-400 text-sm leading-relaxed">
-            <span className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Öppettider</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-gray-500 text-xs uppercase tracking-wide">Öppettider</span>
+              <OpenStatusBadge />
+            </div>
             Mån–Fre: 09.00 – 18.00<br />
             Lör: 10.00 – 15.00
           </div>
