@@ -1,38 +1,54 @@
-import { FileText } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import ContentEditor, { SiteContent } from "@/components/admin/ContentEditor";
 
-export default function AdminContent() {
-  return (
-    <div>
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Innehåll</h1>
-        <p style={{ color: "#666", fontSize: 14 }}>Redigera texter och bilder på hemsidan</p>
-      </div>
+const defaults: SiteContent = {
+  hero: {
+    eyebrow: "Frakt över hela världen",
+    heading: "Premium turbos &\nbildelar",
+    subtext: "OEM och eftermarknads turboladdare, patroner och delar för alla märken och modeller. Snabb leverans, expertsupport.",
+    button1_label: "Handla turbos",
+    button1_href: "/kategori/turboladdare",
+    button2_label: "Visa alla delar",
+    button2_href: "/kategori/delar",
+  },
+  feature1: {
+    eyebrow: "Rubrik här",
+    heading: "Din text kommer\natt synas här",
+    body: "Beskriv din produkt, tjänst eller fördel här. Berätta för kunden varför de ska välja er. Kort, tydligt och övertygande.",
+    button_label: "Läs mer →",
+    button_href: "/kategori/turboladdare",
+    image: "/Images/Bilden1.jpeg",
+  },
+  feature2: {
+    eyebrow: "Rubrik här",
+    heading: "Din text kommer\natt synas här",
+    body: "Beskriv din produkt, tjänst eller fördel här. Berätta för kunden varför de ska välja er. Kort, tydligt och övertygande.",
+    button_label: "Läs mer →",
+    button_href: "/kategori/turboladdare",
+    image: "/Images/teknik1.jpeg",
+  },
+  why: {
+    cards: [
+      { title: "Expertkunskap",    desc: "Vårt team är turbospecialister med decennier av erfarenhet." },
+      { title: "Snabb leverans",   desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över." },
+      { title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning." },
+    ],
+  },
+};
 
-      <div style={{ display: "grid", gap: 16 }}>
-        {[
-          { title: "Hero-sektion", desc: "Rubrik, undertext och knappar i hjältebilden" },
-          { title: "Bild + text sektion 1", desc: "Text bredvid första bilden" },
-          { title: "Bild + text sektion 2", desc: "Text bredvid andra bilden" },
-          { title: "Varför TurboTeknik", desc: "De tre kortsektionerna längst ned" },
-        ].map(({ title, desc }) => (
-          <div key={title} style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <FileText size={20} color="#555" />
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 600 }}>{title}</p>
-                <p style={{ fontSize: 12, color: "#666", marginTop: 2 }}>{desc}</p>
-              </div>
-            </div>
-            <button style={{ background: "#1f1f1f", color: "#ccc", border: "1px solid #2a2a2a", borderRadius: 6, padding: "7px 14px", fontSize: 13, cursor: "pointer" }}>
-              Redigera
-            </button>
-          </div>
-        ))}
-      </div>
+export default async function AdminContent() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("site_content").select("key, content");
 
-      <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, padding: 24, marginTop: 24 }}>
-        <p style={{ color: "#555", fontSize: 13, textAlign: "center" }}>Full innehållsredigering kräver en CMS-integration. Kontakta din utvecklare för att aktivera detta.</p>
-      </div>
-    </div>
-  );
+  const db: Record<string, any> = {};
+  data?.forEach(row => { db[row.key] = row.content; });
+
+  const content: SiteContent = {
+    hero:     db.hero     ?? defaults.hero,
+    feature1: db.feature1 ?? defaults.feature1,
+    feature2: db.feature2 ?? defaults.feature2,
+    why:      db.why      ?? defaults.why,
+  };
+
+  return <ContentEditor initialContent={content} />;
 }

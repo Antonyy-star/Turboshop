@@ -50,3 +50,20 @@ create policy "Anyone can read products"
 create policy "Admins can manage products"
   on products for all
   using (auth.role() = 'authenticated');
+
+-- Site content (CMS)
+create table if not exists site_content (
+  key text primary key,
+  content jsonb not null default '{}',
+  updated_at timestamp with time zone default now()
+);
+
+alter table site_content enable row level security;
+
+create policy "Public can read site content"
+  on site_content for select
+  using (true);
+
+create policy "Admins can manage site content"
+  on site_content for all
+  using (auth.role() = 'authenticated');
