@@ -78,17 +78,17 @@ export default function Home() {
         <section className="bg-black py-12">
           <div className="max-w-7xl mx-auto px-4">
             <h2 className="text-2xl font-bold mb-6 text-white text-center">Handla efter kategori</h2>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-2 md:gap-4">
               {categories.map((cat) => (
                 <Link
                   key={cat.name}
                   href={cat.href}
-                  className="feature-card block p-4 text-center"
-                  style={{ textDecoration: "none", width: 160 }}
+                  className="feature-card category-card block p-2 md:p-4 text-center"
+                  style={{ textDecoration: "none", width: 152 }}
                 >
-                  <cat.Icon size={36} color="#DC2626" strokeWidth={1.8} className="mx-auto mb-2" />
-                  <h3 className="font-semibold text-sm text-white leading-tight">{cat.name}</h3>
-                  <p className="text-xs text-gray-400 mt-1">{cat.desc}</p>
+                  <cat.Icon size={36} color="#DC2626" strokeWidth={1.8} className="category-card-icon mx-auto mb-1 md:mb-2" />
+                  <h3 className="font-semibold text-xs md:text-sm text-white leading-tight">{cat.name}</h3>
+                  <p className="text-[10px] md:text-xs text-gray-400 mt-0.5 md:mt-1">{cat.desc}</p>
                 </Link>
               ))}
             </div>
