@@ -104,12 +104,12 @@ export default async function Home() {
         <section className="bg-black py-16">
           <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-10 md:gap-16">
             <div className="flex-1">
-              <p className="text-red-500 text-[11px] md:text-sm font-semibold uppercase tracking-widest mb-3">{feature1.eyebrow}</p>
-              <h2 className="text-[22px] md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
+              <p className="text-red-500 text-[8px] md:text-sm font-semibold uppercase tracking-widest mb-3">{feature1.eyebrow}</p>
+              <h2 className="text-[12px] md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {feature1.heading}
               </h2>
-              <p className="text-[13px] md:text-base leading-relaxed mb-6 text-gray-400">{feature1.body}</p>
-              <Link href={feature1.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition text-sm">
+              <p className="text-[9px] md:text-base leading-relaxed mb-6 text-gray-400">{feature1.body}</p>
+              <Link href={feature1.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-2 py-0.5 md:px-6 md:py-3 rounded-md transition text-[8px] md:text-sm">
                 {feature1.button_label}
               </Link>
             </div>
@@ -125,12 +125,12 @@ export default async function Home() {
         <section className="bg-black py-16" style={{ borderTop: "1px solid #111" }}>
           <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row-reverse items-center gap-10 md:gap-16">
             <div className="flex-1">
-              <p className="text-red-500 text-[11px] md:text-sm font-semibold uppercase tracking-widest mb-3">{feature2.eyebrow}</p>
-              <h2 className="text-[22px] md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
+              <p className="text-red-500 text-[8px] md:text-sm font-semibold uppercase tracking-widest mb-3">{feature2.eyebrow}</p>
+              <h2 className="text-[12px] md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {feature2.heading}
               </h2>
-              <p className="text-[13px] md:text-base leading-relaxed mb-6 text-gray-400">{feature2.body}</p>
-              <Link href={feature2.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition text-sm">
+              <p className="text-[9px] md:text-base leading-relaxed mb-6 text-gray-400">{feature2.body}</p>
+              <Link href={feature2.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-2 py-0.5 md:px-6 md:py-3 rounded-md transition text-[8px] md:text-sm">
                 {feature2.button_label}
               </Link>
             </div>
