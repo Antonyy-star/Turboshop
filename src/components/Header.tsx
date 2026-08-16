@@ -62,7 +62,7 @@ export default function Header() {
   return (
     <>
       {/* ─── HEADER (never changes, no mobile state) ─── */}
-      <header ref={headerRef} className="bg-white sticky top-0 z-50">
+      <header ref={headerRef} className={`sticky top-0 z-50 transition-colors duration-150 ${menuOpen ? "bg-black md:bg-white" : "bg-white"}`}>
 
         {/* Top bar — desktop only */}
         <div className="hidden md:block bg-black text-white text-xs py-2">
@@ -109,7 +109,7 @@ export default function Header() {
 
             {/* Hamburger / X — mobile only */}
             <button
-              className="md:hidden p-2 text-gray-700"
+              className={`md:hidden p-2 transition-colors duration-150 ${menuOpen ? "text-white" : "text-gray-700"}`}
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Meny"
             >
@@ -129,7 +129,13 @@ export default function Header() {
         {/* Mobile search */}
         <div className="md:hidden px-4 pb-2">
           <div className="flex">
-            <input type="text" placeholder="Sök..." className="w-full border border-gray-300 rounded-l-md px-3 py-2 text-sm focus:outline-none focus:border-red-500" />
+            <input
+              type="text"
+              placeholder="Sök..."
+              className={`w-full border rounded-l-md px-3 py-2 text-sm focus:outline-none focus:border-red-500 transition-colors duration-150 ${
+                menuOpen ? "border-gray-600 bg-gray-900 text-white placeholder-gray-500" : "border-gray-300 bg-white text-black"
+              }`}
+            />
             <button className="bg-red-600 text-white px-3 py-2 rounded-r-md text-sm">Sök</button>
           </div>
         </div>
