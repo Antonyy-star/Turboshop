@@ -119,52 +119,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Utvalda produkter */}
-        <section className="max-w-7xl mx-auto px-4 py-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-black">Utvalda produkter</h2>
-            <Link href="/produkter" className="text-red-600 hover:text-red-700 text-sm font-medium transition">
-              Visa alla →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {featuredProducts.map((product) => (
-              <Link
-                key={product.id}
-                href={`/produkt/${product.id}`}
-                className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition"
-              >
-                <div className="bg-gray-100 h-44 flex items-center justify-center relative">
-                  {product.images[0] ? (
-                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain p-2" />
-                  ) : (
-                    <span className="text-5xl">⚙️</span>
-                  )}
-                  {product.badge && (
-                    <span className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-1 rounded ${product.badge === "Rea" ? "bg-red-600" : "bg-green-600"}`}>
-                      {product.badge}
-                    </span>
-                  )}
-                </div>
-                <div className="p-4">
-                  <p className="text-xs text-gray-500 mb-1">{product.brand}</p>
-                  <h3 className="font-semibold text-sm text-black group-hover:text-red-600 transition leading-tight mb-2">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-black">{product.price.toLocaleString("sv-SE")} kr</span>
-                    {product.originalPrice && (
-                      <span className="text-sm text-gray-400 line-through">{product.originalPrice.toLocaleString("sv-SE")} kr</span>
-                    )}
-                  </div>
-                  <button className="mt-3 w-full bg-black hover:bg-red-600 text-white text-sm font-medium py-2 rounded transition">
-                    Lägg i varukorg
-                  </button>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
 
         {/* Varför oss */}
         <section className="bg-black text-white py-12">
