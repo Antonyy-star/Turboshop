@@ -80,11 +80,11 @@ export default async function Home() {
           <div className="absolute inset-0 z-0 bg-gradient-to-r from-black via-black/60 to-black" />
           <div className="relative z-10 max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1">
-              <p className="text-red-400 font-semibold text-[11px] md:text-sm uppercase tracking-widest mb-3">{hero.eyebrow}</p>
-              <h1 className="text-[20px] md:text-5xl font-black leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
+              <p className="text-red-400 font-semibold text-[8px] md:text-sm uppercase tracking-widest mb-3">{hero.eyebrow}</p>
+              <h1 className="text-[12px] md:text-5xl font-black leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {hero.heading}
               </h1>
-              <p className="text-gray-400 text-[13px] md:text-lg mb-6 md:mb-8 max-w-md">{hero.subtext}</p>
+              <p className="text-gray-400 text-[9px] md:text-lg mb-6 md:mb-8 max-w-md">{hero.subtext}</p>
               <div className="flex gap-3 flex-wrap">
                 <Link href={hero.button1_href} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
                   {hero.button1_label}
