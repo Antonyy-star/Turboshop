@@ -119,6 +119,21 @@ body {
   }
 }
 
+/* mobile: ~65vw so 1.5 cards fit; desktop: fixed 300px */
+.feature-card-wrap {
+  width: 65vw;
+  max-width: 300px;
+  flex-shrink: 0;
+  padding-right: 16px;
+}
+
+@media (min-width: 768px) {
+  .feature-card-wrap {
+    width: 300px;
+    padding-right: 24px;
+  }
+}
+
 .feature-track {
   display: flex;
   width: max-content;

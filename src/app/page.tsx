@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import { Wrench, Package, ShieldCheck } from "lucide-react";
 import { realProducts } from "@/lib/realProducts";
 import TurboViewerWrapper from "@/components/TurboViewerWrapper";
 
@@ -185,21 +186,21 @@ export default function Home() {
 
             <div className="feature-track">
               {[
-                { icon: "🔧", title: "Expertkunskap", desc: "Vårt team är turbospecialister med decennier av erfarenhet.", delay: "0s" },
-                { icon: "📦", title: "Snabb leverans", desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över.", delay: "1s" },
-                { icon: "✅", title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning.", delay: "2s" },
-                { icon: "🔧", title: "Expertkunskap", desc: "Vårt team är turbospecialister med decennier av erfarenhet.", delay: "0s" },
-                { icon: "📦", title: "Snabb leverans", desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över.", delay: "1s" },
-                { icon: "✅", title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning.", delay: "2s" },
+                { Icon: Wrench,      title: "Expertkunskap",    desc: "Vårt team är turbospecialister med decennier av erfarenhet.",                         delay: "0s" },
+                { Icon: Package,     title: "Snabb leverans",   desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över.",              delay: "1s" },
+                { Icon: ShieldCheck, title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning.",              delay: "2s" },
+                { Icon: Wrench,      title: "Expertkunskap",    desc: "Vårt team är turbospecialister med decennier av erfarenhet.",                         delay: "0s" },
+                { Icon: Package,     title: "Snabb leverans",   desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över.",              delay: "1s" },
+                { Icon: ShieldCheck, title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning.",              delay: "2s" },
               ].map((item, i) => (
-                <div key={i} style={{ width: 300, flexShrink: 0, paddingRight: 24 }}>
+                <div key={i} className="feature-card-wrap">
                   <div
-                    className="feature-card p-7 text-center h-full"
+                    className="feature-card p-4 md:p-7 text-center"
                     style={{ animationDelay: item.delay }}
                   >
-                    <div className="text-4xl mb-4">{item.icon}</div>
-                    <h3 className="font-bold text-lg mb-2 text-white">{item.title}</h3>
-                    <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                    <item.Icon size={28} className="mx-auto mb-3 md:mb-4 md:w-9 md:h-9" color="#DC2626" strokeWidth={1.8} />
+                    <h3 className="font-bold text-sm md:text-lg mb-1 md:mb-2 text-white">{item.title}</h3>
+                    <p className="text-gray-400 text-xs md:text-sm leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
