@@ -175,35 +175,18 @@ export default function Home() {
         {/* Varför oss */}
         <section className="bg-black text-white py-12">
           <h2 className="text-2xl font-bold text-center mb-10 px-4">Varför välja TurboTeknik?</h2>
-          <div className="relative overflow-hidden">
-            {/* Left fade */}
-            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 z-10"
-              style={{ background: "linear-gradient(to right, #000 30%, transparent)" }} />
-            {/* Right fade */}
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 z-10"
-              style={{ background: "linear-gradient(to left, #000 30%, transparent)" }} />
-
-            <div className="feature-track">
-              {[
-                { Icon: Wrench,      title: "Expertkunskap",    desc: "Vårt team är turbospecialister med decennier av erfarenhet.",                         delay: "0s" },
-                { Icon: Package,     title: "Snabb leverans",   desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över.",              delay: "1s" },
-                { Icon: ShieldCheck, title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning.",              delay: "2s" },
-                { Icon: Wrench,      title: "Expertkunskap",    desc: "Vårt team är turbospecialister med decennier av erfarenhet.",                         delay: "0s" },
-                { Icon: Package,     title: "Snabb leverans",   desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över.",              delay: "1s" },
-                { Icon: ShieldCheck, title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning.",              delay: "2s" },
-              ].map((item, i) => (
-                <div key={i} className="feature-card-wrap">
-                  <div
-                    className="feature-card p-4 md:p-7 text-center"
-                    style={{ animationDelay: item.delay }}
-                  >
-                    <item.Icon size={28} className="mx-auto mb-3 md:mb-4 md:w-9 md:h-9" color="#DC2626" strokeWidth={1.8} />
-                    <h3 className="font-bold text-sm md:text-lg mb-1 md:mb-2 text-white">{item.title}</h3>
-                    <p className="text-gray-400 text-xs md:text-sm leading-relaxed">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-center gap-4 md:gap-6">
+            {[
+              { Icon: Wrench,      title: "Expertkunskap",    desc: "Vårt team är turbospecialister med decennier av erfarenhet." },
+              { Icon: Package,     title: "Snabb leverans",   desc: "Beställningar före kl. 14:00 skickas samma dag. Leverans världen över." },
+              { Icon: ShieldCheck, title: "Kvalitetsgaranti", desc: "Alla delar testade och verifierade. Full garanti på varje beställning." },
+            ].map((item, i) => (
+              <div key={i} className="feature-card flex-1 p-6 md:p-8 text-center">
+                <item.Icon size={32} className="mx-auto mb-4" color="#DC2626" strokeWidth={1.8} />
+                <h3 className="font-bold text-base md:text-lg mb-2 text-white">{item.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
           </div>
         </section>
       </main>
