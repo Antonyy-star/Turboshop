@@ -74,27 +74,6 @@ export default function Home() {
         {/* Decorative accent strip */}
         <div className="lava-bar" style={{ height: 6 }} />
 
-        {/* Kategorier */}
-        <section className="bg-black py-12">
-          <div className="max-w-7xl mx-auto px-4">
-            <h2 className="text-2xl font-bold mb-6 text-white text-center">Handla efter kategori</h2>
-            <div className="flex flex-nowrap overflow-x-auto md:flex-wrap md:justify-center gap-2 md:gap-4 pb-2 md:pb-0" style={{ scrollbarWidth: "none" }}>
-              {categories.map((cat) => (
-                <Link
-                  key={cat.name}
-                  href={cat.href}
-                  className="feature-card category-card block p-2 md:p-4 text-center flex-shrink-0"
-                  style={{ textDecoration: "none", width: 130, minWidth: 130 }}
-                >
-                  <cat.Icon size={36} color="#DC2626" strokeWidth={1.8} className="category-card-icon mx-auto mb-1 md:mb-2" />
-                  <h3 className="font-semibold text-xs md:text-sm text-white leading-tight">{cat.name}</h3>
-                  <p className="text-[10px] md:text-xs text-gray-400 mt-0.5 md:mt-1">{cat.desc}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Feature section 1 — text left, image right */}
         <section className="bg-black py-16">
           <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-10 md:gap-16">
@@ -137,6 +116,27 @@ export default function Home() {
               <div className="rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid #333", height: 320, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span className="text-gray-600 text-sm">Bild kommer här</span>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Kategorier */}
+        <section className="bg-black py-12">
+          <div className="max-w-7xl mx-auto px-4">
+            <h2 className="text-2xl font-bold mb-6 text-white text-center">Handla efter kategori</h2>
+            <div className="flex flex-nowrap overflow-x-auto md:flex-wrap md:justify-center gap-2 md:gap-4 pb-2 md:pb-0" style={{ scrollbarWidth: "none" }}>
+              {categories.map((cat) => (
+                <Link
+                  key={cat.name}
+                  href={cat.href}
+                  className="feature-card category-card block p-2 md:p-4 text-center flex-shrink-0"
+                  style={{ textDecoration: "none", width: 130, minWidth: 130 }}
+                >
+                  <cat.Icon size={36} color="#DC2626" strokeWidth={1.8} className="category-card-icon mx-auto mb-1 md:mb-2" />
+                  <h3 className="font-semibold text-xs md:text-sm text-white leading-tight">{cat.name}</h3>
+                  <p className="text-[10px] md:text-xs text-gray-400 mt-0.5 md:mt-1">{cat.desc}</p>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
