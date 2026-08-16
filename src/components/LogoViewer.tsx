@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
-const SIZE = 70;
+const SIZE = 80;
 
 export default function LogoViewer() {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -69,11 +70,12 @@ export default function LogoViewer() {
     };
     animate();
 
-    const loader = new OBJLoader();
+    const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
     loader.load(
-      "/3d%20Logo/Logo.obj",
-      (obj) => {
-        obj.children.forEach((child) => {
+      "/3d%20Logo/Logo.pack.glb",
+      (gltf) => {
+        gltf.scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             const color = colorMap[child.name] ?? 0x111111;
             child.material = new THREE.MeshStandardMaterial({
@@ -83,14 +85,14 @@ export default function LogoViewer() {
             });
           }
         });
-        const box = new THREE.Box3().setFromObject(obj);
+        const box = new THREE.Box3().setFromObject(gltf.scene);
         const center = box.getCenter(new THREE.Vector3());
         const maxDim = Math.max(...box.getSize(new THREE.Vector3()).toArray());
-        obj.position.sub(center);
-        obj.position.y -= 0.2;
-        obj.scale.setScalar(3 / maxDim);
-        scene.add(obj);
-        logoObj = obj;
+        gltf.scene.position.sub(center);
+        gltf.scene.position.y -= 0.2;
+        gltf.scene.scale.setScalar(3 / maxDim);
+        scene.add(gltf.scene);
+        logoObj = gltf.scene;
         setLoaded(true);
       },
       undefined,
@@ -109,16 +111,7 @@ export default function LogoViewer() {
   }, []);
 
   if (failed) {
-    return (
-      <div style={{ width: SIZE, height: SIZE, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-          <circle cx="22" cy="22" r="20" stroke="#cc0000" strokeWidth="2.5" />
-          <circle cx="22" cy="22" r="7" fill="#cc0000" />
-          <circle cx="22" cy="22" r="3" fill="#fff" />
-          <path d="M22 4v6M22 34v6M4 22h6M34 22h6M9 9l4 4M31 31l4 4M31 9l4-4M9 35l4-4" stroke="#cc0000" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
-      </div>
-    );
+    return <div style={{ width: SIZE, height: SIZE }} />;
   }
 
   return (
