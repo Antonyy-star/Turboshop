@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, Package, MessageSquare, Users, FileText, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, MessageSquare, Users, FileText, LogOut, ClipboardList } from "lucide-react";
 
 const navItems = [
-  { href: "/admin",           label: "Översikt",             Icon: LayoutDashboard },
-  { href: "/admin/products",  label: "Produkter",            Icon: Package },
-  { href: "/admin/orders",    label: "Kontaktförfrågningar", Icon: MessageSquare },
-  { href: "/admin/customers", label: "Kunder",               Icon: Users },
-  { href: "/admin/content",   label: "Innehåll",             Icon: FileText },
+  { href: "/admin",            label: "Översikt",             Icon: LayoutDashboard },
+  { href: "/admin/products",   label: "Produkter",            Icon: Package },
+  { href: "/admin/orders",     label: "Kontaktförfrågningar", Icon: MessageSquare },
+  { href: "/admin/customers",  label: "Kunder",               Icon: Users },
+  { href: "/admin/content",    label: "Innehåll",             Icon: FileText },
+  { href: "/admin/activity",   label: "Ändringslogg",         Icon: ClipboardList },
 ];
 
 const SIDEBAR_W = 240;
