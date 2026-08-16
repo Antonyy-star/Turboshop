@@ -63,9 +63,11 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       </aside>
 
       {/* Mobile top bar */}
-      <div className="md:hidden" style={{ position: "fixed", top: 0, left: 0, right: 0, height: 56, background: "#111", borderBottom: "1px solid #1f1f1f", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", zIndex: 50 }}>
-        <span style={{ fontSize: 16, fontWeight: 900, color: "#fff" }}>TURBO<span style={{ color: "#ef4444" }}>TEKNIK</span></span>
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer" }}>
+      <div className="md:hidden" style={{ position: "fixed", top: 0, left: 0, right: 0, height: 56, background: "#111", borderBottom: "1px solid #1f1f1f", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", zIndex: 50, overflow: "hidden" }}>
+        <span style={{ fontSize: 16, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flexShrink: 1, minWidth: 0 }}>
+          TURBO<span style={{ color: "#ef4444" }}>TEKNIK</span>
+        </span>
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", flexShrink: 0, marginLeft: 12 }}>
           {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
@@ -82,7 +84,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       )}
 
       {/* Main content */}
-      <main style={{ flex: 1, padding: "32px" }} className="md:ml-60 ml-0 mt-14 md:mt-0">
+      <main style={{ flex: 1 }} className="md:ml-60 ml-0 pt-20 md:pt-8 px-8 pb-8">
         {children}
       </main>
     </div>
