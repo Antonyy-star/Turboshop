@@ -114,7 +114,7 @@ export default async function Home() {
               </Link>
             </div>
             <div className="flex-1 w-full">
-              <div className="rounded-2xl overflow-hidden" style={{ height: 320 }}>
+              <div className="rounded-2xl overflow-hidden h-[200px] md:h-[320px]">
                 <img src={feature1.image} alt="" className="w-full h-full object-cover" />
               </div>
             </div>
@@ -135,7 +135,7 @@ export default async function Home() {
               </Link>
             </div>
             <div className="flex-1 w-full">
-              <div className="rounded-2xl overflow-hidden" style={{ height: 320 }}>
+              <div className="rounded-2xl overflow-hidden h-[200px] md:h-[320px]">
                 <img src={feature2.image} alt="" className="w-full h-full object-cover" />
               </div>
             </div>
