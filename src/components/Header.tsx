@@ -80,7 +80,7 @@ export default function Header() {
               <span className="text-sm font-medium hidden sm:inline">Varukorg (0)</span>
             </Link>
 
-            <Link href="/account" className="flex items-center p-1 hover:opacity-70 transition">
+            <Link href="/admin/login" className="flex items-center p-1 hover:opacity-70 transition">
               <svg className="w-6 h-6" fill="black" stroke="black" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
