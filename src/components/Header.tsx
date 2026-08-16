@@ -59,6 +59,7 @@ export default function Header() {
           <img
             src="/3d%20Logo/turboteknik_wordmark_transparent.png"
             alt="TurboTeknik"
+            className="hidden sm:block"
             style={{ height: 22, width: "auto", maxWidth: 130, marginLeft: -4, flexShrink: 1 }}
           />
         </Link>
