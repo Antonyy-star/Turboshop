@@ -36,7 +36,7 @@ export default function Header() {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       {/* Top bar — hidden on mobile */}
-      <div className="bg-gray-900 text-white text-xs py-2 hidden md:block">
+      <div className="bg-black text-white text-xs py-2 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <span>📞 +46 72 911 00 35</span>
@@ -112,7 +112,7 @@ export default function Header() {
       </div>
 
       {/* Desktop nav */}
-      <nav className="bg-gray-900 text-white hidden md:block">
+      <nav className="bg-black text-white hidden md:block">
         <div className="max-w-7xl mx-auto px-4">
           <ul className="flex items-center">
             {categories.map((cat) => (
@@ -141,7 +141,7 @@ export default function Header() {
                 )}
 
                 {activeMenu === cat.name && cat.type === "brands" && (
-                  <div className="absolute top-full left-0 bg-white text-gray-900 shadow-xl border border-gray-200 z-50 p-4" style={{ width: 420 }}>
+                  <div className="absolute top-full left-0 bg-white text-black shadow-xl border border-gray-200 z-50 p-4" style={{ width: 420 }}>
                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Handla efter varumärke</p>
                     <div className="grid grid-cols-4 gap-2">
                       {brandLogos.map((brand) => (
@@ -160,7 +160,7 @@ export default function Header() {
                 )}
 
                 {activeMenu === cat.name && cat.type === "list" && (
-                  <ul className="absolute top-full left-0 bg-white text-gray-900 shadow-xl border border-gray-200 min-w-[220px] z-50">
+                  <ul className="absolute top-full left-0 bg-white text-black shadow-xl border border-gray-200 min-w-[220px] z-50">
                     {cat.subcategories?.map((sub) => (
                       <li key={sub}>
                         <Link href={`/kategori/${sub.toLowerCase().replace(/\s+/g, "-")}`}
@@ -184,7 +184,7 @@ export default function Header() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-gray-900 text-white">
+        <div className="md:hidden bg-black text-white">
           <ul className="divide-y divide-gray-800">
             {categories.map((cat) => (
               <li key={cat.name}>

@@ -44,7 +44,7 @@ export default function KontaktPage() {
       <Header />
       <main className="bg-gray-50 min-h-screen py-16">
         <div className="max-w-2xl mx-auto px-4">
-          <h1 className="text-3xl font-black text-gray-900 mb-2">Kontakta oss</h1>
+          <h1 className="text-3xl font-black text-black mb-2">Kontakta oss</h1>
           <p className="text-gray-500 mb-10">Fyll i formuläret så återkommer vi inom 24 timmar.</p>
 
           {success ? (

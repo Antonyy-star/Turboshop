@@ -68,7 +68,7 @@ export default function KatalogPage() {
       <Header />
       <main className="bg-gray-50 min-h-screen">
         {/* Banner */}
-        <div className="bg-gray-900 text-white py-10">
+        <div className="bg-black text-white py-10">
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full">Avancerat</span>
@@ -80,7 +80,7 @@ export default function KatalogPage() {
 
         <div className="max-w-6xl mx-auto px-4 py-12">
           {/* Categories */}
-          <h2 className="text-xl font-bold text-gray-900 mb-5">Kategorier</h2>
+          <h2 className="text-xl font-bold text-black mb-5">Kategorier</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
             {katalogSections.map((section) => (
               <Link
@@ -89,7 +89,7 @@ export default function KatalogPage() {
                 className="group bg-white border border-gray-200 rounded-xl p-6 hover:border-red-500 hover:shadow-md transition"
               >
                 <div className="text-3xl mb-3">{section.icon}</div>
-                <h3 className="font-bold text-gray-900 group-hover:text-red-600 transition mb-1">{section.title}</h3>
+                <h3 className="font-bold text-black group-hover:text-red-600 transition mb-1">{section.title}</h3>
                 <p className="text-sm text-gray-500 mb-3">{section.desc}</p>
                 <span className="text-xs font-semibold text-red-600">{section.count}</span>
               </Link>
@@ -97,7 +97,7 @@ export default function KatalogPage() {
           </div>
 
           {/* Brands */}
-          <h2 className="text-xl font-bold text-gray-900 mb-5">Varumärken</h2>
+          <h2 className="text-xl font-bold text-black mb-5">Varumärken</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {brands.map((brand) => (
               <Link

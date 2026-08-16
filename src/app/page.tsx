@@ -50,7 +50,7 @@ export default function Home() {
               WebkitMaskImage: "radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 75%)",
             }}
           />
-          <div className="absolute inset-0 z-0 bg-gradient-to-r from-gray-900 via-gray-900/60 to-gray-900" />
+          <div className="absolute inset-0 z-0 bg-gradient-to-r from-black via-black/60 to-black" />
           <div className="relative z-10 max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1">
               <p className="text-red-400 font-semibold text-sm uppercase tracking-widest mb-3">Frakt över hela världen</p>
@@ -85,7 +85,7 @@ export default function Home() {
 
         {/* Kategorier */}
         <section className="max-w-7xl mx-auto px-4 py-12">
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">Handla efter kategori</h2>
+          <h2 className="text-2xl font-bold mb-6 text-black">Handla efter kategori</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((cat) => (
               <Link
@@ -94,7 +94,7 @@ export default function Home() {
                 className="group border border-gray-200 rounded-lg p-4 text-center hover:border-red-500 hover:shadow-md transition"
               >
                 <div className="text-3xl mb-2">{cat.icon}</div>
-                <h3 className="font-semibold text-sm text-gray-900 group-hover:text-red-600 transition leading-tight">{cat.name}</h3>
+                <h3 className="font-semibold text-sm text-black group-hover:text-red-600 transition leading-tight">{cat.name}</h3>
                 <p className="text-xs text-gray-500 mt-1">{cat.desc}</p>
               </Link>
             ))}
@@ -128,7 +128,7 @@ export default function Home() {
         {/* Utvalda produkter */}
         <section className="max-w-7xl mx-auto px-4 py-12">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Utvalda produkter</h2>
+            <h2 className="text-2xl font-bold text-black">Utvalda produkter</h2>
             <Link href="/produkter" className="text-red-600 hover:text-red-700 text-sm font-medium transition">
               Visa alla →
             </Link>
@@ -154,16 +154,16 @@ export default function Home() {
                 </div>
                 <div className="p-4">
                   <p className="text-xs text-gray-500 mb-1">{product.brand}</p>
-                  <h3 className="font-semibold text-sm text-gray-900 group-hover:text-red-600 transition leading-tight mb-2">
+                  <h3 className="font-semibold text-sm text-black group-hover:text-red-600 transition leading-tight mb-2">
                     {product.name}
                   </h3>
                   <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-gray-900">{product.price.toLocaleString("sv-SE")} kr</span>
+                    <span className="text-lg font-bold text-black">{product.price.toLocaleString("sv-SE")} kr</span>
                     {product.originalPrice && (
                       <span className="text-sm text-gray-400 line-through">{product.originalPrice.toLocaleString("sv-SE")} kr</span>
                     )}
                   </div>
-                  <button className="mt-3 w-full bg-gray-900 hover:bg-red-600 text-white text-sm font-medium py-2 rounded transition">
+                  <button className="mt-3 w-full bg-black hover:bg-red-600 text-white text-sm font-medium py-2 rounded transition">
                     Lägg i varukorg
                   </button>
                 </div>
@@ -173,7 +173,7 @@ export default function Home() {
         </section>
 
         {/* Varför oss */}
-        <section className="bg-gray-900 text-white py-12">
+        <section className="bg-black text-white py-12">
           <div className="max-w-7xl mx-auto px-4">
             <h2 className="text-2xl font-bold text-center mb-8">Varför välja TurboTeknik?</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

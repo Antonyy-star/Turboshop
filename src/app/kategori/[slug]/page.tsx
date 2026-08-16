@@ -76,7 +76,7 @@ export default async function CategoryPage({
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-2 text-sm text-gray-500">
             <Link href="/" className="hover:text-red-600 transition">Hem</Link>
             <span>›</span>
-            <span className="text-gray-900 font-medium">{categoryName}</span>
+            <span className="text-black font-medium">{categoryName}</span>
           </div>
         </div>
 
@@ -84,7 +84,7 @@ export default async function CategoryPage({
           {/* Sidebar — hidden on mobile */}
           <aside className="hidden md:block w-56 flex-shrink-0">
             <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-              <h3 className="font-bold text-sm text-gray-900 mb-3 uppercase tracking-wide">Varumärke</h3>
+              <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Varumärke</h3>
               <ul className="space-y-2">
                 {filterBrands.map((brand) => (
                   <li key={brand} className="flex items-center gap-2">
@@ -98,7 +98,7 @@ export default async function CategoryPage({
             </div>
 
             <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-              <h3 className="font-bold text-sm text-gray-900 mb-3 uppercase tracking-wide">Pris (kr)</h3>
+              <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Pris (kr)</h3>
               <div className="flex gap-2 items-center">
                 <input type="number" placeholder="Min" className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-red-500" />
                 <span className="text-gray-400 text-sm">–</span>
@@ -110,7 +110,7 @@ export default async function CategoryPage({
             </div>
 
             <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-bold text-sm text-gray-900 mb-3 uppercase tracking-wide">Tillgänglighet</h3>
+              <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Tillgänglighet</h3>
               <ul className="space-y-2">
                 {["I lager", "På beställning", "Rea"].map((opt) => (
                   <li key={opt} className="flex items-center gap-2">
@@ -169,16 +169,16 @@ export default async function CategoryPage({
                   </div>
                   <div className="p-3">
                     <p className="text-xs text-gray-400 mb-1">{product.brand} · {product.sku}</p>
-                    <h3 className="font-semibold text-sm text-gray-900 group-hover:text-red-600 transition leading-tight mb-2 line-clamp-2">
+                    <h3 className="font-semibold text-sm text-black group-hover:text-red-600 transition leading-tight mb-2 line-clamp-2">
                       {product.name}
                     </h3>
                     <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-base font-bold text-gray-900">{product.price.toLocaleString("sv-SE")} kr</span>
+                      <span className="text-base font-bold text-black">{product.price.toLocaleString("sv-SE")} kr</span>
                       {product.originalPrice && (
                         <span className="text-xs text-gray-400 line-through">{product.originalPrice.toLocaleString("sv-SE")} kr</span>
                       )}
                     </div>
-                    <button className="w-full bg-gray-900 hover:bg-red-600 text-white text-xs font-medium py-2 rounded transition">
+                    <button className="w-full bg-black hover:bg-red-600 text-white text-xs font-medium py-2 rounded transition">
                       Lägg i varukorg
                     </button>
                   </div>

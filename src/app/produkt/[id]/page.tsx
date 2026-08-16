@@ -25,7 +25,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <span>›</span>
             <Link href={`/marke/${product.brand.toLowerCase()}`} className="hover:text-red-600 transition">{product.brand}</Link>
             <span>›</span>
-            <span className="text-gray-900 font-medium">{product.name}</span>
+            <span className="text-black font-medium">{product.name}</span>
           </div>
         </div>
 
@@ -37,11 +37,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             {/* Right — product info */}
             <div>
               <p className="text-sm text-gray-400 mb-1">{product.brand} · {product.sku}</p>
-              <h1 className="text-2xl font-black text-gray-900 mb-4">{product.name}</h1>
+              <h1 className="text-2xl font-black text-black mb-4">{product.name}</h1>
 
               {/* Price */}
               <div className="flex items-baseline gap-3 mb-6">
-                <span className="text-3xl font-bold text-gray-900">{product.price.toLocaleString("sv-SE")} kr</span>
+                <span className="text-3xl font-bold text-black">{product.price.toLocaleString("sv-SE")} kr</span>
                 {product.originalPrice && (
                   <span className="text-lg text-gray-400 line-through">{product.originalPrice.toLocaleString("sv-SE")} kr</span>
                 )}
@@ -74,25 +74,25 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
               <div className="border-t border-gray-200 pt-6 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Artikelnummer</span>
-                  <span className="font-medium text-gray-900">{product.sku}</span>
+                  <span className="font-medium text-black">{product.sku}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Varumärke</span>
-                  <span className="font-medium text-gray-900">{product.brand}</span>
+                  <span className="font-medium text-black">{product.brand}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Frakt</span>
-                  <span className="font-medium text-gray-900">Beräknas i kassan</span>
+                  <span className="font-medium text-black">Beräknas i kassan</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Garanti</span>
-                  <span className="font-medium text-gray-900">12 månader</span>
+                  <span className="font-medium text-black">12 månader</span>
                 </div>
               </div>
 
               {product.description && (
                 <div className="border-t border-gray-200 pt-6 mt-6">
-                  <h3 className="font-bold text-sm uppercase tracking-wide text-gray-900 mb-2">Beskrivning</h3>
+                  <h3 className="font-bold text-sm uppercase tracking-wide text-black mb-2">Beskrivning</h3>
                   <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
                 </div>
               )}

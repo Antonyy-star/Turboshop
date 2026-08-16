@@ -3,7 +3,7 @@ import OpenStatusBadge from "./OpenStatusBadge";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white mt-auto">
+    <footer className="bg-black text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
         <div>
           <span className="text-xl font-black tracking-tight">
