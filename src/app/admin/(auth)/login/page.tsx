@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import LogoViewerWrapper from "@/components/LogoViewerWrapper";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -29,10 +30,8 @@ export default function AdminLogin() {
   return (
     <div style={{ minHeight: "100vh", background: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 400, padding: "0 16px" }}>
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <span style={{ fontSize: 28, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
-            TURBO<span style={{ color: "#ef4444" }}>TEKNIK</span>
-          </span>
+        <div style={{ textAlign: "center", marginBottom: 32, display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <LogoViewerWrapper />
           <p style={{ color: "#666", marginTop: 8, fontSize: 14 }}>Admin Dashboard</p>
         </div>
 
