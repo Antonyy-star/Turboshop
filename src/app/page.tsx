@@ -36,7 +36,7 @@ export default function Home() {
       <Header />
       <main>
         {/* Hero */}
-        <section className="relative text-white py-16 overflow-hidden" style={{ backgroundColor: "#111827" }}>
+        <section className="relative text-white py-10 md:py-16 overflow-hidden" style={{ backgroundColor: "#111827" }}>
           {/* background image fading into dark */}
           <div
             className="absolute inset-0 z-0"
@@ -54,17 +54,17 @@ export default function Home() {
           <div className="relative z-10 max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1">
               <p className="text-red-400 font-semibold text-sm uppercase tracking-widest mb-3">Frakt över hela världen</p>
-              <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4">
+              <h1 className="text-3xl md:text-5xl font-black leading-tight mb-4">
                 Premium turbos &<br />bildelar
               </h1>
-              <p className="text-gray-400 text-lg mb-8 max-w-md">
+              <p className="text-gray-400 text-base md:text-lg mb-6 md:mb-8 max-w-md">
                 OEM och eftermarknads turboladdare, patroner och delar för alla märken och modeller. Snabb leverans, expertsupport.
               </p>
               <div className="flex gap-3 flex-wrap">
-                <Link href="/kategori/turboladdare" className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition">
+                <Link href="/kategori/turboladdare" className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
                   Handla turbos
                 </Link>
-                <Link href="/kategori/delar" className="border border-gray-500 hover:border-white text-white font-semibold px-6 py-3 rounded-md transition">
+                <Link href="/kategori/delar" className="border border-gray-500 hover:border-white text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
                   Visa alla delar
                 </Link>
               </div>
@@ -73,12 +73,12 @@ export default function Home() {
         </section>
 
         {/* Förtroendesrad */}
-        <section className="lava-bar text-white py-4">
-          <div className="max-w-7xl mx-auto px-4 flex flex-wrap justify-center md:justify-between gap-4 text-sm font-medium">
+        <section className="lava-bar text-white py-3">
+          <div className="max-w-7xl mx-auto px-4 flex flex-wrap justify-center gap-3 text-xs md:text-sm font-medium">
             <span>✅ 10 000+ delar i lager</span>
-            <span>🚚 Snabb leverans världen över</span>
+            <span>🚚 Snabb leverans</span>
             <span>🔒 Säkra betalningar</span>
-            <span>🛠️ Teknisk expertsupport</span>
+            <span>🛠️ Expertsupport</span>
             <span>↩️ Enkel retur</span>
           </div>
         </section>
