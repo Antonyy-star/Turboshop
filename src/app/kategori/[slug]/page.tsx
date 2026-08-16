@@ -55,8 +55,13 @@ export default async function CategoryPage({
   // Fetch DB products for this category
   const supabase = await createClient();
   const dbCategory = slugToDbCategory[slug];
+  // For turboladdare: also include products with category = null (seeded before category column existed)
   const { data: dbProducts } = dbCategory
-    ? await supabase.from("products").select("*").eq("category", dbCategory).order("created_at", { ascending: false })
+    ? await supabase
+        .from("products")
+        .select("*")
+        .or(slug === "turboladdare" ? `category.eq.${dbCategory},category.is.null` : `category.eq.${dbCategory}`)
+        .order("created_at", { ascending: false })
     : { data: [] as any[] };
 
   // Use DB products if available, else fall back to parseProducts (turboladdare only)
