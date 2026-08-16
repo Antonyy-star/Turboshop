@@ -95,6 +95,52 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Feature section 1 — text left, image right */}
+        <section className="bg-black py-16">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-10 md:gap-16">
+            <div className="flex-1">
+              <p className="text-red-500 text-sm font-semibold uppercase tracking-widest mb-3">Rubrik här</p>
+              <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-4">
+                Din text kommer<br />att synas här
+              </h2>
+              <p className="text-gray-400 text-base leading-relaxed mb-6">
+                Beskriv din produkt, tjänst eller fördel här. Berätta för kunden varför de ska välja er. Kort, tydligt och övertygande.
+              </p>
+              <Link href="/kategori/turboladdare" className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition text-sm">
+                Läs mer →
+              </Link>
+            </div>
+            <div className="flex-1 w-full">
+              <div className="rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid #333", height: 320, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span className="text-gray-600 text-sm">Bild kommer här</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Feature section 2 — image left, text right */}
+        <section className="bg-black py-16" style={{ borderTop: "1px solid #111" }}>
+          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row-reverse items-center gap-10 md:gap-16">
+            <div className="flex-1">
+              <p className="text-red-500 text-sm font-semibold uppercase tracking-widest mb-3">Rubrik här</p>
+              <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-4">
+                Din text kommer<br />att synas här
+              </h2>
+              <p className="text-gray-400 text-base leading-relaxed mb-6">
+                Beskriv din produkt, tjänst eller fördel här. Berätta för kunden varför de ska välja er. Kort, tydligt och övertygande.
+              </p>
+              <Link href="/kategori/turboladdare" className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition text-sm">
+                Läs mer →
+              </Link>
+            </div>
+            <div className="flex-1 w-full">
+              <div className="rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid #333", height: 320, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span className="text-gray-600 text-sm">Bild kommer här</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Varumärken */}
         <section className="bg-gray-50 py-8 overflow-hidden">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide text-center mb-6">Toppvarumärken</h2>
