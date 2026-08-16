@@ -1,0 +1,171 @@
+================================================================
+  Garrett — PRODUKTLISTA
+  Fyll i dina produkter nedan, en per block.
+  När du är klar, säg till Claude så lägger han in dem.
+================================================================
+
+NAMN:Turbo 758351-0024
+PRIS:7641
+REA-PRIS:         
+SKU/ARTIKELNUMMER:758351-5024S
+BILD:"https://turbocentras.com/631-thickbox_default/turbo-758351-0024.webp", "https://turbocentras.com/632-medium_default/turbo-758351-0024.webp", "https://turbocentras.com/633-medium_default/turbo-758351-0024.webp"             
+BADGE:            
+BESKRIVNING:
+---
+
+NAMN:TURBO 770116-0002
+PRIS:5179
+REA-PRIS:
+SKU/ARTIKELNUMMER:770116-0002
+BILD:"https://turbocentras.com/662-medium_default/turbo-770116-0002.webp", "https://turbocentras.com/663-medium_default/turbo-770116-0002.webp", "https://turbocentras.com/664-medium_default/turbo-770116-0002.webp", "https://turbocentras.com/665-medium_default/turbo-770116-0002.webp"
+BADGE:
+BESKRIVNING:
+---
+
+NAMN:TURBO 708639-0006-R
+PRIS:2732
+REA-PRIS:
+SKU/ARTIKELNUMMER: 708639-0006-R
+BILD:"https://turbocentras.com/697-medium_default/turbo-708639-0006-r.webp", "https://turbocentras.com/698-medium_default/turbo-708639-0006-r.webp", "https://turbocentras.com/699-medium_default/turbo-708639-0006-r.webp", "https://turbocentras.com/700-medium_default/turbo-708639-0006-r.webp", "https://turbocentras.com/701-medium_default/turbo-708639-0006-r.webp", "https://turbocentras.com/702-medium_default/turbo-708639-0006-r.webp", "https://turbocentras.com/703-medium_default/turbo-708639-0006-r.webp"
+BADGE:
+BESKRIVNING:
+---
+
+NAMN:TURBO 703245-0001-R
+PRIS:2368
+REA-PRIS:         
+SKU/ARTIKELNUMMER:703245-0001-R
+BILD:"https://turbocentras.com/704-medium_default/turbo-703245-0001-r.webp","https://turbocentras.com/705-medium_default/turbo-703245-0001-r.webp", "https://turbocentras.com/706-medium_default/turbo-703245-0001-r.webp", "https://turbocentras.com/707-medium_default/turbo-703245-0001-r.webp", "https://turbocentras.com/708-medium_default/turbo-703245-0001-r.webp","https://turbocentras.com/709-medium_default/turbo-703245-0001-r.webp", "https://turbocentras.com/710-medium_default/turbo-703245-0001-r.webp"             
+BADGE:            
+BESKRIVNING:
+---
+
+NAMN:TURBO 763647-0014-R
+PRIS:3857
+REA-PRIS:
+SKU/ARTIKELNUMMER:763647-0001-R
+BILD:"https://turbocentras.com/745-medium_default/turbo-763647-0014-r.webp","https://turbocentras.com/746-medium_default/turbo-763647-0014-r.webp", "https://turbocentras.com/747-medium_default/turbo-763647-0014-r.webp", "https://turbocentras.com/748-medium_default/turbo-763647-0014-r.webp", "https://turbocentras.com/749-medium_default/turbo-763647-0014-r.webp", "https://turbocentras.com/750-medium_default/turbo-763647-0014-r.webp"
+BADGE:
+BESKRIVNING:
+---
+
+NAMN:TURBO 788778-0002
+PRIS:3967
+REA-PRIS:
+SKU/ARTIKELNUMMER:788778-0002
+BILD:"https://turbocentras.com/751-medium_default/turbo-788778-0002.webp","https://turbocentras.com/752-medium_default/turbo-788778-0002.webp", "https://turbocentras.com/753-medium_default/turbo-788778-0002.webp", "https://turbocentras.com/754-medium_default/turbo-788778-0002.webp", "https://turbocentras.com/755-medium_default/turbo-788778-0002.webp", "https://turbocentras.com/756-medium_default/turbo-788778-0002.webp", "https://turbocentras.com/757-medium_default/turbo-788778-0002.webp"
+BADGE:
+BESKRIVNING:
+---
+
+NAMN:TURBO 727463-0004-R
+PRIS:3857
+REA-PRIS:         
+SKU/ARTIKELNUMMER:727463-5004-R
+BILD:"https://turbocentras.com/792-medium_default/turbo-727463-0004-r.webp", "https://turbocentras.com/793-medium_default/turbo-727463-0004-r.webp","https://turbocentras.com/794-medium_default/turbo-727463-0004-r.webp","https://turbocentras.com/795-medium_default/turbo-727463-0004-r.webp","https://turbocentras.com/796-medium_default/turbo-727463-0004-r.webp","https://turbocentras.com/797-medium_default/turbo-727463-0004-r.webp"             
+BADGE:            
+BESKRIVNING:
+---
+
+NAMN:
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+NAMN:
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+FORMAT:
+NAMN:
+PRIS:
+REA-PRIS:         
+SKU/ARTIKELNUMMER:
+BILD:             
+BADGE:            
+BESKRIVNING:
+---
+
+NAMN:
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+NAMN:
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+FORMAT:
+NAMN:
+PRIS:
+REA-PRIS:         
+SKU/ARTIKELNUMMER:
+BILD:             
+BADGE:            
+BESKRIVNING:
+---
+
+NAMN:
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+NAMN:
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+FORMAT:
+NAMN:
+PRIS:
+REA-PRIS:         
+SKU/ARTIKELNUMMER:
+BILD:             
+BADGE:            
+BESKRIVNING:
+---
+
+NAMN:
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+NAMN:
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+

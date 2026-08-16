@@ -1,0 +1,206 @@
+================================================================
+  TURBOSHOP — PRODUKTLISTA
+  Fyll i dina produkter nedan, en per block.
+  När du är klar, säg till Claude så lägger han in dem.
+================================================================
+
+FORMAT FÖR VARJE PRODUKT:
+--------------------------
+NAMN:
+VARUMÄRKE:
+PRIS:
+REA-PRIS:         (lämna tomt om ingen rea)
+SKU/ARTIKELNUMMER:
+BILD:             (filnamn i public/Products/Varumärke/, t.ex. gt3076r.jpg)
+BADGE:            (Ny / Rea / lämna tomt)
+BESKRIVNING:      (kort beskrivning, valfri)
+--------------------------
+
+
+================================================================
+  GARRETT  (625 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: Garrett
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+NAMN:
+VARUMÄRKE: Garrett
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  BORGWARNER  (407 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: BorgWarner
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  MITSUBISHI  (139 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: Mitsubishi
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  HOLSET  (49 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: Holset
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  IHI  (99 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: IHI
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  BMTS  (102 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: BMTS
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  HITACHI  (1 produkt)
+================================================================
+
+NAMN:
+VARUMÄRKE: Hitachi
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  VALEO  (3 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: Valeo
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  CONTINENTAL  (20 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: Continental
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  TOYOTA  (6 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: Toyota
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  CZ TURBO  (22 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: CZ Turbo
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+
+================================================================
+  MASTER  (52 produkter)
+================================================================
+
+NAMN:
+VARUMÄRKE: Master
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---

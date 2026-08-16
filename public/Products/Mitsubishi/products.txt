@@ -1,0 +1,33 @@
+================================================================
+  Mitsubishi — PRODUKTLISTA
+  Fyll i dina produkter nedan, en per block.
+  När du är klar, säg till Claude så lägger han in dem.
+================================================================
+
+FORMAT:
+NAMN:
+PRIS:
+REA-PRIS:         (lämna tomt om ingen rea)
+SKU/ARTIKELNUMMER:
+BILD:             (filnamn i denna mapp, t.ex. produkt1.jpg)
+BADGE:            (Ny / Rea / lämna tomt)
+BESKRIVNING:
+---
+
+NAMN:
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
+
+NAMN:
+PRIS:
+REA-PRIS:
+SKU/ARTIKELNUMMER:
+BILD:
+BADGE:
+BESKRIVNING:
+---
