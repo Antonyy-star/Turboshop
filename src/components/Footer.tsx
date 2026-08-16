@@ -23,9 +23,7 @@ export default function Footer() {
           </h4>
           <ul className="space-y-2 text-gray-400 text-sm mt-3">
             <li><Link href="#" className="hover:text-white transition">Turboladdare</Link></li>
-            <li><Link href="#" className="hover:text-white transition">Patroner (CHRA)</Link></li>
             <li><Link href="#" className="hover:text-white transition">Turbodelar</Link></li>
-            <li><Link href="#" className="hover:text-white transition">Prestandadelar</Link></li>
             <li><Link href="#" className="hover:text-white transition">Utrustning</Link></li>
           </ul>
         </div>

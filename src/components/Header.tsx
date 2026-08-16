@@ -24,7 +24,6 @@ const categories = [
   { name: "Turboladdare", type: "brands" },
   { name: "Turbodelar", type: "list", subcategories: ["Kompressorhjul", "Turbinhjul", "Lagerhus", "Packningar & tätningar", "Aktuatorer"] },
   { name: "Kontaktformulär", type: "link", href: "/kontakt" },
-  { name: "Prestanda", type: "list", subcategories: ["Intercoolers", "BOV & wastegates", "Grenrör", "Downpipes"] },
   { name: "Katalog", type: "link", href: "/katalog", badge: "Avancerat" },
   { name: "Kontakta oss", type: "link", href: "/kontakta-oss" },
 ];
