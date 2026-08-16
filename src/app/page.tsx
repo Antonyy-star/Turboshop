@@ -1,15 +1,15 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { Wrench, Package, ShieldCheck } from "lucide-react";
+import { Wrench, Package, ShieldCheck, Zap, Wind } from "lucide-react";
 import { realProducts } from "@/lib/realProducts";
 import TurboViewerWrapper from "@/components/TurboViewerWrapper";
 
 const categories = [
-  { name: "Kompletta turboladdare", icon: "⚙️", desc: "OEM & eftermarknads turbos", href: "/kategori/turboladdare" },
-  { name: "Kompressorhjul", icon: "🌀", desc: "Billet & OEM-ersättningar", href: "/kategori/kompressorhjul" },
-  { name: "Packningar & tätningar", icon: "🛡️", desc: "Kompletta packningssatser", href: "/kategori/packningar" },
-  { name: "Reparations Kit", icon: "🔧", desc: "Balansering & testverktyg", href: "/kategori/utrustning" },
+  { name: "Kompletta turboladdare", Icon: Zap,        desc: "OEM & eftermarknads turbos",   href: "/kategori/turboladdare" },
+  { name: "Kompressorhjul",         Icon: Wind,       desc: "Billet & OEM-ersättningar",    href: "/kategori/kompressorhjul" },
+  { name: "Packningar & tätningar", Icon: ShieldCheck, desc: "Kompletta packningssatser",   href: "/kategori/packningar" },
+  { name: "Reparations Kit",        Icon: Wrench,     desc: "Balansering & testverktyg",    href: "/kategori/utrustning" },
 ];
 
 const brands = [
@@ -86,7 +86,7 @@ export default function Home() {
                   className="feature-card block p-4 text-center"
                   style={{ textDecoration: "none", width: 160 }}
                 >
-                  <div className="text-3xl mb-2">{cat.icon}</div>
+                  <cat.Icon size={36} color="#DC2626" strokeWidth={1.8} className="mx-auto mb-2" />
                   <h3 className="font-semibold text-sm text-white leading-tight">{cat.name}</h3>
                   <p className="text-xs text-gray-400 mt-1">{cat.desc}</p>
                 </Link>
