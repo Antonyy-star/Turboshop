@@ -69,7 +69,7 @@ export default async function Home() {
       <Header />
       <main>
         {/* Hero */}
-        <section className="relative text-white py-10 md:py-16 overflow-hidden" style={{ backgroundColor: "#111827" }}>
+        <section className="relative text-white py-16 overflow-hidden" style={{ backgroundColor: "#111827" }}>
           <div className="absolute inset-0 z-0" style={{
             backgroundImage: "url('/Images/Turboteknik.png')",
             backgroundSize: "contain", backgroundPosition: "center", backgroundRepeat: "no-repeat",
