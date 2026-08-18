@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 
-const PRODUCTS_PER_RUN = 30; // check 30 individual product pages per cron hit
+const PRODUCTS_PER_RUN = 20; // check 20 product pages per cron hit (fetched in parallel)
+const PARALLEL_BATCH = 5;   // fetch 5 at a time — stays well under Vercel's timeout
 
 // Maps DB category → turbocentras URL path segment
 const CATEGORY_PATH: Record<string, string> = {
@@ -39,7 +40,7 @@ function buildProductUrl(id: number | string, name: string, category: string | n
 async function fetchPage(url: string): Promise<string | null> {
   try {
     const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 10000);
+    const t = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(url, { headers: HEADERS, signal: controller.signal });
     clearTimeout(t);
     if (!res.ok) return null;
@@ -114,27 +115,36 @@ export async function GET(req: NextRequest) {
   let checked = 0;
   let failed = 0;
 
-  for (const product of products) {
-    const url = buildProductUrl(product.id, product.name, product.category);
-    const html = await fetchPage(url);
+  // Fetch product pages in parallel batches to stay within Vercel timeout
+  for (let i = 0; i < products.length; i += PARALLEL_BATCH) {
+    const batch = products.slice(i, i + PARALLEL_BATCH);
+    const results = await Promise.allSettled(
+      batch.map(p => fetchPage(buildProductUrl(p.id, p.name, p.category)))
+    );
 
-    if (!html) { failed++; continue; }
+    for (let j = 0; j < batch.length; j++) {
+      const product = batch[j];
+      const result = results[j];
+      const html = result.status === "fulfilled" ? result.value : null;
 
-    const inStock = parseStockStatus(html);
-    const oldStatus = product.in_stock ?? true;
-    checked++;
+      if (!html) { failed++; continue; }
 
-    if (inStock !== oldStatus) {
-      await supabase.from("products").update({ in_stock: inStock }).eq("id", product.id);
-      await supabase.from("stock_events").insert({
-        product_id: String(product.id),
-        sku: product.sku,
-        product_name: product.name,
-        brand: product.brand ?? "",
-        old_status: oldStatus,
-        new_status: inStock,
-      });
-      changes.push({ sku: product.sku, name: product.name, old: oldStatus, new: inStock });
+      const inStock = parseStockStatus(html);
+      const oldStatus = product.in_stock ?? true;
+      checked++;
+
+      if (inStock !== oldStatus) {
+        await supabase.from("products").update({ in_stock: inStock }).eq("id", product.id);
+        await supabase.from("stock_events").insert({
+          product_id: String(product.id),
+          sku: product.sku,
+          product_name: product.name,
+          brand: product.brand ?? "",
+          old_status: oldStatus,
+          new_status: inStock,
+        });
+        changes.push({ sku: product.sku, name: product.name, old: oldStatus, new: inStock });
+      }
     }
   }
 
