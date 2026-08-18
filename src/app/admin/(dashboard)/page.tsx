@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Package, MessageSquare, Users, TrendingUp } from "lucide-react";
+import StockFeed from "@/components/StockFeed";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
@@ -90,6 +91,11 @@ export default async function AdminDashboard() {
         ) : (
           <p style={{ color: "#555", fontSize: 14, textAlign: "center", padding: "24px 0" }}>Inga förfrågningar ännu.</p>
         )}
+      </div>
+
+      {/* Live stock feed from turbocentras.com */}
+      <div style={{ marginTop: 32 }}>
+        <StockFeed />
       </div>
     </div>
   );
