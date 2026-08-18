@@ -1,56 +1,73 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { normalizeArticle } from "@/lib/normalize";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export async function GET(req: NextRequest) {
-  const q = req.nextUrl.searchParams.get("q")?.trim().slice(0, 100) ?? "";
-  if (!q) return NextResponse.json({ results: [] });
+// Escape ilike special chars
+function escapeIlike(s: string) {
+  return s.replace(/[%_\\]/g, "\\$&");
+}
 
-  // Fetch the full catalog — only real/admin products are stored in DB (not generated ones),
-  // so this is a small set. Client-side normalization lets us strip dashes/spaces from
-  // both the query and stored SKU before comparing, which ilike cannot do.
-  const { data, error } = await supabase
+// Strip dashes/spaces to normalize article numbers: "715910-0001-R" → "7159100001r"
+function normalize(s: string) {
+  return s.toLowerCase().replace(/[-\s./\\|_]+/g, "");
+}
+
+export async function GET(req: NextRequest) {
+  const raw = req.nextUrl.searchParams.get("q")?.trim().slice(0, 100) ?? "";
+  if (!raw) return NextResponse.json({ results: [] });
+
+  const esc = escapeIlike(raw);
+  const lower = raw.toLowerCase();
+  const normQ = normalize(raw);
+
+  // Primary: server-side ilike across name, sku, brand
+  const { data: primary } = await supabase
     .from("products")
     .select("id,name,brand,sku,price,images,category,badge,in_stock")
-    .limit(500);
+    .or(`name.ilike.%${esc}%,sku.ilike.%${esc}%,brand.ilike.%${esc}%`)
+    .limit(30);
 
-  if (error) return NextResponse.json({ results: [] }, { status: 500 });
+  let results = primary ?? [];
 
-  const lower = q.toLowerCase();
-  const normQ = normalizeArticle(q);
+  // Secondary: if query looks like a bare article number (no dashes typed by user)
+  // also search for normalized SKU matches — catches "7159100001" → "715910-0001-R"
+  if (results.length < 5 && normQ.length >= 4 && !/\s/.test(raw)) {
+    const { data: secondary } = await supabase
+      .from("products")
+      .select("id,name,brand,sku,price,images,category,badge,in_stock")
+      .or(`name.ilike.%${esc}%,sku.ilike.%${esc}%,brand.ilike.%${esc}%`)
+      .limit(100);
 
-  const matches = (data ?? []).filter((p) => {
-    const normSku = normalizeArticle(p.sku ?? "");
-    const normName = normalizeArticle(p.name);
-    const nameLower = p.name.toLowerCase();
-    const brandLower = p.brand.toLowerCase();
+    // Filter secondary by normalized SKU match
+    const extra = (secondary ?? []).filter((p) => {
+      const ns = normalize(p.sku ?? "");
+      const nn = normalize(p.name);
+      return ns.includes(normQ) || nn.includes(normQ);
+    });
 
-    return (
-      normSku.includes(normQ) ||
-      normName.includes(normQ) ||
-      nameLower.includes(lower) ||
-      brandLower.includes(lower)
-    );
-  });
+    // Merge without duplicates
+    const seen = new Set(results.map((r) => r.id));
+    results = [...results, ...extra.filter((r) => !seen.has(r.id))];
+  }
 
-  const score = (p: { sku: string | null; name: string }) => {
-    const normSku = normalizeArticle(p.sku ?? "");
-    const nameLower = p.name.toLowerCase();
-    if (normSku === normQ) return 0;
-    if (normSku.startsWith(normQ)) return 1;
-    if (nameLower === lower) return 2;
-    if (nameLower.startsWith(lower)) return 3;
-    if (normSku.includes(normQ)) return 4;
-    if (nameLower.includes(lower)) return 5;
-    return 6;
+  // Score and sort
+  const score = (p: { sku: string | null; name: string; brand: string }) => {
+    const ns = normalize(p.sku ?? "");
+    const nl = p.name.toLowerCase();
+    const bl = p.brand.toLowerCase();
+    if (ns === normQ || nl === lower) return 0;
+    if (ns.startsWith(normQ) || nl.startsWith(lower) || bl === lower) return 1;
+    if (ns.includes(normQ)) return 2;
+    if (nl.includes(lower)) return 3;
+    if (bl.includes(lower)) return 4;
+    return 5;
   };
 
-  const sorted = matches.sort((a, b) => score(a) - score(b));
+  results.sort((a, b) => score(a) - score(b));
 
-  return NextResponse.json({ results: sorted.slice(0, 8) });
+  return NextResponse.json({ results: results.slice(0, 8) });
 }
