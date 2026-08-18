@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 
 const PAGE_SIZE = 40;
 
@@ -18,7 +18,7 @@ export default async function SearchPage({
   const query = (q ?? "").trim().slice(0, 100);
   const currentPage = Math.max(1, parseInt(sida ?? "1", 10));
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   let results: any[] = [];
   let totalCount = 0;

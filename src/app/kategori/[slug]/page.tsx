@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 
 const categoryNames: Record<string, string> = {
   turboladdare: "Turboladdare",
@@ -41,7 +41,7 @@ export default async function CategoryPage({
   const categoryName = categoryNames[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
   const dbCategory = slugToDbCategory[slug];
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Get total count for this category
   let countQuery = supabase.from("products").select("*", { count: "exact", head: true });

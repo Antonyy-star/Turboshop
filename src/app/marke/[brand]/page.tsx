@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 
 const brandMeta: Record<string, { displayName: string; logo: string; desc: string }> = {
   garrett: {
@@ -100,7 +100,7 @@ export default async function BrandPage({
     desc: "",
   };
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Count total products for this brand (case-insensitive match)
   const { count: totalCount } = await supabase

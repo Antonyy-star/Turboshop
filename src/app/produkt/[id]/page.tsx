@@ -4,7 +4,7 @@ import ImageGallery from "@/components/ImageGallery";
 import Link from "next/link";
 import { getProductById } from "@/lib/realProducts";
 import { getRealProductById } from "@/lib/parseProducts";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 
 type Specs = {
@@ -149,7 +149,7 @@ function SpecsPanel({
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data: dbProduct } = await supabase.from("products").select("*").eq("id", id).single();
 
   const product = dbProduct
