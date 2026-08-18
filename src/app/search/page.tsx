@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { createServiceClient } from "@/lib/supabase/server";
+import ProductImage from "@/components/ProductImage";
 
 const PAGE_SIZE = 40;
 
@@ -117,14 +118,8 @@ export default async function SearchPage({
                     href={`/produkt/${p.id}`}
                     className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg hover:border-red-300 transition"
                   >
-                    <div className="bg-gray-100 h-40 flex items-center justify-center relative">
-                      {p.images?.[0] ? (
-                        <img src={p.images[0]} alt={p.name} className="w-full h-full object-contain p-2" />
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                          <span className="text-gray-400 text-lg">⚙</span>
-                        </div>
-                      )}
+                    <div className="bg-gray-100 h-40 flex items-center justify-center relative overflow-hidden">
+                      <ProductImage src={p.images?.[0]} alt={p.name} />
                       {p.badge && (
                         <span className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-0.5 rounded ${p.badge === "Rea" ? "bg-red-600" : "bg-green-600"}`}>
                           {p.badge}

@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { createServiceClient } from "@/lib/supabase/server";
+import ProductImage from "@/components/ProductImage";
 
 const brandMeta: Record<string, { displayName: string; logo: string; desc: string }> = {
   garrett: {
@@ -190,14 +191,8 @@ export default async function BrandPage({
                   href={`/produkt/${product.id}`}
                   className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg hover:border-red-300 transition"
                 >
-                  <div className="bg-gray-100 h-40 flex items-center justify-center relative">
-                    {product.image ? (
-                      <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2" />
-                    ) : (
-                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-gray-400 text-xl">⚙</span>
-                      </div>
-                    )}
+                  <div className="bg-gray-100 h-40 flex items-center justify-center relative overflow-hidden">
+                    <ProductImage src={product.image} alt={product.name} />
                     {product.badge && (
                       <span className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-0.5 rounded ${product.badge === "Rea" ? "bg-red-600" : "bg-green-600"}`}>
                         {product.badge}

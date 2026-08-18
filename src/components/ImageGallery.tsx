@@ -2,21 +2,60 @@
 
 import { useState } from "react";
 
+function proxyUrl(src: string): string {
+  if (src.includes("turbocentras.com")) return `/api/img?u=${encodeURIComponent(src)}`;
+  return src;
+}
+
+function Placeholder() {
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gray-100">
+      <svg viewBox="0 0 64 64" fill="none" className="w-20 h-20 text-gray-300">
+        <circle cx="32" cy="32" r="14" stroke="currentColor" strokeWidth="3" />
+        <circle cx="32" cy="32" r="5" fill="currentColor" opacity="0.4" />
+        <path d="M32 4 L32 14 M32 50 L32 60 M4 32 L14 32 M50 32 L60 32" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <path d="M11.5 11.5 L18 18 M46 46 L52.5 52.5 M52.5 11.5 L46 18 M18 46 L11.5 52.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        <circle cx="32" cy="32" r="22" stroke="currentColor" strokeWidth="2" strokeDasharray="4 3" opacity="0.3" />
+      </svg>
+      <span className="text-sm text-gray-400 font-medium">Ingen produktbild tillgänglig</span>
+    </div>
+  );
+}
+
+function ProxiedImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <Placeholder />;
+  return (
+    <img
+      src={proxyUrl(src)}
+      alt={alt}
+      className={className}
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export default function ImageGallery({ images, name }: { images: string[]; name: string }) {
   const [active, setActive] = useState(0);
 
+  if (!images || images.length === 0) {
+    return (
+      <div className="bg-gray-100 rounded-xl border border-gray-200 overflow-hidden" style={{ height: 400 }}>
+        <Placeholder />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      {/* Main image */}
       <div className="bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden" style={{ height: 400 }}>
-        <img
+        <ProxiedImage
           src={images[active]}
           alt={name}
           className="w-full h-full object-contain p-4"
         />
       </div>
 
-      {/* Thumbnails */}
       {images.length > 1 && (
         <div className="flex gap-3">
           {images.map((img, i) => (
@@ -28,7 +67,7 @@ export default function ImageGallery({ images, name }: { images: string[]; name:
               }`}
               style={{ width: 80, height: 80 }}
             >
-              <img src={img} alt={`${name} ${i + 1}`} className="w-full h-full object-contain p-1" />
+              <ProxiedImage src={img} alt={`${name} ${i + 1}`} className="w-full h-full object-contain p-1" />
             </button>
           ))}
         </div>
