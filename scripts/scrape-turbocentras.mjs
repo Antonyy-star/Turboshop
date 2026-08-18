@@ -265,31 +265,18 @@ async function main() {
     details.push('');
   }
 
-  const newEvent = {
-    id: `scrape-${Date.now()}`,
-    date: new Date().toISOString().slice(0, 10),
-    title: `Produktkatalog synkroniserad — ${allProducts.length} produkter kontrollerade`,
-    details: details.filter((_, i) => i < 40), // cap at 40 lines
-  };
-
-  // Load existing events, prepend new one, save back
-  const { data: existingContent } = await supabase
-    .from('site_content')
-    .select('content')
-    .eq('key', 'news_events')
-    .single();
-
-  const existingEvents = existingContent?.content?.events ?? [];
-  const updatedEvents = [newEvent, ...existingEvents].slice(0, 50); // keep last 50
-
-  await supabase.from('site_content').upsert({
-    key: 'news_events',
-    content: { events: updatedEvents },
-    updated_at: new Date().toISOString(),
-  }, { onConflict: 'key' });
+  // ─── Phase 3: Log to activity_log as system_import ────────────────────────
+  await supabase.from('activity_log').insert({
+    admin_email: 'system@turboteknik.se',
+    admin_name: 'System',
+    action_type: 'system_import',
+    entity_type: 'products',
+    entity_name: `Produktkatalog synkroniserad — ${allProducts.length} produkter kontrollerade`,
+    metadata: { details: details.filter((_, i) => i < 40) },
+  });
 
   console.log(`\n\n✅ Done! Processed ${inserted}/${rows.length} products (new ones inserted, existing ones untouched).`);
-  console.log('✅ Nya Händelser updated in admin panel.\n');
+  console.log('✅ Nya Händelser loggad i adminpanelen.\n');
   console.log('Next step: run mirror-images.mjs to copy any new product images to Supabase Storage.');
 }
 

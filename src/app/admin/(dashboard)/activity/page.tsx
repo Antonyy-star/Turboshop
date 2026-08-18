@@ -48,31 +48,45 @@ export default async function ActivityPage() {
     adminStats[log.admin_email].count++;
   }
 
-  const { data: newsContent } = await supabase.from("site_content").select("content").eq("key", "news_events").single();
-  const nyaHandelser: { id: string; date: string; title: string; details: string[] }[] = newsContent?.content?.events ?? [
-    {
-      id: "nh-1",
-      date: "2026-08-19",
-      title: "132 nya produkter tillagda — Tuning & Utrustning",
-      details: [
-        "TUNING (34 produkter) — kompressorhjul, turbos, lagerhus, turbinhus:",
-        "• Turbo 898200-5001W, Turbo 898199-5001W",
-        "• Compressor wheel: IH-03-0051, BW-03-0176/0175/0164/0163/0161/0160/0105/0099/0002",
-        "• Compressor wheel: GA-03-0164/0163/0147/0142/0141/0140/0139/0102/0101/0088/0086",
-        "• Compressor wheel: MH-03-0067/0066/0065/0064/0060/0059/0044, IH-03-0048/0042",
-        "• Bearing housing GA-01-0174, Turbine housing GA-09-0025",
-        "",
-        "UTRUSTNING (98 produkter) — diagnosverktyg, aktuatorer, testare, reparationskit:",
-        "• Testare/Programmerare: VNTT-PRO, TURBO-PROG, TurboControlTC, APD-1, TP-TACT",
-        "• Aktuatorverktyg: ART-1 t.o.m. ART-5, ART SET-1, ART SET-2, ARK-1, ARK-2",
-        "• Munstycksringnycklar: GAR-1 t.o.m. GAR-6, GAR-6-6",
-        "• Diagnoskabler: HE01–HE08, SE01–SE09, MT01–MT03, BS01, CN01, DE01–DE02, SN01–SN02, MA01–MA03, DC01, UNIV-1",
-        "• TurboControl Cables: Green 1–10, Blue 11–20, Red 21–30, Yellow 31–38, Orange H99",
-        "• Maskiner: Shot blasting machine (SM0001–SM0003), Dry blasting, Pneumatic grinder (OP-192K)",
-        "• Övrigt: Pressure tester VT1205, Repair Kit RWS-1, Turbo exposition",
-      ],
-    },
-  ];
+  const { data: importLogs } = await supabase
+    .from("activity_log")
+    .select("*")
+    .eq("action_type", "system_import")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const nyaHandelser: { id: string; date: string; title: string; details: string[] }[] =
+    importLogs && importLogs.length > 0
+      ? importLogs.map((l) => ({
+          id: l.id,
+          date: new Date(l.created_at).toISOString().slice(0, 10),
+          title: l.entity_name ?? "Systemhändelse",
+          details: (l.metadata?.details as string[]) ?? [],
+        }))
+      : [
+          {
+            id: "nh-1",
+            date: "2026-08-19",
+            title: "132 nya produkter tillagda — Tuning & Utrustning",
+            details: [
+              "TUNING (34 produkter) — kompressorhjul, turbos, lagerhus, turbinhus:",
+              "• Turbo 898200-5001W, Turbo 898199-5001W",
+              "• Compressor wheel: IH-03-0051, BW-03-0176/0175/0164/0163/0161/0160/0105/0099/0002",
+              "• Compressor wheel: GA-03-0164/0163/0147/0142/0141/0140/0139/0102/0101/0088/0086",
+              "• Compressor wheel: MH-03-0067/0066/0065/0064/0060/0059/0044, IH-03-0048/0042",
+              "• Bearing housing GA-01-0174, Turbine housing GA-09-0025",
+              "",
+              "UTRUSTNING (98 produkter) — diagnosverktyg, aktuatorer, testare, reparationskit:",
+              "• Testare/Programmerare: VNTT-PRO, TURBO-PROG, TurboControlTC, APD-1, TP-TACT",
+              "• Aktuatorverktyg: ART-1 t.o.m. ART-5, ART SET-1, ART SET-2, ARK-1, ARK-2",
+              "• Munstycksringnycklar: GAR-1 t.o.m. GAR-6, GAR-6-6",
+              "• Diagnoskabler: HE01–HE08, SE01–SE09, MT01–MT03, BS01, CN01, DE01–DE02, SN01–SN02, MA01–MA03, DC01, UNIV-1",
+              "• TurboControl Cables: Green 1–10, Blue 11–20, Red 21–30, Yellow 31–38, Orange H99",
+              "• Maskiner: Shot blasting machine (SM0001–SM0003), Dry blasting, Pneumatic grinder (OP-192K)",
+              "• Övrigt: Pressure tester VT1205, Repair Kit RWS-1, Turbo exposition",
+            ],
+          },
+        ];
 
   return (
     <div>
