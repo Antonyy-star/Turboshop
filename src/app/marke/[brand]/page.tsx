@@ -1,87 +1,82 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { generateBrandProducts } from "@/lib/products";
-import { getProductsByBrand, type RealProduct } from "@/lib/realProducts";
 import { createClient } from "@/lib/supabase/server";
 
-const brandMeta: Record<string, { displayName: string; count: number; logo: string; desc: string }> = {
+const brandMeta: Record<string, { displayName: string; logo: string; desc: string }> = {
   garrett: {
     displayName: "Garrett",
-    count: 625,
     logo: "/brands/kisspng-turbocharger-garrett-airesearch-business-engine-in-garrett-5b3dfc697c5e14.6655578415307889695094.jpg",
     desc: "Garrett Motion är världsledande inom turboladdarteknik. Från gaturacern till tävlingsbanan — vi har rätt Garrett-turbo för dig.",
   },
   borgwarner: {
     displayName: "BorgWarner",
-    count: 407,
     logo: "/brands/BorgWarner.png.webp",
     desc: "BorgWarner EFR-serien sätter standarden för moderna prestandaturbos med inbyggd wastegate och billet-kompressorhjul.",
   },
   mitsubishi: {
     displayName: "Mitsubishi",
-    count: 139,
     logo: "/brands/Mitsubishi_logo.svg",
     desc: "Mitsubishi Heavy Industries turbos används av OEM-tillverkare världen över och är kända för pålitlighet och precision.",
   },
   holset: {
     displayName: "Holset",
-    count: 49,
     logo: "/brands/hol10652_10.jpg",
     desc: "Holset är Cummins turbovarumärke och levererar robusta turbos för tunga fordon och dieselmotorer.",
   },
   ihi: {
     displayName: "IHI",
-    count: 99,
     logo: "/brands/IHI_square.png.avif",
     desc: "IHI turboladdare är standard på många japanska sportbilar inklusive Subaru Impreza WRX och STI.",
   },
   bmts: {
     displayName: "BMTS",
-    count: 102,
     logo: "/brands/BMTS.jpeg",
     desc: "BMTS Technology är ett joint venture mellan Bosch och Mahle som tillverkar moderna twinscroll-turbos för personbilar.",
   },
   hitachi: {
     displayName: "Hitachi",
-    count: 1,
     logo: "/brands/Hitachi-Logo.png",
     desc: "Hitachi turboladdare används primärt i japanska och koreanska personbilar och är kända för kompakt design.",
   },
   valeo: {
     displayName: "Valeo",
-    count: 3,
     logo: "/brands/Valeo_Logo.svg.png",
     desc: "Valeo är en ledande OEM-leverantör av turbosystem för europeiska fordon.",
   },
   continental: {
     displayName: "Continental",
-    count: 20,
     logo: "/brands/continental-logo-png_seeklogo-270061.png",
     desc: "Continental producerar avancerade turbosystem och VNT-turbos för moderna dieselmotorer.",
   },
   toyota: {
     displayName: "Toyota",
-    count: 6,
     logo: "/brands/kisspng-toyota-corolla-car-toyota-motor-sales-u-s-a-inc-1713918574954.webp",
     desc: "Originalturbos och eftermarknadsturbos kompatibla med Toyota-motorer inklusive 1JZ och 2JZ.",
   },
   "cz-turbo": {
     displayName: "CZ Turbo",
-    count: 22,
     logo: "/brands/Logo_CZ.jpg",
     desc: "CZ Turbo erbjuder kvalitativa remanufactured turbos och CHRA-patroner till konkurrenskraftiga priser.",
   },
   master: {
     displayName: "Master",
-    count: 52,
     logo: "/brands/master2.png",
     desc: "Master turbokomponenter levererar pålitliga OEM-specifikationsdelar för brett tillämpningsområde.",
+  },
+  "ee turbo": {
+    displayName: "EE Turbo",
+    logo: "",
+    desc: "EE Turbo erbjuder ett brett sortiment av turboladdare och turbokomponenter.",
+  },
+  turbocentras: {
+    displayName: "TurboCentras",
+    logo: "",
+    desc: "TurboCentras erbjuder ett komplett sortiment av turbodelar och kompletta turboenheter.",
   },
 };
 
 const PRODUCTS_PER_PAGE = 40;
-const filterCategories = ["Kompletta turbos", "Patroner (CHRA)", "Kompressorhjul", "Reparationsdelar", "Aktuatorer"];
 
 export default async function BrandPage({
   params,
@@ -93,74 +88,55 @@ export default async function BrandPage({
   const { brand } = await params;
   const { sida } = await searchParams;
 
-  const meta = brandMeta[brand] ?? {
-    displayName: brand.charAt(0).toUpperCase() + brand.slice(1),
-    count: 100,
+  const currentPage = Math.max(1, parseInt(sida ?? "1", 10));
+
+  // Resolve display name from slug
+  const metaKey = brand.toLowerCase().replace(/-/g, " ");
+  const metaBySpace = brandMeta[metaKey];
+  const metaDirect = brandMeta[brand];
+  const meta = metaDirect ?? metaBySpace ?? {
+    displayName: brand.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
     logo: "",
     desc: "",
   };
 
-  // Fetch DB products for this brand first
   const supabase = await createClient();
+
+  // Count total products for this brand (case-insensitive match)
+  const { count: totalCount } = await supabase
+    .from("products")
+    .select("*", { count: "exact", head: true })
+    .ilike("brand", meta.displayName);
+
+  const total = totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const from = (safePage - 1) * PRODUCTS_PER_PAGE;
+  const to = from + PRODUCTS_PER_PAGE - 1;
+
+  // Fetch current page of products
   const { data: dbProducts } = await supabase
     .from("products")
-    .select("*")
-    .eq("brand", meta.displayName)
-    .order("created_at", { ascending: false });
+    .select("id,name,brand,sku,price,original_price,images,badge,in_stock,category")
+    .ilike("brand", meta.displayName)
+    .order("name", { ascending: true })
+    .range(from, to);
 
-  type Product = {
-    id: string | number;
-    name: string;
-    brand: string;
-    price: number;
-    originalPrice: number | null;
-    sku: string;
-    badge: string | null;
-    image: string | null;
-    isReal: boolean;
-    in_stock: boolean;
-  };
-
-  const realFromDb: Product[] = (dbProducts && dbProducts.length > 0)
-    ? dbProducts.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        brand: p.brand,
-        price: Number(p.price),
-        originalPrice: p.original_price ? Number(p.original_price) : null,
-        sku: p.sku ?? "",
-        badge: p.badge ?? null,
-        image: p.images?.[0] ?? null,
-        isReal: true,
-        in_stock: p.in_stock !== false,
-      }))
-    : getProductsByBrand(brand).map((p: RealProduct) => ({
-        id: p.id,
-        name: p.name,
-        brand: p.brand,
-        price: p.price,
-        originalPrice: p.originalPrice,
-        sku: p.sku,
-        badge: p.badge,
-        image: p.images[0] ?? null,
-        isReal: true,
-        in_stock: true,
-      }));
-
-  const generatedProducts = generateBrandProducts(brand, Math.max(0, meta.count - realFromDb.length));
-  const allProducts: Product[] = [
-    ...realFromDb,
-    ...generatedProducts.map((p) => ({ ...p, id: p.id, image: null, isReal: false, in_stock: true })),
-  ];
-
-  const currentPage = Math.max(1, parseInt(sida ?? "1", 10));
-  const totalPages = Math.ceil(allProducts.length / PRODUCTS_PER_PAGE);
-  const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
-  const products = allProducts.slice(start, start + PRODUCTS_PER_PAGE);
+  const products = (dbProducts ?? []).map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    brand: p.brand,
+    price: Number(p.price),
+    originalPrice: p.original_price ? Number(p.original_price) : null,
+    sku: p.sku ?? "",
+    badge: p.badge ?? null,
+    image: p.images?.[0] ?? null,
+    in_stock: p.in_stock !== false,
+  }));
 
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
   const visiblePages = pageNumbers.filter(
-    (p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2
+    (p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 2
   );
 
   return (
@@ -186,82 +162,48 @@ export default async function BrandPage({
             )}
             <div>
               <h1 className="text-2xl font-black text-black mb-1">{meta.displayName} Turboladdare</h1>
-              <p className="text-sm text-gray-500 max-w-xl">{meta.desc}</p>
-              <p className="text-xs text-gray-400 mt-2">{allProducts.length} produkter tillgängliga</p>
+              {meta.desc && <p className="text-sm text-gray-500 max-w-xl">{meta.desc}</p>}
+              <p className="text-xs text-gray-400 mt-2">{total.toLocaleString("sv-SE")} produkter tillgängliga</p>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
-          <aside className="hidden md:block w-56 flex-shrink-0">
-            <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-              <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Kategori</h3>
-              <ul className="space-y-2">
-                {filterCategories.map((cat) => (
-                  <li key={cat} className="flex items-center gap-2">
-                    <input type="checkbox" id={cat} className="accent-red-600" />
-                    <label htmlFor={cat} className="text-sm text-gray-700 cursor-pointer hover:text-red-600 transition">{cat}</label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-              <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Pris (kr)</h3>
-              <div className="flex gap-2 items-center">
-                <input type="number" placeholder="Min" className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-red-500" />
-                <span className="text-gray-400 text-sm">–</span>
-                <input type="number" placeholder="Max" className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-red-500" />
-              </div>
-              <button className="mt-3 w-full bg-red-600 hover:bg-red-700 text-white text-sm py-1.5 rounded transition">Tillämpa</button>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Tillgänglighet</h3>
-              <ul className="space-y-2">
-                {["I lager", "På beställning", "Rea"].map((opt) => (
-                  <li key={opt} className="flex items-center gap-2">
-                    <input type="checkbox" id={opt} className="accent-red-600" />
-                    <label htmlFor={opt} className="text-sm text-gray-700 cursor-pointer hover:text-red-600 transition">{opt}</label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-5">
+            <p className="text-sm text-gray-500">
+              Visar {from + 1}–{Math.min(from + PRODUCTS_PER_PAGE, total)} av <strong>{total.toLocaleString("sv-SE")}</strong> produkter
+            </p>
+          </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-5">
-              <p className="text-sm text-gray-500">
-                Visar {start + 1}–{Math.min(start + PRODUCTS_PER_PAGE, allProducts.length)} av <strong>{allProducts.length}</strong> produkter
-              </p>
-              <select className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-red-500 bg-white">
-                <option>Sortera: Standard</option>
-                <option>Pris: Lägst först</option>
-                <option>Pris: Högst först</option>
-                <option>Nyast</option>
-              </select>
+          {products.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-xl p-16 text-center">
+              <p className="text-gray-400 text-lg mb-2">Inga produkter hittades</p>
+              <Link href="/kategori/turboladdare" className="text-red-600 text-sm hover:underline">Bläddra alla kategorier</Link>
             </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {products.map((product) => (
                 <Link
                   key={String(product.id)}
-                  href={product.isReal ? `/produkt/${product.id}` : "#"}
+                  href={`/produkt/${product.id}`}
                   className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg hover:border-red-300 transition"
                 >
                   <div className="bg-gray-100 h-40 flex items-center justify-center relative">
                     {product.image ? (
                       <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2" />
                     ) : (
-                      <span className="text-5xl">⚙️</span>
+                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-gray-400 text-xl">⚙</span>
+                      </div>
                     )}
                     {product.badge && (
                       <span className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-0.5 rounded ${product.badge === "Rea" ? "bg-red-600" : "bg-green-600"}`}>
                         {product.badge}
                       </span>
                     )}
-                    {product.isReal && product.in_stock && (
+                    {product.in_stock ? (
                       <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">I lager</span>
-                    )}
-                    {product.isReal && !product.in_stock && (
+                    ) : (
                       <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">Slut</span>
                     )}
                   </div>
@@ -279,10 +221,12 @@ export default async function BrandPage({
                 </Link>
               ))}
             </div>
+          )}
 
+          {totalPages > 1 && (
             <div className="flex items-center justify-center gap-1 mt-10">
-              {currentPage > 1 && (
-                <Link href={`/marke/${brand}?sida=${currentPage - 1}`} className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition">‹ Föregående</Link>
+              {safePage > 1 && (
+                <Link href={`/marke/${brand}?sida=${safePage - 1}`} className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition">‹ Föregående</Link>
               )}
               {visiblePages.map((p, idx) => {
                 const prev = visiblePages[idx - 1];
@@ -290,18 +234,20 @@ export default async function BrandPage({
                   <span key={p} className="flex items-center gap-1">
                     {prev && p - prev > 1 && <span className="px-2 text-gray-400">…</span>}
                     <Link href={`/marke/${brand}?sida=${p}`}
-                      className={`px-3 py-2 text-sm border rounded transition ${p === currentPage ? "bg-red-600 border-red-600 text-white" : "bg-white border-gray-300 hover:border-red-500 hover:text-red-600"}`}>
+                      className={`px-3 py-2 text-sm border rounded transition ${p === safePage ? "bg-red-600 border-red-600 text-white" : "bg-white border-gray-300 hover:border-red-500 hover:text-red-600"}`}>
                       {p}
                     </Link>
                   </span>
                 );
               })}
-              {currentPage < totalPages && (
-                <Link href={`/marke/${brand}?sida=${currentPage + 1}`} className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition">Nästa ›</Link>
+              {safePage < totalPages && (
+                <Link href={`/marke/${brand}?sida=${safePage + 1}`} className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition">Nästa ›</Link>
               )}
             </div>
-            <p className="text-center text-xs text-gray-400 mt-3">Sida {currentPage} av {totalPages}</p>
-          </div>
+          )}
+          {totalPages > 1 && (
+            <p className="text-center text-xs text-gray-400 mt-3">Sida {safePage} av {totalPages}</p>
+          )}
         </div>
       </main>
       <Footer />

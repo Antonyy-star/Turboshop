@@ -28,19 +28,6 @@ const filterBrands = ["Garrett", "BorgWarner", "Holset", "Mitsubishi", "IHI", "B
 
 const PRODUCTS_PER_PAGE = 40;
 
-type DisplayProduct = {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  originalPrice: number | null;
-  sku: string;
-  badge: string | null;
-  images: string[];
-  real: boolean;
-  in_stock: boolean;
-};
-
 export default async function CategoryPage({
   params,
   searchParams,
@@ -50,22 +37,45 @@ export default async function CategoryPage({
 }) {
   const { slug } = await params;
   const { sida } = await searchParams;
+
   const categoryName = categoryNames[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
-
-  // Fetch DB products for this category
-  const supabase = await createClient();
   const dbCategory = slugToDbCategory[slug];
-  // For turboladdare: also include products with category = null (seeded before category column existed)
-  const { data: dbProducts } = dbCategory
-    ? await supabase
-        .from("products")
-        .select("*")
-        .or(slug === "turboladdare" ? `category.eq.${dbCategory},category.is.null` : `category.eq.${dbCategory}`)
-        .order("created_at", { ascending: false })
-    : { data: [] as any[] };
 
-  const realProductsList: DisplayProduct[] = (dbProducts ?? []).map((p: any) => ({
-    id: p.id,
+  const supabase = await createClient();
+
+  // Get total count for this category
+  let countQuery = supabase.from("products").select("*", { count: "exact", head: true });
+  if (dbCategory) {
+    if (slug === "turboladdare") {
+      countQuery = (countQuery as any).or(`category.eq.${dbCategory},category.is.null`);
+    } else {
+      countQuery = (countQuery as any).eq("category", dbCategory);
+    }
+  }
+  const { count: totalCount } = await countQuery;
+  const total = totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
+  const currentPage = Math.max(1, Math.min(parseInt(sida ?? "1", 10), totalPages));
+  const from = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const to = from + PRODUCTS_PER_PAGE - 1;
+
+  // Fetch current page
+  let dataQuery = supabase
+    .from("products")
+    .select("id,name,brand,sku,price,original_price,images,badge,in_stock,category");
+  if (dbCategory) {
+    if (slug === "turboladdare") {
+      dataQuery = (dataQuery as any).or(`category.eq.${dbCategory},category.is.null`);
+    } else {
+      dataQuery = (dataQuery as any).eq("category", dbCategory);
+    }
+  }
+  const { data: dbProducts } = await dataQuery
+    .order("name", { ascending: true })
+    .range(from, to);
+
+  const products = (dbProducts ?? []).map((p: any) => ({
+    id: String(p.id),
     name: p.name,
     brand: p.brand,
     price: Number(p.price),
@@ -73,16 +83,8 @@ export default async function CategoryPage({
     sku: p.sku ?? "",
     badge: p.badge ?? null,
     images: p.images ?? [],
-    real: true,
     in_stock: p.in_stock !== false,
   }));
-
-  const ALL_PRODUCTS: DisplayProduct[] = realProductsList;
-
-  const currentPage = Math.max(1, parseInt(sida ?? "1", 10));
-  const totalPages = Math.ceil(ALL_PRODUCTS.length / PRODUCTS_PER_PAGE);
-  const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
-  const products = ALL_PRODUCTS.slice(start, start + PRODUCTS_PER_PAGE);
 
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
   const visiblePages = pageNumbers.filter(
@@ -142,10 +144,7 @@ export default async function CategoryPage({
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-5">
               <p className="text-sm text-gray-500">
-                Visar {start + 1}–{Math.min(start + PRODUCTS_PER_PAGE, ALL_PRODUCTS.length)} av <strong>{ALL_PRODUCTS.length}</strong> produkter
-                {realProductsList.length > 0 && (
-                  <span className="ml-2 text-green-600 font-medium">· {realProductsList.length} i lager</span>
-                )}
+                Visar {from + 1}–{Math.min(from + PRODUCTS_PER_PAGE, total)} av <strong>{total.toLocaleString("sv-SE")}</strong> produkter
               </p>
               <select className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-red-500 bg-white">
                 <option>Sortera: Standard</option>
@@ -155,68 +154,80 @@ export default async function CategoryPage({
               </select>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {products.map((product) => (
-                <Link
-                  key={product.id}
-                  href={product.real ? `/produkt/${product.id}` : "#"}
-                  className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg hover:border-red-300 transition"
-                >
-                  <div className="bg-gray-100 h-40 flex items-center justify-center relative">
-                    {product.images[0] ? (
-                      <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain p-2" />
-                    ) : (
-                      <span className="text-5xl">⚙️</span>
-                    )}
-                    {product.badge && (
-                      <span className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-0.5 rounded ${product.badge === "Rea" ? "bg-red-600" : "bg-green-600"}`}>
-                        {product.badge}
-                      </span>
-                    )}
-                    {product.real && product.in_stock && (
-                      <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">I lager</span>
-                    )}
-                    {product.real && !product.in_stock && (
-                      <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">Slut</span>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <p className="text-xs text-gray-400 mb-1">{product.brand} · {product.sku}</p>
-                    <h3 className="font-semibold text-sm text-black group-hover:text-red-600 transition leading-tight mb-2 line-clamp-2">{product.name}</h3>
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-base font-bold text-black">{product.price.toLocaleString("sv-SE")} kr</span>
-                      {product.originalPrice && (
-                        <span className="text-xs text-gray-400 line-through">{product.originalPrice.toLocaleString("sv-SE")} kr</span>
+            {products.length === 0 ? (
+              <div className="bg-white border border-gray-200 rounded-xl p-16 text-center">
+                <p className="text-gray-400 text-lg mb-2">Inga produkter hittades i denna kategori</p>
+                <Link href="/" className="text-red-600 text-sm hover:underline">Tillbaka till startsidan</Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {products.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/produkt/${product.id}`}
+                    className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg hover:border-red-300 transition"
+                  >
+                    <div className="bg-gray-100 h-40 flex items-center justify-center relative">
+                      {product.images[0] ? (
+                        <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain p-2" />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                          <span className="text-gray-400 text-xl">⚙</span>
+                        </div>
+                      )}
+                      {product.badge && (
+                        <span className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-0.5 rounded ${product.badge === "Rea" ? "bg-red-600" : "bg-green-600"}`}>
+                          {product.badge}
+                        </span>
+                      )}
+                      {product.in_stock ? (
+                        <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">I lager</span>
+                      ) : (
+                        <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">Slut</span>
                       )}
                     </div>
-                    <button className="w-full bg-black hover:bg-red-600 text-white text-xs font-medium py-2 rounded transition">Lägg i varukorg</button>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                    <div className="p-3">
+                      <p className="text-xs text-gray-400 mb-1">{product.brand} · {product.sku}</p>
+                      <h3 className="font-semibold text-sm text-black group-hover:text-red-600 transition leading-tight mb-2 line-clamp-2">{product.name}</h3>
+                      <div className="flex items-baseline gap-2 mb-2">
+                        <span className="text-base font-bold text-black">{product.price.toLocaleString("sv-SE")} kr</span>
+                        {product.originalPrice && (
+                          <span className="text-xs text-gray-400 line-through">{product.originalPrice.toLocaleString("sv-SE")} kr</span>
+                        )}
+                      </div>
+                      <button className="w-full bg-black hover:bg-red-600 text-white text-xs font-medium py-2 rounded transition">Lägg i varukorg</button>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
 
             {/* Pagination */}
-            <div className="flex items-center justify-center gap-1 mt-10">
-              {currentPage > 1 && (
-                <Link href={`/kategori/${slug}?sida=${currentPage - 1}`} className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition">‹ Föregående</Link>
-              )}
-              {visiblePages.map((p, idx) => {
-                const prev = visiblePages[idx - 1];
-                return (
-                  <span key={p} className="flex items-center gap-1">
-                    {prev && p - prev > 1 && <span className="px-2 text-gray-400">…</span>}
-                    <Link href={`/kategori/${slug}?sida=${p}`}
-                      className={`px-3 py-2 text-sm border rounded transition ${p === currentPage ? "bg-red-600 border-red-600 text-white" : "bg-white border-gray-300 hover:border-red-500 hover:text-red-600"}`}>
-                      {p}
-                    </Link>
-                  </span>
-                );
-              })}
-              {currentPage < totalPages && (
-                <Link href={`/kategori/${slug}?sida=${currentPage + 1}`} className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition">Nästa ›</Link>
-              )}
-            </div>
-            <p className="text-center text-xs text-gray-400 mt-3">Sida {currentPage} av {totalPages}</p>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-1 mt-10">
+                {currentPage > 1 && (
+                  <Link href={`/kategori/${slug}?sida=${currentPage - 1}`} className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition">‹ Föregående</Link>
+                )}
+                {visiblePages.map((p, idx) => {
+                  const prev = visiblePages[idx - 1];
+                  return (
+                    <span key={p} className="flex items-center gap-1">
+                      {prev && p - prev > 1 && <span className="px-2 text-gray-400">…</span>}
+                      <Link href={`/kategori/${slug}?sida=${p}`}
+                        className={`px-3 py-2 text-sm border rounded transition ${p === currentPage ? "bg-red-600 border-red-600 text-white" : "bg-white border-gray-300 hover:border-red-500 hover:text-red-600"}`}>
+                        {p}
+                      </Link>
+                    </span>
+                  );
+                })}
+                {currentPage < totalPages && (
+                  <Link href={`/kategori/${slug}?sida=${currentPage + 1}`} className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition">Nästa ›</Link>
+                )}
+              </div>
+            )}
+            {totalPages > 1 && (
+              <p className="text-center text-xs text-gray-400 mt-3">Sida {currentPage} av {totalPages}</p>
+            )}
           </div>
         </div>
       </main>

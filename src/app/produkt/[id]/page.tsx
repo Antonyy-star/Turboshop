@@ -129,7 +129,7 @@ function SpecsPanel({
                 const pId = skuToId[p.sku.toUpperCase()];
                 return (
                   <div key={i} className="flex justify-between items-center">
-                    <span className="text-[11px] text-gray-500">{p.type}</span>
+                    <span className="text-[11px] text-gray-500">{p.type.replace(p.sku, "").replace(/\s*:\s*$/, "").trim()}</span>
                     {pId ? (
                       <Link href={`/produkt/${pId}`} className="text-[11px] font-mono font-semibold text-red-600 hover:underline">{p.sku}</Link>
                     ) : (
@@ -215,7 +215,13 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-2 text-sm text-gray-500 flex-wrap">
             <Link href="/" className="hover:text-red-600 transition">Hem</Link>
             <span>›</span>
-            <Link href="/kategori/turboladdare" className="hover:text-red-600 transition">Turboladdare</Link>
+            {dbProduct?.category === "CHRA" ? (
+              <Link href="/kategori/chra" className="hover:text-red-600 transition">CHRA</Link>
+            ) : dbProduct?.category === "Turbodelar" ? (
+              <Link href="/kategori/turbodelar" className="hover:text-red-600 transition">Turbodelar</Link>
+            ) : (
+              <Link href="/kategori/turboladdare" className="hover:text-red-600 transition">Turboladdare</Link>
+            )}
             <span>›</span>
             <Link href={`/marke/${product.brand.toLowerCase().replace(/\s+/g, "-")}`} className="hover:text-red-600 transition">{product.brand}</Link>
             <span>›</span>
