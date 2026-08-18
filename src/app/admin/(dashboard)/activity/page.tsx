@@ -48,7 +48,8 @@ export default async function ActivityPage() {
     adminStats[log.admin_email].count++;
   }
 
-  const nyaHandelser = [
+  const { data: newsContent } = await supabase.from("site_content").select("content").eq("key", "news_events").single();
+  const nyaHandelser: { id: string; date: string; title: string; details: string[] }[] = newsContent?.content?.events ?? [
     {
       id: "nh-1",
       date: "2026-08-19",
