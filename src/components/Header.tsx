@@ -32,7 +32,7 @@ const categories = [
 
 const desktopCategories = [
   { name: "Turboladdare", type: "brands" },
-  { name: "Turbodelar", type: "list", subcategories: ["Kompressorhjul", "Turbinhjul", "Lagerhus", "Packningar & tätningar", "Aktuatorer"] },
+  { name: "Turbodelar", type: "link", href: "/kategori/turbodelar" },
   { name: "Kontaktformulär", type: "link", href: "/kontakt" },
   { name: "Katalog", type: "link", href: "/katalog", badge: "Avancerat" },
   { name: "Kontakta oss", type: "link", href: "/kontakta-oss" },
