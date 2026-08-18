@@ -24,6 +24,128 @@ function extractSku(text: string): string | null {
   return m ? m[1] : null;
 }
 
+function SpecRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between items-start py-1.5 border-b border-gray-100 last:border-0">
+      <span className="text-xs text-gray-500 shrink-0 mr-3">{label}</span>
+      <span className="text-xs font-semibold text-black text-right">{value}</span>
+    </div>
+  );
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-4 mb-2 pt-3 border-t border-gray-100">
+      {children}
+    </h3>
+  );
+}
+
+function SpecsPanel({
+  specs, sku, skuToProduct,
+}: {
+  specs: Specs;
+  sku: string;
+  skuToProduct: Record<string, { id: string; brand: string }>;
+}) {
+  const header = [specs.series, sku].filter(Boolean).join(" · ");
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden h-fit sticky top-24">
+      {header && (
+        <div className="bg-gray-900 text-white px-4 py-3">
+          <p className="text-xs font-bold tracking-wide">{header}</p>
+        </div>
+      )}
+      <div className="px-4 py-4 max-h-[80vh] overflow-y-auto">
+        {specs.series     && <SpecRow label="Series"     value={specs.series} />}
+        {specs.model      && <SpecRow label="Model"      value={specs.model} />}
+        {specs.technology && <SpecRow label="Technology" value={specs.technology} />}
+        {specs.actuation  && <SpecRow label="Actuation"  value={specs.actuation} />}
+        {specs.reference  && <SpecRow label="Reference"  value={specs.reference} />}
+
+        {!!specs.turbo_numbers?.length && (
+          <>
+            <SectionTitle>Turbo Numbers</SectionTitle>
+            <div className="space-y-1">
+              {specs.turbo_numbers.map((n, i) => (
+                <div key={i} className="flex justify-between items-start">
+                  <span className="text-[11px] text-gray-400 shrink-0 mr-2">{n.type}</span>
+                  <span className="text-[11px] font-mono font-medium text-black text-right">{n.number}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {!!specs.replacements?.length && (
+          <>
+            <SectionTitle>Turbo Replacements</SectionTitle>
+            <div className="space-y-1">
+              {specs.replacements.map((r, i) => {
+                const rSku = extractSku(r);
+                const rMatch = rSku ? skuToProduct[rSku.toUpperCase()] : null;
+                return (
+                  <p key={i} className="text-[11px] text-gray-700 leading-snug">
+                    <span className="text-gray-400">Replacement for: </span>
+                    {rMatch ? (
+                      <Link href={`/produkt/${rMatch.id}`} className="text-red-600 hover:underline font-medium">{r}</Link>
+                    ) : r}
+                  </p>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {!!specs.interchangeable_with?.length && (
+          <>
+            <SectionTitle>Interchangeable With</SectionTitle>
+            <div className="space-y-1">
+              {specs.interchangeable_with.map((r, i) => {
+                const iSku = extractSku(r);
+                const iMatch = iSku ? skuToProduct[iSku.toUpperCase()] : null;
+                return (
+                  <p key={i} className="text-[11px] leading-snug">
+                    {iMatch ? (
+                      <Link href={`/produkt/${iMatch.id}`} className="text-red-600 hover:underline font-medium">{r}</Link>
+                    ) : (
+                      <span className="text-gray-700">{r}</span>
+                    )}
+                  </p>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {!!specs.turbo_parts?.length && (
+          <>
+            <SectionTitle>Turbo Parts</SectionTitle>
+            <div className="space-y-1.5">
+              {specs.turbo_parts.map((p, i) => {
+                const pMatch = skuToProduct[p.sku.toUpperCase()];
+                return (
+                  <div key={i} className="flex justify-between items-center">
+                    <span className="text-[11px] text-gray-500">
+                      {p.type.replace(p.sku, "").replace(/\s*:\s*$/, "").trim() || p.type}
+                    </span>
+                    {pMatch ? (
+                      <Link href={`/produkt/${pMatch.id}`} className="text-[11px] font-mono font-semibold text-red-600 hover:underline">{p.sku}</Link>
+                    ) : (
+                      <span className="text-[11px] font-mono font-semibold text-red-600">{p.sku}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -121,8 +243,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
         <div className="max-w-7xl mx-auto px-4 py-8">
 
-          {/* Top section: image + buy */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+          {/* Top section: 3-col when specs, 2-col otherwise */}
+          <div className={`grid grid-cols-1 gap-8 mb-10 ${hasSpecs ? "lg:grid-cols-[1fr_1fr_280px]" : "md:grid-cols-2"}`}>
 
             {/* Col 1 — image gallery */}
             <ImageGallery images={product.images} name={product.name} />
@@ -174,12 +296,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                   <span className="text-gray-500">Varumärke</span>
                   <span className="font-medium text-black">{product.brand}</span>
                 </div>
-                {specs?.model && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Modell</span>
-                    <span className="font-medium text-black">{specs.model}</span>
-                  </div>
-                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Frakt</span>
                   <span className="font-medium text-black">Beräknas i kassan</span>
@@ -190,13 +306,17 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
             </div>
+
+            {/* Col 3 — specs panel on the right */}
+            {hasSpecs && (
+              <SpecsPanel specs={specs!} sku={product.sku} skuToProduct={skuToProduct} />
+            )}
           </div>
 
-          {/* Description section — full width, turbocentras style */}
+          {/* Beskrivning section — full width below, turbocentras style */}
           {hasSpecs && specs && (
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
 
-              {/* Tab bar (visual only) */}
               <div className="border-b border-gray-200 flex">
                 <span className="px-6 py-3 text-sm font-semibold text-black border-b-2 border-black -mb-px">Beskrivning</span>
                 <span className="px-6 py-3 text-sm text-gray-400">Produktdetaljer</span>
@@ -204,7 +324,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
               <div className="px-6 py-8">
 
-                {/* Main heading — like turbocentras: "SKU (OEM1, OEM2) - Name" */}
+                {/* Heading: SKU (OEM numbers) - Product name */}
                 <h2 className="text-xl font-bold text-black mb-4 leading-snug">
                   {product.sku}
                   {oemNumbers.length > 0 && (
@@ -267,7 +387,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                     </h3>
                     {specs.turbo_numbers.map((n, i) => (
                       <p key={i} className="text-sm text-gray-700 mb-0.5">
-                        <span className="text-gray-500">{n.type} ({n.type.toLowerCase().includes("oem") ? "OEM-nummer" : `${product.brand} turbonummer`}):</span>{" "}
+                        <span className="text-gray-500">{n.type}:</span>{" "}
                         <span className="font-medium">{n.number}</span>
                       </p>
                     ))}
@@ -277,9 +397,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 {/* Replacements */}
                 {!!specs.replacements?.length && (
                   <div className="mb-8">
-                    <h3 className="text-lg font-bold text-black mb-3">
-                      Ersätter / Ersätts av
-                    </h3>
+                    <h3 className="text-lg font-bold text-black mb-3">Ersätter / Ersätts av</h3>
                     {specs.replacements.map((r, i) => {
                       const rSku = extractSku(r);
                       const rMatch = rSku ? skuToProduct[rSku.toUpperCase()] : null;
@@ -296,12 +414,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                   </div>
                 )}
 
-                {/* Interchangeable with */}
+                {/* Interchangeable */}
                 {!!specs.interchangeable_with?.length && (
                   <div className="mb-8">
-                    <h3 className="text-lg font-bold text-black mb-3">
-                      Utbytbar med
-                    </h3>
+                    <h3 className="text-lg font-bold text-black mb-3">Utbytbar med</h3>
                     {specs.interchangeable_with.map((r, i) => {
                       const iSku = extractSku(r);
                       const iMatch = iSku ? skuToProduct[iSku.toUpperCase()] : null;
@@ -360,8 +476,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                         </tbody>
                       </table>
                     </div>
-
-                    {/* Bottom OEM reference line */}
                     {oemNumbers.length > 0 && (
                       <p className="text-xs text-gray-500 mt-4">
                         {oemNumbers.map(n => n.number).join(", ")}
@@ -370,10 +484,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                   </div>
                 )}
 
-                {/* Description text if present */}
+                {/* Description text */}
                 {product.description && (
                   <div className="mt-8 pt-8 border-t border-gray-200">
-                    <h3 className="font-bold text-sm uppercase tracking-wide text-black mb-2">Beskrivning</h3>
+                    <h3 className="font-bold text-sm uppercase tracking-wide text-black mb-2">Mer information</h3>
                     <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
                   </div>
                 )}
@@ -382,7 +496,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             </div>
           )}
 
-          {/* No specs: show description if present */}
+          {/* No specs: show description only if present */}
           {!hasSpecs && product.description && (
             <div className="bg-white border border-gray-200 rounded-xl p-6">
               <h3 className="font-bold text-sm uppercase tracking-wide text-black mb-2">Beskrivning</h3>
