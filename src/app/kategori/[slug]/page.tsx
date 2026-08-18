@@ -1,13 +1,12 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { generateProducts } from "@/lib/products";
-import { getAllRealProducts, type ParsedProduct } from "@/lib/parseProducts";
 import { createClient } from "@/lib/supabase/server";
 
 const categoryNames: Record<string, string> = {
   turboladdare: "Turboladdare",
   chra: "Patroner (CHRA)",
+  turbodelar: "Turbodelar",
   kompressorhjul: "Kompressorhjul",
   packningar: "Packningar & tätningar",
   prestanda: "Prestandadelar",
@@ -17,6 +16,7 @@ const categoryNames: Record<string, string> = {
 // Maps URL slug → DB category value
 const slugToDbCategory: Record<string, string> = {
   turboladdare: "Turboladdare",
+  chra: "CHRA",
   turbodelar: "Turbodelar",
   kompressorhjul: "Kompressorhjul",
   packningar: "Packningar & Tätningar",
@@ -64,36 +64,20 @@ export default async function CategoryPage({
         .order("created_at", { ascending: false })
     : { data: [] as any[] };
 
-  // Use DB products if available, else fall back to parseProducts (turboladdare only)
-  const realProductsList: DisplayProduct[] = (dbProducts && dbProducts.length > 0)
-    ? dbProducts.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        brand: p.brand,
-        price: Number(p.price),
-        originalPrice: p.original_price ? Number(p.original_price) : null,
-        sku: p.sku ?? "",
-        badge: p.badge ?? null,
-        images: p.images ?? [],
-        real: true,
-        in_stock: p.in_stock !== false,
-      }))
-    : (slug === "turboladdare"
-        ? getAllRealProducts().map((p: ParsedProduct) => ({ ...p, real: true, in_stock: true }))
-        : []);
-
-  const generated = generateProducts(1480).map((p) => ({
-    ...p,
-    id: String(p.id),
-    images: [] as string[],
-    real: false,
-    in_stock: true,
+  const realProductsList: DisplayProduct[] = (dbProducts ?? []).map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    brand: p.brand,
+    price: Number(p.price),
+    originalPrice: p.original_price ? Number(p.original_price) : null,
+    sku: p.sku ?? "",
+    badge: p.badge ?? null,
+    images: p.images ?? [],
+    real: true,
+    in_stock: p.in_stock !== false,
   }));
 
-  // Real/DB products first, generated fill the rest (no duplicate SKUs)
-  const realSkus = new Set(realProductsList.map((p) => p.sku));
-  const filtered = generated.filter((p) => !realSkus.has(p.sku));
-  const ALL_PRODUCTS: DisplayProduct[] = [...realProductsList, ...filtered];
+  const ALL_PRODUCTS: DisplayProduct[] = realProductsList;
 
   const currentPage = Math.max(1, parseInt(sida ?? "1", 10));
   const totalPages = Math.ceil(ALL_PRODUCTS.length / PRODUCTS_PER_PAGE);
