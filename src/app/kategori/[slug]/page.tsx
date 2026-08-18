@@ -71,7 +71,7 @@ export default async function CategoryPage({
     }
   }
   const { data: dbProducts } = await dataQuery
-    .order("name", { ascending: true })
+    .order("price", { ascending: false })
     .range(from, to);
 
   const products = (dbProducts ?? []).map((p: any) => ({

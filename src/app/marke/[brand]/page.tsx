@@ -119,7 +119,7 @@ export default async function BrandPage({
     .from("products")
     .select("id,name,brand,sku,price,original_price,images,badge,in_stock,category")
     .ilike("brand", meta.displayName)
-    .order("name", { ascending: true })
+    .order("price", { ascending: false })
     .range(from, to);
 
   const products = (dbProducts ?? []).map((p: any) => ({
