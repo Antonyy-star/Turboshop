@@ -1,42 +1,44 @@
 import { createClient } from "@/lib/supabase/server";
-import { realProducts } from "@/lib/realProducts";
 import ProductsManager from "@/components/admin/ProductsManager";
 
-export default async function AdminProducts() {
-  const supabase = await createClient();
-  const { data: existing } = await supabase.from("products").select("id").limit(1);
+const PAGE_SIZE = 50;
 
-  if (!existing || existing.length === 0) {
-    // First-time seed: insert all real products
-    await supabase.from("products").upsert(
-      realProducts.map(p => ({
-        id: p.id,
-        name: p.name,
-        brand: p.brand,
-        price: p.price,
-        original_price: p.originalPrice,
-        sku: p.sku,
-        images: p.images,
-        badge: p.badge,
-        description: p.description,
-        category: "Turboladdare",
-        in_stock: true,
-      })),
-      { ignoreDuplicates: true }
-    );
-  } else {
-    // Fix products seeded before the category column existed (category = null)
-    await supabase
-      .from("products")
-      .update({ category: "Turboladdare" })
-      .is("category", null)
-      .in("id", realProducts.map(p => p.id));
+export default async function AdminProducts({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; q?: string; category?: string }>;
+}) {
+  const { page: pageStr, q, category } = await searchParams;
+  const page   = Math.max(1, parseInt(pageStr ?? "1", 10));
+  const search = (q ?? "").trim();
+
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("products")
+    .select("id,name,brand,sku,price,images,category,in_stock,badge,created_at", { count: "exact" });
+
+  if (search) {
+    query = (query as any).or(`name.ilike.%${search}%,sku.ilike.%${search}%,brand.ilike.%${search}%`);
+  }
+  if (category) {
+    query = (query as any).eq("category", category);
   }
 
-  const { data: products } = await supabase
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data: products, count } = await query
+    .order("created_at", { ascending: false })
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
-  return <ProductsManager initialProducts={products ?? []} />;
+  const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE);
+
+  return (
+    <ProductsManager
+      initialProducts={products ?? []}
+      totalCount={count ?? 0}
+      page={page}
+      totalPages={totalPages}
+      search={search}
+      category={category ?? ""}
+    />
+  );
 }
