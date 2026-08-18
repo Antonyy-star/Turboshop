@@ -30,22 +30,34 @@ export default async function SearchPage({
     const from = (currentPage - 1) * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    const [{ count }, { data }] = await Promise.all([
-      supabase
-        .from("products")
-        .select("*", { count: "exact", head: true })
-        .or(orFilter),
-      supabase
-        .from("products")
-        .select("id,name,brand,sku,price,images,category,badge,in_stock")
-        .or(orFilter)
-        .order("price", { ascending: false })
-        .range(from, to),
+    // On page 1: also search OEM/turbo_numbers in parallel
+    const [{ count }, { data: primary }, oemResult] = await Promise.all([
+      supabase.from("products").select("*", { count: "exact", head: true }).or(orFilter),
+      supabase.from("products").select("id,name,brand,sku,price,images,category,badge,in_stock")
+        .or(orFilter).order("price", { ascending: false }).range(from, to),
+      currentPage === 1
+        ? supabase.from("products").select("id,name,brand,sku,price,images,category,badge,in_stock")
+            .filter("specs->>turbo_numbers", "ilike", `%${esc}%`)
+            .order("price", { ascending: false })
+            .limit(PAGE_SIZE)
+        : Promise.resolve({ data: [] }),
     ]);
+    const oemData: any[] = (oemResult as any)?.data ?? [];
 
     totalCount = count ?? 0;
     totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-    results = data ?? [];
+
+    // Merge primary + OEM without duplicates (OEM appended after primary)
+    const seen = new Set<string>((primary ?? []).map((p: any) => p.id));
+    const oemOnly = oemData.filter((p: any) => !seen.has(p.id));
+
+    results = [...(primary ?? []), ...oemOnly];
+
+    // If OEM-only results exist, bump the displayed total
+    if (oemOnly.length > 0 && currentPage === 1) {
+      totalCount += oemOnly.length;
+      totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+    }
   }
 
   const from = (currentPage - 1) * PAGE_SIZE + 1;

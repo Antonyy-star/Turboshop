@@ -6,15 +6,16 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Escape ilike special chars
 function escapeIlike(s: string) {
   return s.replace(/[%_\\]/g, "\\$&");
 }
 
-// Strip dashes/spaces to normalize article numbers: "715910-0001-R" → "7159100001r"
+// Strips dashes/spaces/dots so "7159100001" matches "715910-0001-R"
 function normalize(s: string) {
   return s.toLowerCase().replace(/[-\s./\\|_]+/g, "");
 }
+
+const FIELDS = "id,name,brand,sku,price,images,category,badge,in_stock";
 
 export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get("q")?.trim().slice(0, 100) ?? "";
@@ -24,41 +25,58 @@ export async function GET(req: NextRequest) {
   const lower = raw.toLowerCase();
   const normQ = normalize(raw);
 
-  // Primary: server-side ilike across name, sku, brand
-  const { data: primary } = await supabase
-    .from("products")
-    .select("id,name,brand,sku,price,images,category,badge,in_stock")
-    .or(`name.ilike.%${esc}%,sku.ilike.%${esc}%,brand.ilike.%${esc}%`)
-    .limit(30);
-
-  let results = primary ?? [];
-
-  // Secondary: if query looks like a bare article number (no dashes typed by user)
-  // also search for normalized SKU matches — catches "7159100001" → "715910-0001-R"
-  if (results.length < 5 && normQ.length >= 4 && !/\s/.test(raw)) {
-    const { data: secondary } = await supabase
+  // Run name/sku/brand search AND OEM/turbo_numbers search in parallel
+  const [{ data: primary }, { data: oemMatches }] = await Promise.all([
+    supabase
       .from("products")
-      .select("id,name,brand,sku,price,images,category,badge,in_stock")
+      .select(FIELDS)
       .or(`name.ilike.%${esc}%,sku.ilike.%${esc}%,brand.ilike.%${esc}%`)
-      .limit(100);
+      .limit(30),
+    supabase
+      .from("products")
+      .select(FIELDS)
+      .filter("specs->>turbo_numbers", "ilike", `%${esc}%`)
+      .limit(20),
+  ]);
 
-    // Filter secondary by normalized SKU match
-    const extra = (secondary ?? []).filter((p) => {
-      const ns = normalize(p.sku ?? "");
-      const nn = normalize(p.name);
-      return ns.includes(normQ) || nn.includes(normQ);
-    });
-
-    // Merge without duplicates
-    const seen = new Set(results.map((r) => r.id));
-    results = [...results, ...extra.filter((r) => !seen.has(r.id))];
+  // Merge without duplicates
+  const seen = new Set<string>();
+  const results: any[] = [];
+  for (const p of [...(primary ?? []), ...(oemMatches ?? [])]) {
+    if (p?.id && !seen.has(p.id)) { seen.add(p.id); results.push(p); }
   }
 
-  // Score and sort
-  const score = (p: { sku: string | null; name: string; brand: string }) => {
+  // Normalized secondary: user typed without dashes (e.g. "4720001" → "472-0001-R")
+  // Fetch candidates by prefix, then normalize OEM numbers in JS
+  if (results.length < 5 && normQ.length >= 4 && !/\s/.test(raw)) {
+    // Use first 4 raw chars as DB prefix to narrow candidates
+    const prefixEsc = escapeIlike(raw.slice(0, 4));
+    const { data: candidates } = await supabase
+      .from("products")
+      .select(`${FIELDS},specs`)
+      .or(`sku.ilike.${prefixEsc}%,name.ilike.%${prefixEsc}%`)
+      .limit(200);
+
+    const extra = (candidates ?? []).filter((p) => {
+      if (seen.has(p.id)) return false;
+      const nSku = normalize(p.sku ?? "");
+      if (nSku.includes(normQ)) return true;
+      // Check all alternate/OEM numbers in specs
+      const nums: any[] = p.specs?.turbo_numbers ?? [];
+      return nums.some((n: any) => normalize(n.number ?? "").includes(normQ));
+    });
+
+    for (const p of extra) {
+      const { specs, ...rest } = p;
+      if (!seen.has(rest.id)) { seen.add(rest.id); results.push(rest); }
+    }
+  }
+
+  // Score: exact SKU/OEM match first, then starts-with, then contains
+  const score = (p: any): number => {
     const ns = normalize(p.sku ?? "");
     const nl = p.name.toLowerCase();
-    const bl = p.brand.toLowerCase();
+    const bl = (p.brand ?? "").toLowerCase();
     if (ns === normQ || nl === lower) return 0;
     if (ns.startsWith(normQ) || nl.startsWith(lower) || bl === lower) return 1;
     if (ns.includes(normQ)) return 2;
