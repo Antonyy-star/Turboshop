@@ -102,25 +102,27 @@ export default async function BrandPage({
 
   const supabase = createServiceClient();
 
-  // Count total products for this brand (case-insensitive match)
-  const { count: totalCount } = await supabase
-    .from("products")
-    .select("*", { count: "exact", head: true })
-    .ilike("brand", meta.displayName);
+  // Run count + first-page data in parallel; re-fetch data if page != 1
+  const from0 = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const to0 = from0 + PRODUCTS_PER_PAGE - 1;
+
+  const [{ count: totalCount }, { data: dbProducts }] = await Promise.all([
+    supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .ilike("brand", meta.displayName),
+    supabase
+      .from("products")
+      .select("id,name,brand,sku,price,original_price,images,badge,in_stock,category")
+      .ilike("brand", meta.displayName)
+      .order("price", { ascending: false })
+      .range(from0, to0),
+  ]);
 
   const total = totalCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
   const from = (safePage - 1) * PRODUCTS_PER_PAGE;
-  const to = from + PRODUCTS_PER_PAGE - 1;
-
-  // Fetch current page of products
-  const { data: dbProducts } = await supabase
-    .from("products")
-    .select("id,name,brand,sku,price,original_price,images,badge,in_stock,category")
-    .ilike("brand", meta.displayName)
-    .order("price", { ascending: false })
-    .range(from, to);
 
   const products = (dbProducts ?? []).map((p: any) => ({
     id: p.id,
