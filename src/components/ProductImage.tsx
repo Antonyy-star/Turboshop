@@ -6,19 +6,12 @@ interface Props {
   src: string | null | undefined;
   alt: string;
   className?: string;
-  proxyImages?: boolean;
 }
 
-function proxyUrl(src: string): string {
-  return `/api/img?u=${encodeURIComponent(src)}`;
-}
-
-export default function ProductImage({ src, alt, className = "w-full h-full object-contain p-2", proxyImages = true }: Props) {
+export default function ProductImage({ src, alt, className = "w-full h-full object-contain p-2" }: Props) {
   const [failed, setFailed] = useState(false);
 
-  const imgSrc = src && !failed
-    ? (proxyImages && src.includes("turbocentras.com") ? proxyUrl(src) : src)
-    : null;
+  const imgSrc = src && !failed ? src : null;
 
   if (!imgSrc) {
     return (

@@ -2,11 +2,6 @@
 
 import { useState } from "react";
 
-function proxyUrl(src: string): string {
-  if (src.includes("turbocentras.com")) return `/api/img?u=${encodeURIComponent(src)}`;
-  return src;
-}
-
 function Placeholder() {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gray-100">
@@ -22,12 +17,12 @@ function Placeholder() {
   );
 }
 
-function ProxiedImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+function DirectImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <Placeholder />;
   return (
     <img
-      src={proxyUrl(src)}
+      src={src}
       alt={alt}
       className={className}
       onError={() => setFailed(true)}
@@ -49,7 +44,7 @@ export default function ImageGallery({ images, name }: { images: string[]; name:
   return (
     <div className="flex flex-col gap-3">
       <div className="bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden" style={{ height: 400 }}>
-        <ProxiedImage
+        <DirectImage
           src={images[active]}
           alt={name}
           className="w-full h-full object-contain p-4"
@@ -67,7 +62,7 @@ export default function ImageGallery({ images, name }: { images: string[]; name:
               }`}
               style={{ width: 80, height: 80 }}
             >
-              <ProxiedImage src={img} alt={`${name} ${i + 1}`} className="w-full h-full object-contain p-1" />
+              <DirectImage src={img} alt={`${name} ${i + 1}`} className="w-full h-full object-contain p-1" />
             </button>
           ))}
         </div>
