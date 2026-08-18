@@ -48,10 +48,11 @@ export default async function ActivityPage() {
     adminStats[log.admin_email].count++;
   }
 
+  // ONLY stock_change events — product imports are shown in the Products section
   const { data: eventLogs } = await supabase
     .from("activity_log")
     .select("*")
-    .in("action_type", ["system_import", "stock_change"])
+    .eq("action_type", "stock_change")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -73,19 +74,10 @@ export default async function ActivityPage() {
 
         {!eventLogs || eventLogs.length === 0 ? (
           <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 10, padding: "24px 20px", textAlign: "center" }}>
-            <p style={{ color: "#555", fontSize: 13 }}>Inga händelser ännu — stock checker loggar hit automatiskt när produktstatus ändras.</p>
+            <p style={{ color: "#555", fontSize: 13 }}>Inga lagerförändringar ännu — stock checker loggar hit automatiskt när produktstatus ändras.</p>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {/* Hardcoded initial import entry (always shown) */}
-            <div style={{ background: "#141414", border: "1px solid #22c55e33", borderLeft: "3px solid #22c55e", borderRadius: 10, padding: "14px 18px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", flexShrink: 0 }} />
-                <p style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>132 nya produkter tillagda — Tuning &amp; Utrustning</p>
-                <span style={{ marginLeft: "auto", fontSize: 11, color: "#555", flexShrink: 0 }}>2026-08-19</span>
-              </div>
-            </div>
-
             {eventLogs.map((l) => {
               const isStockChange = l.action_type === "stock_change";
               const isInStock = l.metadata?.in_stock === true;
