@@ -55,7 +55,8 @@ export default async function AdminDashboard() {
       <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, padding: 24 }}>
         <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 20 }}>Senaste kontaktförfrågningar</h2>
         {recentContacts && recentContacts.length > 0 ? (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
             <thead>
               <tr style={{ borderBottom: "1px solid #1f1f1f" }}>
                 {["Namn", "E-post", "Ämne", "Datum", "Status"].map(h => (
@@ -88,6 +89,7 @@ export default async function AdminDashboard() {
               })}
             </tbody>
           </table>
+          </div>
         ) : (
           <p style={{ color: "#555", fontSize: 14, textAlign: "center", padding: "24px 0" }}>Inga förfrågningar ännu.</p>
         )}
