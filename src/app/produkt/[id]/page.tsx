@@ -193,15 +193,41 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
     if (referencedSkus.length > 0) {
       const uniqueSkus = [...new Set(referencedSkus)];
-      const { data: matched } = await supabase
+
+      // Step 1: exact match
+      const { data: exactMatched } = await supabase
         .from("products")
         .select("id, sku")
         .in("sku", uniqueSkus);
 
-      if (matched) {
-        matched.forEach((p: any) => {
+      if (exactMatched) {
+        exactMatched.forEach((p: any) => {
           skuToId[p.sku.toUpperCase()] = String(p.id);
         });
+      }
+
+      // Step 2: prefix match for any SKUs not found (OEM numbers like 454064-0001 → 454064-0001-R)
+      const unmatched = uniqueSkus.filter(s => !skuToId[s.toUpperCase()]);
+      if (unmatched.length > 0) {
+        const orFilter = unmatched.map(s => `sku.ilike.${s}%`).join(",");
+        const { data: prefixMatched } = await supabase
+          .from("products")
+          .select("id, sku")
+          .or(orFilter);
+
+        if (prefixMatched) {
+          prefixMatched.forEach((p: any) => {
+            // Map each unmatched SKU whose prefix matches this DB SKU
+            unmatched.forEach(s => {
+              if (
+                p.sku.toUpperCase().startsWith(s.toUpperCase()) &&
+                !skuToId[s.toUpperCase()]
+              ) {
+                skuToId[s.toUpperCase()] = String(p.id);
+              }
+            });
+          });
+        }
       }
     }
   }
