@@ -68,8 +68,9 @@ export default async function Home() {
     <>
       <Header />
       <main>
-        {/* Hero */}
-        <section className="relative text-white py-[120px] md:py-16 overflow-hidden" style={{ backgroundColor: "#111827" }}>
+        {/* ─── Hero ─────────────────────────────────────────────────────────── */}
+        {/* Mobile: py-12 (48px). Desktop: md:py-16 (64px). Was py-[120px] on mobile. */}
+        <section className="relative text-white py-12 md:py-16 overflow-hidden" style={{ backgroundColor: "#111827" }}>
           <div className="absolute inset-0 z-0" style={{
             backgroundImage: "url('/Images/Turboteknik.png')",
             backgroundSize: "contain", backgroundPosition: "center", backgroundRepeat: "no-repeat",
@@ -80,16 +81,16 @@ export default async function Home() {
           <div className="absolute inset-0 z-0 bg-gradient-to-r from-black via-black/60 to-black" />
           <div className="relative z-10 max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1">
-              <p className="text-red-400 font-semibold text-[8px] md:text-sm uppercase tracking-widest mb-3">{hero.eyebrow}</p>
-              <h1 className="text-[12px] md:text-5xl font-black leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
+              <p className="text-red-400 font-semibold text-xs md:text-sm uppercase tracking-widest mb-3">{hero.eyebrow}</p>
+              <h1 className="text-3xl md:text-5xl font-black leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {hero.heading}
               </h1>
-              <p className="text-gray-400 text-[9px] md:text-lg mb-6 md:mb-8 max-w-md">{hero.subtext}</p>
+              <p className="text-gray-400 text-sm md:text-lg mb-6 md:mb-8 max-w-md">{hero.subtext}</p>
               <div className="flex gap-3 flex-wrap">
-                <Link href={hero.button1_href} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-2 py-0.5 md:px-6 md:py-3 rounded-md transition text-[8px] md:text-base">
+                <Link href={hero.button1_href} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
                   {hero.button1_label}
                 </Link>
-                <Link href={hero.button2_href} className="border border-gray-500 hover:border-white text-white font-semibold px-2 py-0.5 md:px-6 md:py-3 rounded-md transition text-[8px] md:text-base">
+                <Link href={hero.button2_href} className="border border-gray-500 hover:border-white text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
                   {hero.button2_label}
                 </Link>
               </div>
@@ -100,16 +101,17 @@ export default async function Home() {
         {/* Decorative accent strip */}
         <div className="lava-bar" style={{ height: 6 }} />
 
-        {/* Feature section 1 — text left, image right */}
-        <section className="bg-black py-16">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-10 md:gap-16">
+        {/* ─── Feature section 1 — text left, image right ───────────────────── */}
+        {/* Mobile: py-10 (40px). Desktop: md:py-16 (64px). */}
+        <section className="bg-black py-10 md:py-16">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-8 md:gap-16">
             <div className="flex-1">
-              <p className="text-red-500 text-[8px] md:text-sm font-semibold uppercase tracking-widest mb-3">{feature1.eyebrow}</p>
-              <h2 className="text-[12px] md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
+              <p className="text-red-500 text-xs md:text-sm font-semibold uppercase tracking-widest mb-3">{feature1.eyebrow}</p>
+              <h2 className="text-2xl md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {feature1.heading}
               </h2>
-              <p className="text-[9px] md:text-base leading-relaxed mb-6 text-gray-400">{feature1.body}</p>
-              <Link href={feature1.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-2 py-0.5 md:px-6 md:py-3 rounded-md transition text-[8px] md:text-sm">
+              <p className="text-sm md:text-base leading-relaxed mb-6 text-gray-400">{feature1.body}</p>
+              <Link href={feature1.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm">
                 {feature1.button_label}
               </Link>
             </div>
@@ -121,16 +123,17 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Feature section 2 — image left, text right */}
-        <section className="bg-black py-16" style={{ borderTop: "1px solid #111" }}>
-          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row-reverse items-center gap-10 md:gap-16">
+        {/* ─── Feature section 2 — image left, text right ───────────────────── */}
+        {/* Mobile: py-10 (40px). Desktop: md:py-16 (64px). */}
+        <section className="bg-black py-10 md:py-16" style={{ borderTop: "1px solid #111" }}>
+          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row-reverse items-center gap-8 md:gap-16">
             <div className="flex-1">
-              <p className="text-red-500 text-[8px] md:text-sm font-semibold uppercase tracking-widest mb-3">{feature2.eyebrow}</p>
-              <h2 className="text-[12px] md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
+              <p className="text-red-500 text-xs md:text-sm font-semibold uppercase tracking-widest mb-3">{feature2.eyebrow}</p>
+              <h2 className="text-2xl md:text-4xl font-black text-white leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
                 {feature2.heading}
               </h2>
-              <p className="text-[9px] md:text-base leading-relaxed mb-6 text-gray-400">{feature2.body}</p>
-              <Link href={feature2.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-2 py-0.5 md:px-6 md:py-3 rounded-md transition text-[8px] md:text-sm">
+              <p className="text-sm md:text-base leading-relaxed mb-6 text-gray-400">{feature2.body}</p>
+              <Link href={feature2.button_href} className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm">
                 {feature2.button_label}
               </Link>
             </div>
@@ -142,10 +145,25 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Varumärken */}
+        {/* ─── Varumärken ────────────────────────────────────────────────────── */}
         <section className="bg-black py-8 overflow-hidden">
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide text-center mb-6">Toppvarumärken</h2>
-          <div className="relative">
+
+          {/* Mobile: 3-column grid — clean, no overflow */}
+          <div className="grid grid-cols-3 gap-3 px-4 md:hidden">
+            {brands.map((brand, i) => (
+              <Link key={i} href={`/marke/${brand.name.toLowerCase().replace(/\s+/g, "-")}`}
+                className="feature-card flex items-center justify-center p-2"
+                style={{ height: 64, textDecoration: "none" }}>
+                <div className="bg-white rounded flex items-center justify-center w-full h-full" style={{ padding: "4px 6px" }}>
+                  <img src={brand.logo} alt={brand.name} className="max-w-full max-h-full object-contain" />
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop: scrolling marquee */}
+          <div className="hidden md:block relative">
             <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 z-10"
               style={{ background: "linear-gradient(to right, #000 30%, transparent)" }} />
             <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 z-10"
