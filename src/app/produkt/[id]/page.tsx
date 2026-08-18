@@ -6,6 +6,9 @@ import { getProductById } from "@/lib/realProducts";
 import { getRealProductById } from "@/lib/parseProducts";
 import { createServiceClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+export const revalidate = 600;
 
 type Specs = {
   series?: string | null;
@@ -144,6 +147,29 @@ function SpecsPanel({
       </div>
     </div>
   );
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = createServiceClient();
+  const { data } = await supabase
+    .from("products")
+    .select("name,brand,sku,description,images")
+    .eq("id", id)
+    .single();
+  if (!data) return { title: "Produkt" };
+  const title = `${data.name}${data.brand ? ` — ${data.brand}` : ""}`;
+  const description = data.description?.slice(0, 160) ||
+    `Köp ${data.name} från ${data.brand ?? "TurboTeknik"}. Artikelnummer: ${data.sku ?? id}.`;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: data.images?.[0] ? [{ url: data.images[0] }] : [],
+    },
+  };
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {

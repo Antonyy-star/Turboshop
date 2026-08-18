@@ -3,6 +3,9 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import { createServiceClient } from "@/lib/supabase/server";
 import ProductImage from "@/components/ProductImage";
+import type { Metadata } from "next";
+
+export const revalidate = 3600;
 
 const brandMeta: Record<string, { displayName: string; logo: string; desc: string }> = {
   garrett: {
@@ -78,6 +81,21 @@ const brandMeta: Record<string, { displayName: string; logo: string; desc: strin
 };
 
 const PRODUCTS_PER_PAGE = 40;
+
+export async function generateMetadata({ params }: { params: Promise<{ brand: string }> }): Promise<Metadata> {
+  const { brand } = await params;
+  const meta = brandMeta[brand];
+  if (!meta) return { title: "Varumärke" };
+  return {
+    title: meta.displayName,
+    description: meta.desc,
+    openGraph: {
+      title: `${meta.displayName} turboladdare | TurboTeknik`,
+      description: meta.desc,
+      images: meta.logo ? [{ url: meta.logo }] : [],
+    },
+  };
+}
 
 export default async function BrandPage({
   params,

@@ -17,7 +17,7 @@ function Placeholder() {
   );
 }
 
-function DirectImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+function DirectImage({ src, alt, className, priority }: { src: string; alt: string; className?: string; priority?: boolean }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <Placeholder />;
   return (
@@ -26,6 +26,8 @@ function DirectImage({ src, alt, className }: { src: string; alt: string; classN
       alt={alt}
       className={className}
       onError={() => setFailed(true)}
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
     />
   );
 }
@@ -48,6 +50,7 @@ export default function ImageGallery({ images, name }: { images: string[]; name:
           src={images[active]}
           alt={name}
           className="w-full h-full object-contain p-4"
+          priority
         />
       </div>
 

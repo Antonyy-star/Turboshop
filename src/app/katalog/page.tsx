@@ -2,6 +2,15 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { createServiceClient } from "@/lib/supabase/server";
+import type { Metadata } from "next";
+
+export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: "Produktkatalog",
+  description: "Bläddra i hela TurboTekniks sortiment — turboladdare, patroner (CHRA) och turbodelar från Garrett, BorgWarner, IHI, Mitsubishi och fler.",
+  openGraph: { title: "Produktkatalog | TurboTeknik" },
+};
 
 const spareParts = [
   { name: "Kompressorhjul", href: "/kategori/turbodelar" },

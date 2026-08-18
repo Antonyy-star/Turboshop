@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   keywords: ["turborenovering", "turboladdare", "bildelar", "turbo", "garrett", "borgwarner", "turboteknik", "bilverkstad", "stockholm", "norsborg"],
   authors: [{ name: "TurboTeknik" }],
   creator: "TurboTeknik",
-  metadataBase: new URL("https://turboshop-sigma.vercel.app"),
+  metadataBase: new URL("https://turboshop-pi.vercel.app"),
   openGraph: {
     type: "website",
     locale: "sv_SE",
@@ -43,6 +43,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <link rel="preload" href="/3d%20Logo/Logo.pack.glb" as="fetch" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://hudzxedyjaswddamapwf.supabase.co" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://turbocentras.com" />
         <meta name="theme-color" content="#111827" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>

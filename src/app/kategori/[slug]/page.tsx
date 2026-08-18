@@ -3,6 +3,9 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import { createServiceClient } from "@/lib/supabase/server";
 import ProductImage from "@/components/ProductImage";
+import type { Metadata } from "next";
+
+export const revalidate = 3600;
 
 const categoryNames: Record<string, string> = {
   turboladdare: "Turboladdare",
@@ -28,6 +31,16 @@ const slugToDbCategory: Record<string, string> = {
 const filterBrands = ["Garrett", "BorgWarner", "Holset", "Mitsubishi", "IHI", "BMTS", "Continental", "Hitachi", "Valeo", "Toyota", "Master", "CZ Turbo"];
 
 const PRODUCTS_PER_PAGE = 40;
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const name = categoryNames[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
+  return {
+    title: name,
+    description: `Köp ${name.toLowerCase()} online — OEM och eftermarknadsdelar med snabb leverans till hela Sverige.`,
+    openGraph: { title: `${name} | TurboTeknik` },
+  };
+}
 
 export default async function CategoryPage({
   params,
