@@ -143,6 +143,19 @@ export async function GET(req: NextRequest) {
           old_status: oldStatus,
           new_status: inStock,
         });
+        await supabase.from("activity_log").insert({
+          admin_email: "system@turboteknik.se",
+          admin_name: "Stock Checker",
+          action_type: "stock_change",
+          entity_type: "product",
+          entity_name: product.name,
+          metadata: {
+            sku: product.sku,
+            brand: product.brand ?? "",
+            in_stock: inStock,
+            was_in_stock: oldStatus,
+          },
+        });
         changes.push({ sku: product.sku, name: product.name, old: oldStatus, new: inStock });
       }
     }
