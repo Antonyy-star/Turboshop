@@ -33,14 +33,7 @@ export default async function SearchPage({
     const from = (currentPage - 1) * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    // Normalized ref search runs on page 1 when query has no spaces and ≥ 3 chars.
-    // Catches "7159100001" → "715910-0001-R" and normalized OEM number matches.
-    const runNormalized = currentPage === 1 && normQ.length >= 3 && !/\s/.test(query);
-    const prefixLen = Math.min(4, normQ.length);
-    const normPrefixEsc = escapeIlike(normQ.slice(0, prefixLen));
-    const rawPrefixEsc = escapeIlike(query.slice(0, prefixLen));
-
-    const [{ count }, { data: primary }, oemResult, normalizedResult] = await Promise.all([
+    const [{ count }, { data: primary }, oemResult, normResult] = await Promise.all([
       supabase.from("products").select("*", { count: "exact", head: true }).or(orFilter),
       supabase.from("products").select("id,name,brand,sku,price,images,category,badge,in_stock")
         .or(orFilter).order("price", { ascending: false }).range(from, to),
@@ -48,49 +41,30 @@ export default async function SearchPage({
       currentPage === 1
         ? supabase.from("products").select("id,name,brand,sku,price,images,category,badge,in_stock")
             .filter("specs->>turbo_numbers", "ilike", `%${esc}%`)
-            .order("price", { ascending: false })
-            .limit(PAGE_SIZE)
+            .order("price", { ascending: false }).limit(PAGE_SIZE)
         : Promise.resolve({ data: [] }),
-      // Normalized ref search — candidates for JS filtering
-      runNormalized
-        ? supabase.from("products")
-            .select("id,name,brand,sku,price,images,category,badge,in_stock,specs")
-            .or(
-              `sku.ilike.${normPrefixEsc}%,sku.ilike.${rawPrefixEsc}%,` +
-              `name.ilike.%${normPrefixEsc}%,` +
-              `specs->>turbo_numbers.ilike.%${normPrefixEsc}%`
-            )
-            .limit(300)
+      // Normalized search via Postgres function — runs on page 1, length ≥ 2
+      currentPage === 1 && normQ.length >= 2
+        ? supabase.rpc("search_normalized", { query_norm: normQ, result_limit: 40 })
         : Promise.resolve({ data: [] }),
     ]);
 
     const oemData: any[] = (oemResult as any)?.data ?? [];
-    const normCandidates: any[] = (normalizedResult as any)?.data ?? [];
+    const normData: any[] = (normResult as any)?.data ?? [];
 
     totalCount = count ?? 0;
     totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-    // Build seen set from primary
     const seen = new Set<string>((primary ?? []).map((p: any) => p.id));
 
-    // OEM-only results
     const oemOnly = oemData.filter((p: any) => !seen.has(p.id));
     oemOnly.forEach((p: any) => seen.add(p.id));
 
-    // Normalized-only results (JS filter on candidates)
-    const normOnly = normCandidates
-      .filter((p: any) => {
-        if (!p?.id || seen.has(p.id)) return false;
-        if (normalizeRef(p.sku ?? "").includes(normQ)) return true;
-        if (normalizeRef(p.name ?? "").includes(normQ)) return true;
-        const nums: any[] = p.specs?.turbo_numbers ?? [];
-        return nums.some((n: any) => normalizeRef(String(n.number ?? "")).includes(normQ));
-      })
-      .map(({ specs, ...rest }: any) => rest);
+    const normOnly = normData.filter((p: any) => p?.id && !seen.has(p.id));
+    normOnly.forEach((p: any) => seen.add(p.id));
 
     results = [...(primary ?? []), ...oemOnly, ...normOnly];
 
-    // Bump displayed total for extra results found via OEM/normalized search
     const extraCount = oemOnly.length + normOnly.length;
     if (extraCount > 0 && currentPage === 1) {
       totalCount += extraCount;
