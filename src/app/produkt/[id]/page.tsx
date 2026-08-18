@@ -319,7 +319,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
               <div className="border-b border-gray-200 flex">
                 <span className="px-6 py-3 text-sm font-semibold text-black border-b-2 border-black -mb-px">Beskrivning</span>
-                <span className="px-6 py-3 text-sm text-gray-400">Produktdetaljer</span>
               </div>
 
               <div className="px-6 py-8">
@@ -391,46 +390,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                         <span className="font-medium">{n.number}</span>
                       </p>
                     ))}
-                  </div>
-                )}
-
-                {/* Replacements */}
-                {!!specs.replacements?.length && (
-                  <div className="mb-8">
-                    <h3 className="text-lg font-bold text-black mb-3">Ersätter / Ersätts av</h3>
-                    {specs.replacements.map((r, i) => {
-                      const rSku = extractSku(r);
-                      const rMatch = rSku ? skuToProduct[rSku.toUpperCase()] : null;
-                      return (
-                        <p key={i} className="text-sm mb-0.5">
-                          {rMatch ? (
-                            <Link href={`/produkt/${rMatch.id}`} className="text-red-600 hover:underline font-medium">{r}</Link>
-                          ) : (
-                            <span className="text-gray-700">{r}</span>
-                          )}
-                        </p>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Interchangeable */}
-                {!!specs.interchangeable_with?.length && (
-                  <div className="mb-8">
-                    <h3 className="text-lg font-bold text-black mb-3">Utbytbar med</h3>
-                    {specs.interchangeable_with.map((r, i) => {
-                      const iSku = extractSku(r);
-                      const iMatch = iSku ? skuToProduct[iSku.toUpperCase()] : null;
-                      return (
-                        <p key={i} className="text-sm mb-0.5">
-                          {iMatch ? (
-                            <Link href={`/produkt/${iMatch.id}`} className="text-red-600 hover:underline font-medium">{r}</Link>
-                          ) : (
-                            <span className="text-gray-700">{r}</span>
-                          )}
-                        </p>
-                      );
-                    })}
                   </div>
                 )}
 
