@@ -15,6 +15,7 @@ const categoryNames: Record<string, string> = {
   packningar: "Packningar & tätningar",
   prestanda: "Prestandadelar",
   utrustning: "Reparationsutrustning",
+  tuning: "Tuning",
 };
 
 // Maps URL slug → DB category value
@@ -26,6 +27,7 @@ const slugToDbCategory: Record<string, string> = {
   packningar: "Packningar & Tätningar",
   reparationskit: "Reparationskit",
   utrustning: "Utrustning",
+  tuning: "Tuning",
 };
 
 const filterBrands = ["Garrett", "BorgWarner", "Holset", "Mitsubishi", "IHI", "BMTS", "Continental", "Hitachi", "Valeo", "Toyota", "Master", "CZ Turbo"];

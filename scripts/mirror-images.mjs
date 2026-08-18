@@ -100,7 +100,6 @@ async function main() {
   const { data: products, error } = await supabase
     .from("products")
     .select("id, images")
-    .not("images", "eq", "[]")
     .not("images", "is", null);
 
   if (error) { log("DB error: " + error.message); await browser.close(); process.exit(1); }

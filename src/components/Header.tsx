@@ -25,6 +25,8 @@ const brandLogos = [
 const categories = [
   { name: "Turboladdare", href: "/kategori/turboladdare" },
   { name: "Turbodelar", href: "/kategori/turbodelar" },
+  { name: "Reparationsutrustning", href: "/kategori/utrustning" },
+  { name: "Tuning", href: "/kategori/tuning" },
   { name: "Kontaktformulär", href: "/kontakt" },
   { name: "Katalog", href: "/katalog" },
   { name: "Kontakta oss", href: "/kontakta-oss" },
@@ -33,6 +35,8 @@ const categories = [
 const desktopCategories = [
   { name: "Turboladdare", type: "brands" },
   { name: "Turbodelar", type: "link", href: "/kategori/turbodelar" },
+  { name: "Utrustning", type: "link", href: "/kategori/utrustning" },
+  { name: "Tuning", type: "link", href: "/kategori/tuning" },
   { name: "Kontaktformulär", type: "link", href: "/kontakt" },
   { name: "Katalog", type: "link", href: "/katalog", badge: "Avancerat" },
   { name: "Kontakta oss", type: "link", href: "/kontakta-oss" },

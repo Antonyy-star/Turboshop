@@ -68,11 +68,15 @@ export default async function KatalogPage() {
     { count: countTurbo },
     { count: countChra },
     { count: countDelar },
+    { count: countUtrustning },
+    { count: countTuning },
     { count: countTotal },
   ] = await Promise.all([
     supabase.from("products").select("*", { count: "exact", head: true }).or("category.eq.Turboladdare,category.is.null"),
     supabase.from("products").select("*", { count: "exact", head: true }).eq("category", "CHRA"),
     supabase.from("products").select("*", { count: "exact", head: true }).eq("category", "Turbodelar"),
+    supabase.from("products").select("*", { count: "exact", head: true }).eq("category", "Utrustning"),
+    supabase.from("products").select("*", { count: "exact", head: true }).eq("category", "Tuning"),
     supabase.from("products").select("*", { count: "exact", head: true }),
   ]);
 
@@ -110,6 +114,28 @@ export default async function KatalogPage() {
       svg: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8 text-red-600">
           <path strokeLinecap="round" strokeLinejoin="round" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+        </svg>
+      ),
+    },
+    {
+      title: "Reparationsutrustning",
+      desc: "Professionell utrustning för turboreparation — balanseringsmaskiner, testbänkar och verktyg.",
+      href: "/kategori/utrustning",
+      count: fmt(countUtrustning),
+      svg: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8 text-red-600">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><circle cx="12" cy="12" r="3" />
+        </svg>
+      ),
+    },
+    {
+      title: "Tuning",
+      desc: "Prestandadelar och tuningkomponenter för turboladdare — mer effekt ur din motor.",
+      href: "/kategori/tuning",
+      count: fmt(countTuning),
+      svg: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8 text-red-600">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
     },
