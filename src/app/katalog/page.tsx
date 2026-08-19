@@ -12,27 +12,6 @@ export const metadata: Metadata = {
   openGraph: { title: "Produktkatalog | TurboTeknik" },
 };
 
-const spareParts = [
-  { name: "Kompressorhjul", href: "/kategori/turbodelar" },
-  { name: "Turbinhjul", href: "/kategori/turbodelar" },
-  { name: "Lagerhus", href: "/kategori/turbodelar" },
-  { name: "Reparationskit", href: "/kategori/turbodelar" },
-  { name: "Packningar & tätningssatser", href: "/kategori/turbodelar" },
-  { name: "Värmesköldar", href: "/kategori/turbodelar" },
-  { name: "Munstycksringar (VNT)", href: "/kategori/turbodelar" },
-  { name: "VNT munstycksburar", href: "/kategori/turbodelar" },
-  { name: "Enhetsgasar", href: "/kategori/turbodelar" },
-  { name: "Wastegate-ventiler", href: "/kategori/turbodelar" },
-  { name: "Axel & Hjul", href: "/kategori/turbodelar" },
-  { name: "Turbinhus", href: "/kategori/turbodelar" },
-  { name: "Lager & Tryckskivor", href: "/kategori/turbodelar" },
-  { name: "Oljeledningar & adaptrar", href: "/kategori/turbodelar" },
-  { name: "Klämmor & band", href: "/kategori/turbodelar" },
-  { name: "Aktuatorer", href: "/kategori/turbodelar" },
-  { name: "Kolvringar", href: "/kategori/turbodelar" },
-  { name: "Övriga delar", href: "/kategori/turbodelar" },
-];
-
 const allBrands = [
   { name: "Garrett", href: "/marke/garrett", logo: "/brands/kisspng-turbocharger-garrett-airesearch-business-engine-in-garrett-5b3dfc697c5e14.6655578415307889695094.jpg" },
   { name: "BorgWarner", href: "/marke/borgwarner", logo: "/brands/BorgWarner.png.webp" },
@@ -56,182 +35,166 @@ const allBrands = [
   { name: "Sonceboz", href: "/marke/sonceboz", logo: "" },
 ];
 
-const pdfCatalogs = [
-  { name: "MP Turbo Agro 2020", brand: "Master Power", desc: "Turbos för lantbruksmaskiner", url: "https://turbocentras.com/en/catalog" },
-  { name: "MP Turbo Racing 2019", brand: "Master Power", desc: "Prestanda- och racingturbo", url: "https://turbocentras.com/en/catalog" },
+function classifyPart(name: string, category: string): string {
+  if (category === "CHRA") return "Core assemblies (CHRA)";
+  const n = name.toLowerCase();
+  if (n.startsWith("bearing housing")) return "Bearing housings";
+  if (n.startsWith("compressor wheel")) return "Compressor wheels";
+  if (n.startsWith("compressor plate")) return "Compressor plate";
+  if (n.startsWith("compressor housing")) return "Compressor housings / Cold sides";
+  if (n.startsWith("shaft and")) return "Shaft & wheels / Rotors";
+  if (n.startsWith("shaft nut")) return "Shaft nuts";
+  if (n.startsWith("heat shield")) return "Heat shields";
+  if (n.startsWith("nozzle ring")) return "Nozzle ring assemblies";
+  if (n.startsWith("vnt")) return "VNT nozzle cages";
+  if (n.startsWith("repair kit")) return "Repair kits";
+  if (n.startsWith("gasket")) return "Gaskets & Gasket Kits";
+  if (n.startsWith("piston ring")) return "Seal rings / Piston rings";
+  if (n.startsWith("wastegate valve")) return "Wastegate valves";
+  if (n.startsWith("turbine housing")) return "Turbine housings / Hot sides";
+  if (n.startsWith("thrust bearing") || n.startsWith("thrust flinger") || n.startsWith("thrust washer")) return "Thrust bearings";
+  if (n.startsWith("retaining") || n.startsWith("lock plate") || n.startsWith("anti-rotation") || n.startsWith("oil deflector")) return "Bolts, nuts, screws, washers";
+  if (n.startsWith("actuator clip")) return "Actuator clips";
+  if (n.startsWith("actuator rod")) return "Actuator rods";
+  if (n.startsWith("electric actuator")) return "Electric motors";
+  if (n.startsWith("actuator")) return "Actuators";
+  if (n.startsWith("recirculation")) return "Recirculation valves";
+  return "Övriga delar";
+}
+
+const SUBCATEGORY_ORDER = [
+  "Core assemblies (CHRA)",
+  "Bearing housings",
+  "Compressor wheels",
+  "Shaft & wheels / Rotors",
+  "Heat shields",
+  "Nozzle ring assemblies",
+  "VNT nozzle cages",
+  "Actuators",
+  "Actuator clips",
+  "Actuator rods",
+  "Electric motors",
+  "Wastegate valves",
+  "Repair kits",
+  "Gaskets & Gasket Kits",
+  "Shaft nuts",
+  "Compressor plate",
+  "Compressor housings / Cold sides",
+  "Turbine housings / Hot sides",
+  "Thrust bearings",
+  "Seal rings / Piston rings",
+  "Bolts, nuts, screws, washers",
+  "Recirculation valves",
+  "Övriga delar",
 ];
+
+type Product = { id: string; name: string; images: string[]; in_stock: boolean };
 
 export default async function KatalogPage() {
   const supabase = createServiceClient();
 
-  const [
-    { count: countTurbo },
-    { count: countChra },
-    { count: countDelar },
-    { count: countUtrustning },
-    { count: countTuning },
-    { count: countTotal },
-  ] = await Promise.all([
-    supabase.from("products").select("*", { count: "exact", head: true }).or("category.eq.Turboladdare,category.is.null"),
-    supabase.from("products").select("*", { count: "exact", head: true }).eq("category", "CHRA"),
-    supabase.from("products").select("*", { count: "exact", head: true }).eq("category", "Turbodelar"),
-    supabase.from("products").select("*", { count: "exact", head: true }).eq("category", "Utrustning"),
-    supabase.from("products").select("*", { count: "exact", head: true }).eq("category", "Tuning"),
+  const [{ count: countTotal }, { data: partsRaw }] = await Promise.all([
     supabase.from("products").select("*", { count: "exact", head: true }),
+    supabase
+      .from("products")
+      .select("id, name, images, category, in_stock")
+      .in("category", ["Turbodelar", "CHRA"])
+      .order("name")
+      .limit(5000),
   ]);
 
-  const fmt = (n: number | null) => (n ?? 0).toLocaleString("sv-SE");
+  const groups: Record<string, Product[]> = {};
+  for (const p of partsRaw ?? []) {
+    const sub = classifyPart(p.name ?? "", p.category ?? "");
+    if (!groups[sub]) groups[sub] = [];
+    groups[sub].push({ id: String(p.id), name: p.name ?? "", images: p.images ?? [], in_stock: p.in_stock !== false });
+  }
 
-  const mainCategories = [
-    {
-      title: "Turboladdare",
-      desc: "Kompletta OEM och remanufactured turboladdare för personbilar, lastbilar och industri.",
-      href: "/kategori/turboladdare",
-      count: fmt(countTurbo),
-      svg: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8 text-red-600">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-        </svg>
-      ),
-    },
-    {
-      title: "Patroner (CHRA)",
-      desc: "Kompletterande patroner — kärnan i turbon. OEM och remanufactured utföranden.",
-      href: "/kategori/chra",
-      count: fmt(countChra),
-      svg: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8 text-red-600">
-          <circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="3" />
-          <path strokeLinecap="round" d="M12 3v2M12 19v2M3 12h2M19 12h2" />
-        </svg>
-      ),
-    },
-    {
-      title: "Turbodelar",
-      desc: "Kompressorhjul, turbinhjul, lagerhus, packningar, aktuatorer och mycket mer.",
-      href: "/kategori/turbodelar",
-      count: fmt(countDelar),
-      svg: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8 text-red-600">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
-        </svg>
-      ),
-    },
-    {
-      title: "Reparationsutrustning",
-      desc: "Professionell utrustning för turboreparation — balanseringsmaskiner, testbänkar och verktyg.",
-      href: "/kategori/utrustning",
-      count: fmt(countUtrustning),
-      svg: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8 text-red-600">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><circle cx="12" cy="12" r="3" />
-        </svg>
-      ),
-    },
-    {
-      title: "Tuning",
-      desc: "Prestandadelar och tuningkomponenter för turboladdare — mer effekt ur din motor.",
-      href: "/kategori/tuning",
-      count: fmt(countTuning),
-      svg: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-8 h-8 text-red-600">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-      ),
-    },
-  ];
+  const orderedGroups = SUBCATEGORY_ORDER
+    .filter((cat) => groups[cat]?.length > 0)
+    .map((cat) => ({ name: cat, products: groups[cat] }));
+
+  const fmt = (n: number | null) => (n ?? 0).toLocaleString("sv-SE");
 
   return (
     <>
       <Header />
-      <main className="bg-gray-50 min-h-screen">
+      <main className="bg-white min-h-screen">
 
         {/* Banner */}
         <div className="bg-black text-white py-10">
           <div className="max-w-6xl mx-auto px-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">Avancerat</span>
-            </div>
             <h1 className="text-3xl font-black mb-2">Produktkatalog</h1>
             <p className="text-gray-400 text-sm max-w-xl">
-              Bläddra igenom hela vårt sortiment — {fmt(countTotal)} produkter inom turboladdare, patroner och reservdelar.
-              Filtrera efter kategori eller varumärke.
+              {fmt(countTotal)} produkter — turboladdare, patroner och reservdelar. Klicka på en produkt för mer info.
             </p>
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 py-12 space-y-14">
+        {/* Category nav pills */}
+        <div className="bg-gray-50 border-b border-gray-200 py-4">
+          <div className="max-w-6xl mx-auto px-4 flex flex-wrap gap-2">
+            {[
+              { label: "Turboladdare", href: "/kategori/turboladdare" },
+              { label: "Patroner (CHRA)", href: "/kategori/chra" },
+              { label: "Turbodelar", href: "/kategori/turbodelar" },
+              { label: "Reparationsutrustning", href: "/kategori/utrustning" },
+              { label: "Tuning", href: "/kategori/tuning" },
+            ].map((c) => (
+              <Link
+                key={c.label}
+                href={c.href}
+                className="bg-white border border-gray-200 rounded-full px-4 py-1.5 text-sm font-medium text-gray-700 hover:border-red-500 hover:text-red-600 transition"
+              >
+                {c.label}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-          {/* Main categories */}
-          <section>
-            <h2 className="text-xl font-bold text-black mb-6">Produktkategorier</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              {mainCategories.map((cat) => (
-                <Link
-                  key={cat.title}
-                  href={cat.href}
-                  className="group bg-white border border-gray-200 rounded-xl p-6 hover:border-red-500 hover:shadow-md transition"
-                >
-                  <div className="mb-4">{cat.svg}</div>
-                  <h3 className="font-bold text-black group-hover:text-red-600 transition mb-1 text-lg">{cat.title}</h3>
-                  <p className="text-sm text-gray-500 mb-4 leading-relaxed">{cat.desc}</p>
-                  <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded">{cat.count} produkter</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          {/* Turbodelar subcategories */}
-          <section>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold text-black">Turbodelars sortiment</h2>
-              <Link href="/kategori/turbodelar" className="text-sm text-red-600 hover:underline font-medium">Visa alla turbodelar →</Link>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 divide-x divide-y divide-gray-100">
-                {spareParts.map((part) => (
+        {/* Parts catalog grouped by subcategory */}
+        <div className="max-w-6xl mx-auto px-4 py-10 space-y-10">
+          {orderedGroups.map(({ name, products }) => (
+            <section key={name}>
+              <h2 className="text-base font-bold text-black mb-3 pb-2 border-b border-gray-100">
+                {name}
+                <span className="ml-2 text-xs font-normal text-gray-400">({products.length})</span>
+              </h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
+                {products.map((p) => (
                   <Link
-                    key={part.name}
-                    href={part.href}
-                    className="px-4 py-4 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition font-medium flex items-center gap-2"
+                    key={p.id}
+                    href={`/produkt/${p.id}`}
+                    className="group border border-gray-200 rounded-lg bg-white hover:border-red-400 hover:shadow-md transition overflow-hidden"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                    {part.name}
+                    <div className="bg-gray-50 h-[88px] flex items-center justify-center p-2 relative">
+                      {p.images[0] ? (
+                        <img
+                          src={p.images[0]}
+                          alt={p.name}
+                          className="max-w-full max-h-full object-contain"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="text-gray-300 text-[10px] text-center leading-tight">Ingen bild</span>
+                      )}
+                      {!p.in_stock && (
+                        <span className="absolute top-1 right-1 bg-red-600 text-white text-[8px] font-bold px-1 py-0.5 rounded">Slut</span>
+                      )}
+                    </div>
+                    <div className="px-2 py-1.5">
+                      <p className="text-[10px] text-gray-700 group-hover:text-red-600 transition leading-tight line-clamp-2">{p.name}</p>
+                    </div>
                   </Link>
                 ))}
               </div>
-            </div>
-          </section>
+            </section>
+          ))}
+        </div>
 
-          {/* PDF Catalogs */}
-          <section>
-            <h2 className="text-xl font-bold text-black mb-5">PDF-kataloger</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {pdfCatalogs.map((pdf) => (
-                <a
-                  key={pdf.name}
-                  href={pdf.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-4 bg-white border border-gray-200 rounded-xl p-5 hover:border-red-400 hover:shadow-md transition"
-                >
-                  <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-black group-hover:text-red-600 transition text-sm">{pdf.name}</p>
-                    <p className="text-xs text-gray-500">{pdf.brand} · {pdf.desc}</p>
-                  </div>
-                  <span className="ml-auto text-xs font-bold text-gray-400 uppercase">PDF</span>
-                </a>
-              ))}
-            </div>
-          </section>
-
-          {/* Brands */}
-          <section>
+        {/* Brands */}
+        <div className="bg-gray-50 border-t border-gray-100 py-10">
+          <div className="max-w-6xl mx-auto px-4">
             <h2 className="text-xl font-bold text-black mb-5">Varumärken</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {allBrands.map((brand) => (
@@ -251,9 +214,9 @@ export default async function KatalogPage() {
                 </Link>
               ))}
             </div>
-          </section>
-
+          </div>
         </div>
+
       </main>
       <Footer />
     </>
