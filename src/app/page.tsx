@@ -148,9 +148,6 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Decorative accent strip */}
-        <div className="lava-bar" style={{ height: 6 }} />
-
         {/* ─── Varumärken ────────────────────────────────────────────────────── */}
         <section className="bg-black py-8 overflow-hidden">
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide text-center mb-6">Toppvarumärken</h2>
