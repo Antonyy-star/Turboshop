@@ -35,6 +35,56 @@ const allBrands = [
   { name: "Sonceboz", href: "/marke/sonceboz", logo: "" },
 ];
 
+const TYPE_PREFIXES = [
+  "Bearing housing ",
+  "Compressor wheel ",
+  "Compressor plate ",
+  "Compressor housing ",
+  "Shaft and wheel ",
+  "Shaft nut ",
+  "Heat shield ",
+  "Nozzle ring assembly ",
+  "Nozzle ring ",
+  "VNT outer nozzle cage ",
+  "VNT nozzle cage ",
+  "VNT outer ",
+  "VNT ",
+  "Repair kit ",
+  "Gasket kit ",
+  "Gasket oil outlet ",
+  "Gasket oil ",
+  "Gasket set ",
+  "Gasket ",
+  "Piston ring ",
+  "Seal ring ",
+  "Wastegate valve ",
+  "Turbine housing ",
+  "Thrust bearing ",
+  "Thrust flinger ",
+  "Thrust washer ",
+  "Retaining ring ",
+  "Retaining screw ",
+  "Lock plate ",
+  "Anti-rotation pin ",
+  "Actuator clip ",
+  "Actuator rod ",
+  "Electric actuator ",
+  "Actuator connector ",
+  "Actuator bearing ",
+  "Actuator ",
+  "Recirculation valve ",
+  "Oil deflector ",
+  "Cartridge ",
+  "Back plate ",
+];
+
+function getPartCode(name: string): string {
+  for (const prefix of TYPE_PREFIXES) {
+    if (name.startsWith(prefix)) return name.slice(prefix.length);
+  }
+  return name;
+}
+
 function classifyPart(name: string, category: string): string {
   if (category === "CHRA") return "Core assemblies (CHRA)";
   const n = name.toLowerCase();
@@ -88,7 +138,7 @@ const SUBCATEGORY_ORDER = [
   "Övriga delar",
 ];
 
-type Product = { id: string; name: string; images: string[]; in_stock: boolean };
+type Product = { id: string; name: string; code: string; images: string[] };
 
 export default async function KatalogPage() {
   const supabase = createServiceClient();
@@ -97,7 +147,7 @@ export default async function KatalogPage() {
     supabase.from("products").select("*", { count: "exact", head: true }),
     supabase
       .from("products")
-      .select("id, name, images, category, in_stock")
+      .select("id, name, images, category")
       .in("category", ["Turbodelar", "CHRA"])
       .order("name")
       .limit(5000),
@@ -107,7 +157,12 @@ export default async function KatalogPage() {
   for (const p of partsRaw ?? []) {
     const sub = classifyPart(p.name ?? "", p.category ?? "");
     if (!groups[sub]) groups[sub] = [];
-    groups[sub].push({ id: String(p.id), name: p.name ?? "", images: p.images ?? [], in_stock: p.in_stock !== false });
+    groups[sub].push({
+      id: String(p.id),
+      name: p.name ?? "",
+      code: getPartCode(p.name ?? ""),
+      images: p.images ?? [],
+    });
   }
 
   const orderedGroups = SUBCATEGORY_ORDER
@@ -126,13 +181,13 @@ export default async function KatalogPage() {
           <div className="max-w-6xl mx-auto px-4">
             <h1 className="text-3xl font-black mb-2">Produktkatalog</h1>
             <p className="text-gray-400 text-sm max-w-xl">
-              {fmt(countTotal)} produkter — turboladdare, patroner och reservdelar. Klicka på en produkt för mer info.
+              {fmt(countTotal)} produkter — turboladdare, patroner och reservdelar.
             </p>
           </div>
         </div>
 
-        {/* Category nav pills */}
-        <div className="bg-gray-50 border-b border-gray-200 py-4">
+        {/* Category nav */}
+        <div className="bg-gray-50 border-b border-gray-200 py-3">
           <div className="max-w-6xl mx-auto px-4 flex flex-wrap gap-2">
             {[
               { label: "Turboladdare", href: "/kategori/turboladdare" },
@@ -141,49 +196,49 @@ export default async function KatalogPage() {
               { label: "Reparationsutrustning", href: "/kategori/utrustning" },
               { label: "Tuning", href: "/kategori/tuning" },
             ].map((c) => (
-              <Link
-                key={c.label}
-                href={c.href}
-                className="bg-white border border-gray-200 rounded-full px-4 py-1.5 text-sm font-medium text-gray-700 hover:border-red-500 hover:text-red-600 transition"
-              >
+              <Link key={c.label} href={c.href} className="text-sm text-gray-600 hover:text-red-600 transition font-medium px-3 py-1.5 rounded hover:bg-red-50">
                 {c.label}
               </Link>
             ))}
           </div>
         </div>
 
-        {/* Parts catalog grouped by subcategory */}
-        <div className="max-w-6xl mx-auto px-4 py-10 space-y-10">
+        {/* Parts catalog */}
+        <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
           {orderedGroups.map(({ name, products }) => (
             <section key={name}>
-              <h2 className="text-base font-bold text-black mb-3 pb-2 border-b border-gray-100">
-                {name}
-                <span className="ml-2 text-xs font-normal text-gray-400">({products.length})</span>
-              </h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
+              {/* Section heading — plain bold, exactly like turbocentras */}
+              <h2 className="text-[15px] font-bold text-black mb-3">{name}</h2>
+
+              {/* Product grid — 6 per row on desktop */}
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-[1px] border border-gray-200 bg-gray-200">
                 {products.map((p) => (
                   <Link
                     key={p.id}
                     href={`/produkt/${p.id}`}
-                    className="group border border-gray-200 rounded-lg bg-white hover:border-red-400 hover:shadow-md transition overflow-hidden"
+                    className="bg-white flex flex-col hover:bg-blue-50 transition"
                   >
-                    <div className="bg-gray-50 h-[88px] flex items-center justify-center p-2 relative">
+                    {/* Part code at top — blue link, exactly like turbocentras */}
+                    <div className="px-2 pt-2 pb-1">
+                      <span className="text-[11px] text-[#0074c2] leading-tight font-normal line-clamp-1">
+                        {p.code}
+                      </span>
+                    </div>
+
+                    {/* Image below the code */}
+                    <div className="flex-1 flex items-center justify-center p-2 min-h-[90px]">
                       {p.images[0] ? (
                         <img
                           src={p.images[0]}
                           alt={p.name}
-                          className="max-w-full max-h-full object-contain"
+                          className="max-w-full max-h-[80px] object-contain"
                           loading="lazy"
                         />
                       ) : (
-                        <span className="text-gray-300 text-[10px] text-center leading-tight">Ingen bild</span>
+                        <span className="text-gray-300 text-[10px] text-center leading-tight">
+                          No image<br />available
+                        </span>
                       )}
-                      {!p.in_stock && (
-                        <span className="absolute top-1 right-1 bg-red-600 text-white text-[8px] font-bold px-1 py-0.5 rounded">Slut</span>
-                      )}
-                    </div>
-                    <div className="px-2 py-1.5">
-                      <p className="text-[10px] text-gray-700 group-hover:text-red-600 transition leading-tight line-clamp-2">{p.name}</p>
                     </div>
                   </Link>
                 ))}
