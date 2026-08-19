@@ -4,7 +4,8 @@ import { useActionState, useState } from "react";
 import { createCustomer } from "@/app/admin/(dashboard)/customers/actions";
 import { useRouter } from "next/navigation";
 
-const initial = { error: undefined as string | undefined, success: false };
+type State = { error: string; success?: undefined } | { success: boolean; error?: undefined };
+const initial: State = { success: false };
 
 export default function CreateCustomerForm() {
   const [open, setOpen] = useState(false);
