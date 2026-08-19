@@ -14,6 +14,8 @@ export default async function AdminDashboard() {
     { data: recentContacts },
     { data: initialStockEvents },
     { data: cronState },
+    { count: inStockCount },
+    { count: outOfStockCount },
   ] = await Promise.all([
     supabase.from("products").select("*", { count: "exact", head: true }),
     supabase
@@ -26,7 +28,6 @@ export default async function AdminDashboard() {
       .select("*")
       .order("created_at", { ascending: false })
       .limit(5),
-    // Service client bypasses RLS — guaranteed to read stock_events
     serviceClient
       .from("stock_events")
       .select("*")
@@ -37,6 +38,14 @@ export default async function AdminDashboard() {
       .select("value, updated_at")
       .eq("key", "stock_check_cursor")
       .single(),
+    serviceClient
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("in_stock", true),
+    serviceClient
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("in_stock", false),
   ]);
 
   const customerCount = new Set(emailRows?.map((r: any) => r.email)).size;
@@ -115,6 +124,8 @@ export default async function AdminDashboard() {
         <StockFeed
           initialEvents={initialStockEvents ?? []}
           initialLastScan={cronState?.updated_at ?? null}
+          inStockCount={inStockCount ?? 0}
+          outOfStockCount={outOfStockCount ?? 0}
         />
       </div>
     </div>
