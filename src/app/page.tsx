@@ -81,12 +81,12 @@ export default async function Home() {
           <div className="absolute inset-0 z-0 bg-gradient-to-r from-black via-black/60 to-black" />
           <div className="relative z-10 max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1">
-              <p className="text-red-400 font-semibold text-xs md:text-sm uppercase tracking-widest mb-3">{hero.eyebrow}</p>
-              <h1 className="text-3xl md:text-5xl font-black leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
+              <p className="text-red-400 font-semibold text-xs md:text-sm uppercase tracking-widest mb-3 anim-fade-up" style={{ animationDelay: "0s" }}>{hero.eyebrow}</p>
+              <h1 className="text-3xl md:text-5xl font-black leading-tight mb-4 anim-fade-up" style={{ whiteSpace: "pre-line", animationDelay: "0.1s" }}>
                 {hero.heading}
               </h1>
-              <p className="text-gray-400 text-sm md:text-lg mb-6 md:mb-8 max-w-md">{hero.subtext}</p>
-              <div className="flex gap-3 flex-wrap">
+              <p className="text-gray-400 text-sm md:text-lg mb-6 md:mb-8 max-w-md anim-fade-up" style={{ animationDelay: "0.18s" }}>{hero.subtext}</p>
+              <div className="flex gap-3 flex-wrap anim-fade-up" style={{ animationDelay: "0.25s" }}>
                 <Link href={hero.button1_href} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
                   {hero.button1_label}
                 </Link>
@@ -123,6 +123,9 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* Decorative accent strip */}
+        <div className="lava-bar" style={{ height: 6 }} />
+
         {/* ─── Feature section 2 — image left, text right ───────────────────── */}
         {/* Mobile: py-10 (40px). Desktop: md:py-16 (64px). */}
         <section className="bg-black py-10 md:py-16" style={{ borderTop: "1px solid #111" }}>
@@ -144,6 +147,9 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* Decorative accent strip */}
+        <div className="lava-bar" style={{ height: 6 }} />
 
         {/* ─── Varumärken ────────────────────────────────────────────────────── */}
         <section className="bg-black py-8 overflow-hidden">
