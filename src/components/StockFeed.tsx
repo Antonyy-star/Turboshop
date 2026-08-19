@@ -83,7 +83,7 @@ export default function StockFeed({ initialEvents, initialLastScan }: Props) {
         <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
           <div style={{ background: "#065f4620", border: "1px solid #065f46", borderRadius: 8, padding: "8px 14px", flex: 1, textAlign: "center" }}>
             <p style={{ fontSize: 22, fontWeight: 700, color: "#34d399", margin: 0 }}>{inStockCount}</p>
-            <p style={{ fontSize: 11, color: "#34d399", margin: 0 }}>Kom i lager</p>
+            <p style={{ fontSize: 11, color: "#34d399", margin: 0 }}>I lager</p>
           </div>
           <div style={{ background: "#7f1d1d20", border: "1px solid #7f1d1d", borderRadius: 8, padding: "8px 14px", flex: 1, textAlign: "center" }}>
             <p style={{ fontSize: 22, fontWeight: 700, color: "#f87171", margin: 0 }}>{outOfStockCount}</p>
