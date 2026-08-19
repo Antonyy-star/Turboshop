@@ -123,9 +123,6 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Decorative accent strip */}
-        <div className="lava-bar" style={{ height: 6 }} />
-
         {/* ─── Feature section 2 — image left, text right ───────────────────── */}
         {/* Mobile: py-10 (40px). Desktop: md:py-16 (64px). */}
         <section className="bg-black py-10 md:py-16" style={{ borderTop: "1px solid #111" }}>
@@ -147,6 +144,9 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* Decorative accent strip */}
+        <div className="lava-bar" style={{ height: 6 }} />
 
         {/* ─── Varumärken ────────────────────────────────────────────────────── */}
         <section className="bg-black py-8 overflow-hidden">
