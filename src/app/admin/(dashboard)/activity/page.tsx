@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { Package, FileText, MessageSquare, Trash2, Pencil, Plus, TrendingUp, TrendingDown } from "lucide-react";
+import { Package, FileText, MessageSquare, Trash2, Pencil, Plus } from "lucide-react";
 
 const ACTION_META: Record<string, { label: string; color: string; Icon: any }> = {
   product_added:   { label: "Lade till produkt",          color: "#22c55e", Icon: Plus },
@@ -48,66 +48,11 @@ export default async function ActivityPage() {
     adminStats[log.admin_email].count++;
   }
 
-  // ONLY stock_change events — product imports are shown in the Products section
-  const { data: eventLogs } = await supabase
-    .from("activity_log")
-    .select("*")
-    .eq("action_type", "stock_change")
-    .order("created_at", { ascending: false })
-    .limit(50);
-
   return (
     <div>
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Ändringslogg</h1>
         <p style={{ color: "#666", fontSize: 14 }}>{logs?.length ?? 0} händelser registrerade</p>
-      </div>
-
-      {/* Nya Händelser */}
-      <div style={{ marginBottom: 40 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Nya Händelser</h2>
-          <span style={{ background: "#dc2626", color: "#fff", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99 }}>
-            {eventLogs?.length ?? 0}
-          </span>
-        </div>
-
-        {!eventLogs || eventLogs.length === 0 ? (
-          <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 10, padding: "24px 20px", textAlign: "center" }}>
-            <p style={{ color: "#555", fontSize: 13 }}>Inga lagerförändringar ännu — stock checker loggar hit automatiskt när produktstatus ändras.</p>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {eventLogs.map((l) => {
-              const isStockChange = l.action_type === "stock_change";
-              const isInStock = l.metadata?.in_stock === true;
-              const color = isStockChange ? (isInStock ? "#22c55e" : "#ef4444") : "#3b82f6";
-              const label = isStockChange
-                ? isInStock ? "I LAGER" : "SLUT I LAGER"
-                : "Systemimport";
-              const Icon = isStockChange ? (isInStock ? TrendingUp : TrendingDown) : Package;
-              const time = relativeTime(l.created_at);
-              const sku = l.metadata?.sku ? ` · SKU: ${l.metadata.sku}` : "";
-              const brand = l.metadata?.brand ? `${l.metadata.brand} · ` : "";
-
-              return (
-                <div key={l.id} style={{ background: "#141414", border: `1px solid ${color}22`, borderLeft: `3px solid ${color}`, borderRadius: 10, padding: "12px 18px", display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: 8, background: `${color}18`, border: `1px solid ${color}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Icon size={13} color={color} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 13, color: "#ccc" }}>
-                      <span style={{ color, fontWeight: 700, fontSize: 11, marginRight: 6 }}>{label}</span>
-                      <span style={{ color: "#fff", fontWeight: 500 }}>{l.entity_name}</span>
-                    </p>
-                    <p style={{ fontSize: 11, color: "#555", marginTop: 2 }}>{brand}Stock Checker{sku}</p>
-                  </div>
-                  <span style={{ fontSize: 11, color: "#444", flexShrink: 0 }}>{time}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {/* Admin activity summary */}
