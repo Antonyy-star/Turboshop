@@ -18,31 +18,18 @@ type StockEvent = {
   created_at: string;
 };
 
-export default function StockFeed() {
-  const [events, setEvents] = useState<StockEvent[]>([]);
+type Props = {
+  initialEvents: StockEvent[];
+  initialLastScan: string | null;
+};
+
+export default function StockFeed({ initialEvents, initialLastScan }: Props) {
+  const [events, setEvents] = useState<StockEvent[]>(initialEvents);
   const [connected, setConnected] = useState(false);
-  const [lastScan, setLastScan] = useState<string | null>(null);
+  const [lastScan, setLastScan] = useState<string | null>(initialLastScan);
 
   useEffect(() => {
-    // Load last scan time from cron_state
-    supabase
-      .from("cron_state")
-      .select("value, updated_at")
-      .eq("key", "stock_check_cursor")
-      .single()
-      .then(({ data }) => {
-        if (data?.updated_at) setLastScan(data.updated_at);
-      });
-
-    // Load recent events
-    supabase
-      .from("stock_events")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50)
-      .then(({ data }) => setEvents(data ?? []));
-
-    // Subscribe to new events via Realtime
+    // Subscribe to new events via Realtime — initial data already loaded server-side
     const channel = supabase
       .channel("stock-changes")
       .on(

@@ -1,15 +1,19 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { Package, MessageSquare, Users, TrendingUp } from "lucide-react";
 import StockFeed from "@/components/StockFeed";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
+  const serviceClient = createServiceClient();
+
   const [
     { count: productCount },
     { count: openContactCount },
     { data: emailRows },
     { data: recentContacts },
+    { data: initialStockEvents },
+    { data: cronState },
   ] = await Promise.all([
     supabase.from("products").select("*", { count: "exact", head: true }),
     supabase
@@ -22,6 +26,17 @@ export default async function AdminDashboard() {
       .select("*")
       .order("created_at", { ascending: false })
       .limit(5),
+    // Service client bypasses RLS — guaranteed to read stock_events
+    serviceClient
+      .from("stock_events")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50),
+    serviceClient
+      .from("cron_state")
+      .select("value, updated_at")
+      .eq("key", "stock_check_cursor")
+      .single(),
   ]);
 
   const customerCount = new Set(emailRows?.map((r: any) => r.email)).size;
@@ -97,7 +112,10 @@ export default async function AdminDashboard() {
 
       {/* Live stock feed from turbocentras.com */}
       <div style={{ marginTop: 32 }}>
-        <StockFeed />
+        <StockFeed
+          initialEvents={initialStockEvents ?? []}
+          initialLastScan={cronState?.updated_at ?? null}
+        />
       </div>
     </div>
   );
