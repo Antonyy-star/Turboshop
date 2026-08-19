@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { Users } from "lucide-react";
 import CreateCustomerForm from "@/components/admin/CreateCustomerForm";
+import DiscountCodesManager from "@/components/admin/DiscountCodesManager";
 
 const ADMIN_EMAIL = "yucellevon@gmail.com";
 
@@ -12,7 +13,10 @@ function initials(name: string) {
 export default async function AdminCustomers() {
   const supabase = createServiceClient();
 
-  const { data: { users }, error } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+  const [{ data: { users } }, { data: discountCodes }] = await Promise.all([
+    supabase.auth.admin.listUsers({ perPage: 1000 }),
+    supabase.from("discount_codes").select("*").order("created_at", { ascending: false }),
+  ]);
 
   const customers = (users ?? []).filter(u => u.email !== ADMIN_EMAIL);
 
@@ -82,6 +86,14 @@ export default async function AdminCustomers() {
           </table>
         </div>
       )}
+
+      <DiscountCodesManager
+        customers={customers.map(u => ({
+          email: u.email!,
+          name: u.user_metadata?.name || u.email?.split("@")[0] || "—",
+        }))}
+        codes={discountCodes ?? []}
+      />
     </div>
   );
 }
