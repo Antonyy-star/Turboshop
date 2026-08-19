@@ -1,6 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import ProductsManager from "@/components/admin/ProductsManager";
 import { Package } from "lucide-react";
+import { normalizeRef } from "@/lib/normalize";
 
 const PAGE_SIZE = 50;
 
@@ -47,22 +48,55 @@ export default async function AdminProducts({
     .order("created_at", { ascending: false })
     .limit(20);
 
-  let query = supabase
-    .from("products")
-    .select("id,name,brand,sku,price,images,category,in_stock,badge,created_at", { count: "exact" });
+  const serviceClient = createServiceClient();
+
+  let products: any[] = [];
+  let count = 0;
 
   if (search) {
-    query = (query as any).or(`name.ilike.%${search}%,sku.ilike.%${search}%,brand.ilike.%${search}%`);
-  }
-  if (category) {
-    query = (query as any).eq("category", category);
+    const esc = search.replace(/[%_\\]/g, "\\$&");
+    const normQ = normalizeRef(search);
+    const orFilter = `name.ilike.%${esc}%,sku.ilike.%${esc}%,brand.ilike.%${esc}%`;
+
+    const catFilter = (q: any) => category ? q.eq("category", category) : q;
+
+    const [primaryRes, oemRes, normRes] = await Promise.all([
+      catFilter(serviceClient.from("products")
+        .select("id,name,brand,sku,price,images,category,in_stock,badge,created_at", { count: "exact" })
+        .or(orFilter))
+        .order("name", { ascending: true })
+        .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
+      catFilter(serviceClient.from("products")
+        .select("id,name,brand,sku,price,images,category,in_stock,badge,created_at")
+        .filter("specs->>turbo_numbers", "ilike", `%${esc}%`))
+        .limit(PAGE_SIZE),
+      normQ.length >= 2
+        ? serviceClient.rpc("search_normalized", { query_norm: normQ, result_limit: PAGE_SIZE })
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const primary: any[] = primaryRes.data ?? [];
+    const seen = new Set<string>(primary.map((p: any) => String(p.id)));
+    count = primaryRes.count ?? 0;
+
+    const oemOnly = ((oemRes as any).data ?? []).filter((p: any) => !seen.has(String(p.id)));
+    oemOnly.forEach((p: any) => seen.add(String(p.id)));
+
+    const normOnly = ((normRes as any).data ?? []).filter((p: any) => p?.id && !seen.has(String(p.id)));
+
+    products = [...primary, ...oemOnly, ...normOnly];
+    count += oemOnly.length + normOnly.length;
+  } else {
+    let query = serviceClient
+      .from("products")
+      .select("id,name,brand,sku,price,images,category,in_stock,badge,created_at", { count: "exact" });
+    if (category) query = (query as any).eq("category", category);
+    const res = await query.order("created_at", { ascending: false }).range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    products = res.data ?? [];
+    count = res.count ?? 0;
   }
 
-  const { data: products, count } = await query
-    .order("created_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
-
-  const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE);
+  const totalPages = Math.ceil(count / PAGE_SIZE);
 
   return (
     <div>

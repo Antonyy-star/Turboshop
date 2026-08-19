@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Package, Pencil, Trash2, Search } from "lucide-react";
 import ProductForm from "@/components/admin/ProductForm";
@@ -29,6 +29,17 @@ export default function ProductsManager({
   const [togglingStock, setTogglingStock] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState(search);
   const [, startTransition] = useTransition();
+
+  // Auto-search as you type (debounced 400ms)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (searchInput !== search) {
+        navigate({ q: searchInput, page: "1", category });
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInput]);
 
   function navigate(params: Record<string, string>) {
     const sp = new URLSearchParams();
@@ -109,7 +120,7 @@ export default function ProductsManager({
             <input
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
-              placeholder="Sök namn, SKU, varumärke..."
+              placeholder="Sök SKU, OEM-nr, namn, varumärke... (bindestreck spelar ingen roll)"
               style={{ width: "100%", background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 8, padding: "8px 12px 8px 30px", fontSize: 13, color: "#fff", outline: "none", boxSizing: "border-box" }}
             />
           </div>
