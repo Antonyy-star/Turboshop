@@ -7703,3 +7703,57 @@ Call log:
 [2026-08-23T19:08:40.793Z] Loaded stock status for 6210 DB products
 [2026-08-23T19:08:40.979Z] Establishing browser session...
 [2026-08-23T19:08:40.979Z] Establishing browser session...
+[2026-08-23T19:09:06.045Z] FATAL: page.goto: Timeout 25000ms exceeded.
+Call log:
+  - navigating to "https://www.turbocentras.com/", waiting until "domcontentloaded"
+
+[2026-08-23T19:09:06.045Z] FATAL: page.goto: Timeout 25000ms exceeded.
+Call log:
+  - navigating to "https://www.turbocentras.com/", waiting until "domcontentloaded"
+
+[2026-08-23T19:09:09.442Z] === Stock checker starting ===
+[2026-08-23T19:09:09.442Z] === Stock checker starting ===
+[2026-08-23T19:09:09.458Z] Loaded 6209 products with URLs
+[2026-08-23T19:09:09.458Z] Loaded 6209 products with URLs
+[2026-08-23T19:09:09.458Z] Loading current stock status from Supabase...
+[2026-08-23T19:09:09.458Z] Loading current stock status from Supabase...
+[2026-08-23T19:09:10.059Z] Loaded stock status for 6210 DB products
+[2026-08-23T19:09:10.059Z] Loaded stock status for 6210 DB products
+[2026-08-23T19:09:10.231Z] Establishing browser session...
+[2026-08-23T19:09:10.231Z] Establishing browser session...
+[2026-08-23T19:09:35.298Z] FATAL: page.goto: Timeout 25000ms exceeded.
+Call log:
+  - navigating to "https://www.turbocentras.com/", waiting until "domcontentloaded"
+
+[2026-08-23T19:09:35.298Z] FATAL: page.goto: Timeout 25000ms exceeded.
+Call log:
+  - navigating to "https://www.turbocentras.com/", waiting until "domcontentloaded"
+
+[2026-08-23T19:09:39.698Z] === Stock checker starting ===
+[2026-08-23T19:09:39.698Z] === Stock checker starting ===
+[2026-08-23T19:09:39.718Z] Loaded 6209 products with URLs
+[2026-08-23T19:09:39.718Z] Loaded 6209 products with URLs
+[2026-08-23T19:09:39.718Z] Loading current stock status from Supabase...
+[2026-08-23T19:09:39.718Z] Loading current stock status from Supabase...
+[2026-08-23T19:09:40.440Z] Loaded stock status for 6210 DB products
+[2026-08-23T19:09:40.440Z] Loaded stock status for 6210 DB products
+[2026-08-23T19:09:40.630Z] Establishing browser session...
+[2026-08-23T19:09:40.630Z] Establishing browser session...
+[2026-08-23T19:10:05.685Z] FATAL: page.goto: Timeout 25000ms exceeded.
+Call log:
+  - navigating to "https://www.turbocentras.com/", waiting until "domcontentloaded"
+
+[2026-08-23T19:10:05.685Z] FATAL: page.goto: Timeout 25000ms exceeded.
+Call log:
+  - navigating to "https://www.turbocentras.com/", waiting until "domcontentloaded"
+
+[2026-08-23T19:10:10.080Z] === Stock checker starting ===
+[2026-08-23T19:10:10.080Z] === Stock checker starting ===
+[2026-08-23T19:10:10.099Z] Loaded 6209 products with URLs
+[2026-08-23T19:10:10.099Z] Loaded 6209 products with URLs
+[2026-08-23T19:10:10.099Z] Loading current stock status from Supabase...
+[2026-08-23T19:10:10.099Z] Loading current stock status from Supabase...
+[2026-08-23T19:10:11.486Z] Loaded stock status for 6210 DB products
+[2026-08-23T19:10:11.486Z] Loaded stock status for 6210 DB products
+[2026-08-23T19:10:11.675Z] Establishing browser session...
+[2026-08-23T19:10:11.675Z] Establishing browser session...
