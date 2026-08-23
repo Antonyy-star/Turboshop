@@ -3,6 +3,33 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+const ADMIN_EMAIL = "yucellevon@gmail.com";
+
+async function logActivity(
+  supabase: ReturnType<typeof createServiceClient>,
+  action_type: string,
+  entity_type: string,
+  entity_id: string,
+  entity_name: string,
+  metadata?: Record<string, unknown>,
+) {
+  await supabase.from("activity_log").insert({
+    admin_email: ADMIN_EMAIL,
+    admin_name: ADMIN_EMAIL,
+    action_type,
+    entity_type,
+    entity_id,
+    entity_name,
+    metadata: metadata ?? {},
+  });
+}
+
+function revalidateAll() {
+  revalidatePath("/admin/customers");
+  revalidatePath("/admin/activity");
+  revalidatePath("/admin/products");
+}
+
 // ── Discount codes ─────────────────────────────────────────────────────────
 
 export async function createDiscountCode(_: any, formData: FormData) {
@@ -30,20 +57,36 @@ export async function createDiscountCode(_: any, formData: FormData) {
   });
 
   if (error) return { error: error.message.includes("unique") ? "Koden finns redan." : error.message };
-  revalidatePath("/admin/customers");
+
+  await logActivity(supabase, "create_discount_code", "discount_code", code, code, {
+    type,
+    value,
+    assigned_to: assigned_to_email ?? "global",
+    applies_to,
+  });
+
+  revalidateAll();
   return { success: true };
 }
 
 export async function toggleDiscountCode(id: string, active: boolean) {
   const supabase = createServiceClient();
+  const { data } = await supabase.from("discount_codes").select("code").eq("id", id).single();
   await supabase.from("discount_codes").update({ is_active: active }).eq("id", id);
-  revalidatePath("/admin/customers");
+
+  await logActivity(supabase, active ? "activate_discount_code" : "deactivate_discount_code", "discount_code", id, data?.code ?? id, { is_active: active });
+
+  revalidateAll();
 }
 
 export async function deleteDiscountCode(id: string) {
   const supabase = createServiceClient();
+  const { data } = await supabase.from("discount_codes").select("code").eq("id", id).single();
   await supabase.from("discount_codes").delete().eq("id", id);
-  revalidatePath("/admin/customers");
+
+  await logActivity(supabase, "delete_discount_code", "discount_code", id, data?.code ?? id);
+
+  revalidateAll();
 }
 
 // ── Customers ──────────────────────────────────────────────────────────────
@@ -71,12 +114,21 @@ export async function createCustomer(prevState: any, formData: FormData) {
   });
 
   if (error) return { error: error.message };
+
+  await logActivity(supabase, "create_customer", "customer", email, name, { email, foretag: foretag || null });
+
+  revalidateAll();
   return { success: true };
 }
 
 export async function deleteCustomer(userId: string) {
   const supabase = createServiceClient();
+  const { data: user } = await supabase.auth.admin.getUserById(userId);
   const { error } = await supabase.auth.admin.deleteUser(userId);
   if (error) return { error: error.message };
+
+  await logActivity(supabase, "delete_customer", "customer", userId, user?.user?.email ?? userId);
+
+  revalidateAll();
   return { success: true };
 }

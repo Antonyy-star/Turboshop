@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const POLL_MS = 30_000;
 
 type StockEvent = {
   id: string;
@@ -29,7 +31,9 @@ export default function StockFeed({ initialEvents, initialLastScan, inStockCount
   const [events, setEvents] = useState<StockEvent[]>(initialEvents);
   const [connected, setConnected] = useState(false);
   const [lastScan, setLastScan] = useState<string | null>(initialLastScan);
+  const newestIdRef = useRef<string | null>(initialEvents[0]?.id ?? null);
 
+  // Supabase Realtime subscription (fires instantly when Realtime publication is enabled)
   useEffect(() => {
     const channel = supabase
       .channel("stock-changes")
@@ -37,7 +41,9 @@ export default function StockFeed({ initialEvents, initialLastScan, inStockCount
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "stock_events" },
         (payload) => {
-          setEvents((prev) => [payload.new as StockEvent, ...prev].slice(0, 50));
+          const ev = payload.new as StockEvent;
+          newestIdRef.current = ev.id;
+          setEvents((prev) => [ev, ...prev].slice(0, 50));
           setLastScan(new Date().toISOString());
         }
       )
@@ -46,6 +52,31 @@ export default function StockFeed({ initialEvents, initialLastScan, inStockCount
       });
 
     return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  // 30-second polling fallback — catches new events even if Realtime publication isn't enabled
+  useEffect(() => {
+    async function poll() {
+      try {
+        const { data } = await supabase
+          .from("stock_events")
+          .select("id, sku, product_name, brand, old_status, new_status, created_at")
+          .order("created_at", { ascending: false })
+          .limit(50);
+
+        if (!data || data.length === 0) return;
+
+        // Only update if there's actually something newer than what we have
+        if (data[0].id !== newestIdRef.current) {
+          newestIdRef.current = data[0].id;
+          setEvents(data);
+          setLastScan(data[0].created_at);
+        }
+      } catch {}
+    }
+
+    const id = setInterval(poll, POLL_MS);
+    return () => clearInterval(id);
   }, []);
 
   return (
@@ -101,7 +132,7 @@ export default function StockFeed({ initialEvents, initialLastScan, inStockCount
       {events.length === 0 ? (
         <div style={{ textAlign: "center", padding: "24px 0" }}>
           <p style={{ color: "#555", fontSize: 13, margin: 0 }}>Inga statusändringar ännu.</p>
-          <p style={{ color: "#444", fontSize: 12, margin: "6px 0 0" }}>Skannern kontrollerar turbocentras.com var 5:e minut.</p>
+          <p style={{ color: "#444", fontSize: 12, margin: "6px 0 0" }}>Skannern kontrollerar turbocentras.com automatiskt.</p>
         </div>
       ) : (
         <div style={{ maxHeight: 380, overflowY: "auto" }}>

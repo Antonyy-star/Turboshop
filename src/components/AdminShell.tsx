@@ -32,7 +32,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   function close() { setSidebarOpen(false); }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#0a0a0a", color: "#fff" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#0a0a0a", color: "#fff", overflowX: "hidden", width: "100%" }}>
       <style>{`
         .adm-topbar  { display: none; }
         .adm-spacer  { width: ${SIDEBAR_W}px; flex-shrink: 0; }
@@ -58,7 +58,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.7); z-index: 58;
           }
-          .adm-main { padding: 72px 16px 24px !important; }
+          .adm-main { padding: 72px 16px calc(24px + env(safe-area-inset-bottom)) !important; overflow-x: hidden; width: 100%; }
         }
       `}</style>
 

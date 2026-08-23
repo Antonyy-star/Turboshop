@@ -3,9 +3,12 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import { createServiceClient } from "@/lib/supabase/server";
 import ProductImage from "@/components/ProductImage";
+import CategoryFilters from "@/components/CategoryFilters";
+import CategorySort from "@/components/CategorySort";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-export const revalidate = 3600;
+export const revalidate = 120;
 
 const categoryNames: Record<string, string> = {
   turboladdare: "Turboladdare",
@@ -18,7 +21,6 @@ const categoryNames: Record<string, string> = {
   tuning: "Tuning",
 };
 
-// Maps URL slug → DB category value
 const slugToDbCategory: Record<string, string> = {
   turboladdare: "Turboladdare",
   chra: "CHRA",
@@ -29,8 +31,6 @@ const slugToDbCategory: Record<string, string> = {
   utrustning: "Utrustning",
   tuning: "Tuning",
 };
-
-const filterBrands = ["Garrett", "BorgWarner", "Holset", "Mitsubishi", "IHI", "BMTS", "Continental", "Hitachi", "Valeo", "Toyota", "Master", "CZ Turbo"];
 
 const PRODUCTS_PER_PAGE = 40;
 
@@ -49,46 +49,70 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ sida?: string }>;
+  searchParams: Promise<{ sida?: string; marke?: string; prisMin?: string; prisMax?: string; lager?: string; sortera?: string }>;
 }) {
   const { slug } = await params;
-  const { sida } = await searchParams;
+  const { sida, marke, prisMin, prisMax, lager, sortera } = await searchParams;
 
   const categoryName = categoryNames[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
   const dbCategory = slugToDbCategory[slug];
 
+  const selectedBrands = marke ? marke.split(",").map((b) => b.trim()).filter(Boolean) : [];
+  const prisMinNum = prisMin ? parseFloat(prisMin) : null;
+  const prisMaxNum = prisMax ? parseFloat(prisMax) : null;
+  const lagerOnly = lager === "1";
+
   const supabase = createServiceClient();
 
-  // Get total count for this category
-  let countQuery = supabase.from("products").select("*", { count: "exact", head: true });
+  // Fetch distinct brands for this category
+  let brandsQuery = supabase.from("products").select("brand").not("brand", "is", null);
   if (dbCategory) {
     if (slug === "turboladdare") {
-      countQuery = (countQuery as any).or(`category.eq.${dbCategory},category.is.null`);
+      brandsQuery = (brandsQuery as any).or(`category.eq.${dbCategory},category.is.null`);
     } else {
-      countQuery = (countQuery as any).eq("category", dbCategory);
+      brandsQuery = (brandsQuery as any).eq("category", dbCategory);
     }
   }
-  const { count: totalCount } = await countQuery;
+  const { data: brandsRaw } = await brandsQuery;
+  const brands = [...new Set((brandsRaw ?? []).map((r: any) => r.brand).filter(Boolean))].sort() as string[];
+
+  function applyFilters(q: any) {
+    if (dbCategory) {
+      if (slug === "turboladdare") {
+        q = q.or(`category.eq.${dbCategory},category.is.null`);
+      } else {
+        q = q.eq("category", dbCategory);
+      }
+    }
+    if (selectedBrands.length > 0) q = q.in("brand", selectedBrands);
+    if (prisMinNum !== null) q = q.gte("price", prisMinNum);
+    if (prisMaxNum !== null) q = q.lte("price", prisMaxNum);
+    if (lagerOnly) q = q.eq("in_stock", true);
+    return q;
+  }
+
+  function applySort(q: any) {
+    if (sortera === "pris-asc") return q.order("price", { ascending: true });
+    if (sortera === "pris-desc") return q.order("price", { ascending: false });
+    if (sortera === "nyast") return q.order("created_at", { ascending: false });
+    return q.order("price", { ascending: false });
+  }
+
+  const { count: totalCount } = await applyFilters(
+    supabase.from("products").select("*", { count: "exact", head: true })
+  );
+
   const total = totalCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
   const currentPage = Math.max(1, Math.min(parseInt(sida ?? "1", 10), totalPages));
   const from = (currentPage - 1) * PRODUCTS_PER_PAGE;
   const to = from + PRODUCTS_PER_PAGE - 1;
 
-  // Fetch current page
-  let dataQuery = supabase
-    .from("products")
-    .select("id,name,brand,sku,price,original_price,images,badge,in_stock,category");
-  if (dbCategory) {
-    if (slug === "turboladdare") {
-      dataQuery = (dataQuery as any).or(`category.eq.${dbCategory},category.is.null`);
-    } else {
-      dataQuery = (dataQuery as any).eq("category", dbCategory);
-    }
-  }
-  const { data: dbProducts } = await dataQuery
-    .order("price", { ascending: false })
-    .range(from, to);
+  const { data: dbProducts } = await applySort(
+    applyFilters(
+      supabase.from("products").select("id,name,brand,sku,price,original_price,images,badge,in_stock,category")
+    )
+  ).range(from, to);
 
   const products = (dbProducts ?? []).map((p: any) => ({
     id: String(p.id),
@@ -107,6 +131,8 @@ export default async function CategoryPage({
     (p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2
   );
 
+  const activeFilterCount = selectedBrands.length + (prisMinNum ? 1 : 0) + (prisMaxNum ? 1 : 0) + (lagerOnly ? 1 : 0);
+
   return (
     <>
       <Header />
@@ -117,67 +143,55 @@ export default async function CategoryPage({
             <Link href="/" className="hover:text-red-600 transition">Hem</Link>
             <span>›</span>
             <span className="text-black font-medium">{categoryName}</span>
+            {activeFilterCount > 0 && (
+              <>
+                <span>›</span>
+                <span className="text-red-600 font-medium">{activeFilterCount} filter aktiva</span>
+              </>
+            )}
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
-          {/* Sidebar */}
-          <aside className="hidden md:block w-56 flex-shrink-0">
-            <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-              <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Varumärke</h3>
-              <ul className="space-y-2">
-                {filterBrands.map((brand) => (
-                  <li key={brand} className="flex items-center gap-2">
-                    <input type="checkbox" id={brand} className="accent-red-600" />
-                    <label htmlFor={brand} className="text-sm text-gray-700 cursor-pointer hover:text-red-600 transition">{brand}</label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-              <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Pris (kr)</h3>
-              <div className="flex gap-2 items-center">
-                <input type="number" placeholder="Min" className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-red-500" />
-                <span className="text-gray-400 text-sm">–</span>
-                <input type="number" placeholder="Max" className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-red-500" />
-              </div>
-              <button className="mt-3 w-full bg-red-600 hover:bg-red-700 text-white text-sm py-1.5 rounded transition">Tillämpa</button>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Tillgänglighet</h3>
-              <ul className="space-y-2">
-                {["I lager", "På beställning", "Rea"].map((opt) => (
-                  <li key={opt} className="flex items-center gap-2">
-                    <input type="checkbox" id={opt} className="accent-red-600" />
-                    <label htmlFor={opt} className="text-sm text-gray-700 cursor-pointer hover:text-red-600 transition">{opt}</label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
+          <Suspense fallback={<div className="hidden md:block w-56 flex-shrink-0" />}>
+            <CategoryFilters
+              slug={slug}
+              brands={brands}
+              selectedBrands={selectedBrands}
+              prisMin={prisMin ?? ""}
+              prisMax={prisMax ?? ""}
+              lager={lagerOnly}
+            />
+          </Suspense>
 
           {/* Product grid */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-5">
               <p className="text-sm text-gray-500">
-                Visar {from + 1}–{Math.min(from + PRODUCTS_PER_PAGE, total)} av <strong>{total.toLocaleString("sv-SE")}</strong> produkter
+                {total === 0 ? (
+                  "Inga produkter matchar filtret"
+                ) : (
+                  <>
+                    Visar {from + 1}–{Math.min(from + PRODUCTS_PER_PAGE, total)} av{" "}
+                    <strong>{total.toLocaleString("sv-SE")}</strong> produkter
+                  </>
+                )}
               </p>
-              <select className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-red-500 bg-white">
-                <option>Sortera: Standard</option>
-                <option>Pris: Lägst först</option>
-                <option>Pris: Högst först</option>
-                <option>Nyast</option>
-              </select>
+              <Suspense fallback={null}>
+                <CategorySort slug={slug} sortera={sortera ?? ""} />
+              </Suspense>
             </div>
 
             {products.length === 0 ? (
               <div className="bg-white border border-gray-200 rounded-xl p-16 text-center">
-                <p className="text-gray-400 text-lg mb-2">Inga produkter hittades i denna kategori</p>
-                <Link href="/" className="text-red-600 text-sm hover:underline">Tillbaka till startsidan</Link>
+                <p className="text-gray-400 text-lg mb-2">Inga produkter hittades</p>
+                <Link href={`/kategori/${slug}`} className="text-red-600 text-sm hover:underline">
+                  Rensa filter
+                </Link>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {products.map((product) => (
+                {products.map((product: typeof products[number]) => (
                   <Link
                     key={product.id}
                     href={`/produkt/${product.id}`}
@@ -216,22 +230,35 @@ export default async function CategoryPage({
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-1 mt-10">
                 {currentPage > 1 && (
-                  <Link href={`/kategori/${slug}?sida=${currentPage - 1}`} className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition">‹ Föregående</Link>
+                  <Link
+                    href={`/kategori/${slug}?${new URLSearchParams({ ...(marke ? { marke } : {}), ...(prisMin ? { prisMin } : {}), ...(prisMax ? { prisMax } : {}), ...(lager ? { lager } : {}), ...(sortera ? { sortera } : {}), sida: String(currentPage - 1) }).toString()}`}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition"
+                  >
+                    ‹ Föregående
+                  </Link>
                 )}
                 {visiblePages.map((p, idx) => {
                   const prev = visiblePages[idx - 1];
+                  const href = `/kategori/${slug}?${new URLSearchParams({ ...(marke ? { marke } : {}), ...(prisMin ? { prisMin } : {}), ...(prisMax ? { prisMax } : {}), ...(lager ? { lager } : {}), ...(sortera ? { sortera } : {}), sida: String(p) }).toString()}`;
                   return (
                     <span key={p} className="flex items-center gap-1">
                       {prev && p - prev > 1 && <span className="px-2 text-gray-400">…</span>}
-                      <Link href={`/kategori/${slug}?sida=${p}`}
-                        className={`px-3 py-2 text-sm border rounded transition ${p === currentPage ? "bg-red-600 border-red-600 text-white" : "bg-white border-gray-300 hover:border-red-500 hover:text-red-600"}`}>
+                      <Link
+                        href={href}
+                        className={`px-3 py-2 text-sm border rounded transition ${p === currentPage ? "bg-red-600 border-red-600 text-white" : "bg-white border-gray-300 hover:border-red-500 hover:text-red-600"}`}
+                      >
                         {p}
                       </Link>
                     </span>
                   );
                 })}
                 {currentPage < totalPages && (
-                  <Link href={`/kategori/${slug}?sida=${currentPage + 1}`} className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition">Nästa ›</Link>
+                  <Link
+                    href={`/kategori/${slug}?${new URLSearchParams({ ...(marke ? { marke } : {}), ...(prisMin ? { prisMin } : {}), ...(prisMax ? { prisMax } : {}), ...(lager ? { lager } : {}), ...(sortera ? { sortera } : {}), sida: String(currentPage + 1) }).toString()}`}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:border-red-500 hover:text-red-600 transition"
+                  >
+                    Nästa ›
+                  </Link>
                 )}
               </div>
             )}

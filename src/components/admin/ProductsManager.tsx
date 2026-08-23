@@ -46,7 +46,7 @@ export default function ProductsManager({
     if (params.q) sp.set("q", params.q);
     if (params.page && params.page !== "1") sp.set("page", params.page);
     if (params.category) sp.set("category", params.category);
-    startTransition(() => router.push(`/admin/products?${sp.toString()}`));
+    startTransition(() => router.push(`/admin/products?${sp.toString()}`, { scroll: false }));
   }
 
   function handleSearch(e: React.FormEvent) {

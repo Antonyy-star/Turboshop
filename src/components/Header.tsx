@@ -6,6 +6,7 @@ import Link from "next/link";
 import AdvancedBadge from "./AdvancedBadge";
 import LogoViewerWrapper from "./LogoViewerWrapper";
 import SearchBar from "./SearchBar";
+import { useCart } from "@/context/CartContext";
 
 const brandLogos = [
   { name: "Garrett", logo: "/brands/kisspng-turbocharger-garrett-airesearch-business-engine-in-garrett-5b3dfc697c5e14.6655578415307889695094.jpg" },
@@ -46,6 +47,7 @@ export default function Header() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { count } = useCart();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -77,11 +79,18 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/cart" className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md transition">
+            <Link href="/cart" className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md transition relative">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span className="text-sm font-medium hidden sm:inline">Varukorg (0)</span>
+              <span className="text-sm font-medium hidden sm:inline">
+                Varukorg ({count})
+              </span>
+              {count > 0 && (
+                <span className="sm:hidden absolute -top-1 -right-1 w-5 h-5 bg-white text-red-600 text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {count > 9 ? "9+" : count}
+                </span>
+              )}
             </Link>
 
             <Link href="/admin/login" className="flex items-center p-1 hover:opacity-70 transition">

@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ImageGallery from "@/components/ImageGallery";
+import AddToCartButton from "@/components/AddToCartButton";
 import Link from "next/link";
 import { getProductById } from "@/lib/realProducts";
 import { getRealProductById } from "@/lib/parseProducts";
@@ -20,7 +21,12 @@ type Specs = {
   replacements?: string[];
   interchangeable_with?: string[];
   turbo_parts?: { type: string; sku: string; url?: string }[];
+  features?: string[];
 };
+
+function hasCyrillic(text: string) {
+  return /[Ѐ-ӿ]/.test(text);
+}
 
 function extractSku(text: string): string | null {
   const m = text.match(/\b([0-9]{4,}[0-9A-Z-]*[0-9A-Z])\b/i);
@@ -243,6 +249,23 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     n.type.toUpperCase().includes("OEM") || n.type.toUpperCase().includes("REF")
   ) ?? [];
 
+  // For products with no structured specs and no features, extract readable lines
+  // from the raw description (filters out Cyrillic, noise, and SKU-like lines)
+  const descriptionLines: string[] = !hasSpecs && !specs?.features?.length
+    ? (product.description ?? "")
+        .split("\n")
+        .map((l: string) => l.trim())
+        .filter((l: string) => {
+          if (l.length < 4) return false;
+          if (hasCyrillic(l)) return false;
+          if (!l.includes(":")) return false;
+          if (l.startsWith("Brand:") || l.includes("TurboCentras") || l.startsWith("Data updated:")) return false;
+          if (/^[A-Z]{2}-\d{2}-/.test(l)) return false;
+          const val = l.split(":").slice(1).join(":").trim();
+          return !/^[A-Z]{2}-\d{2}-\d{4}/.test(val);
+        })
+    : [];
+
   return (
     <>
       <Header />
@@ -291,7 +314,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 {product.in_stock ? (
                   <>
                     <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" />
-                    <span className="text-sm text-green-700 font-medium">I lager — skickas inom 1–2 arbetsdagar</span>
+                    <span className="text-sm text-green-700 font-medium">I lager</span>
                   </>
                 ) : (
                   <>
@@ -301,13 +324,16 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 )}
               </div>
 
-              <div className="flex gap-3 mb-4">
-                <input type="number" defaultValue={1} min={1}
-                  className="w-16 border border-gray-300 rounded-md px-3 py-3 text-sm text-center focus:outline-none focus:border-red-500" />
-                <button className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-md transition text-sm">
-                  Lägg i varukorg
-                </button>
-              </div>
+              <AddToCartButton
+                product={{
+                  id: String(product.id),
+                  name: product.name,
+                  brand: product.brand ?? "",
+                  sku: product.sku,
+                  price: product.price,
+                  image: product.images?.[0] ?? "",
+                }}
+              />
 
               <button className="w-full border border-gray-300 hover:border-red-400 text-gray-700 hover:text-red-600 font-medium py-3 rounded-md transition text-sm mb-6">
                 ♡ Lägg till i önskelista
@@ -347,7 +373,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 <span className="px-6 py-3 text-sm font-semibold text-black border-b-2 border-black -mb-px">Beskrivning</span>
               </div>
 
-              <div className="px-6 py-8">
+              <div className="px-4 py-5 md:px-6 md:py-8">
 
                 {/* Heading: SKU (OEM numbers) - Product name */}
                 <h2 className="text-xl font-bold text-black mb-4 leading-snug">
@@ -469,24 +495,45 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                   </div>
                 )}
 
-                {/* Description text */}
-                {product.description && (
-                  <div className="mt-8 pt-8 border-t border-gray-200">
-                    <h3 className="font-bold text-sm uppercase tracking-wide text-black mb-2">Mer information</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
-                  </div>
-                )}
 
               </div>
             </div>
           )}
 
-          {/* No specs: show description only if present */}
-          {!hasSpecs && product.description && (
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h3 className="font-bold text-sm uppercase tracking-wide text-black mb-2">Beskrivning</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
-            </div>
+          {/* No structured specs: show features list, extracted spec lines, or plain description */}
+          {!hasSpecs && (
+            <>
+              {specs?.features?.length ? (
+                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <h3 className="font-bold text-sm uppercase tracking-wide text-black mb-4">Beskrivning</h3>
+                  <ul className="space-y-2">
+                    {specs.features.map((f, i) => (
+                      <li key={i} className="flex gap-2 text-sm text-gray-700">
+                        <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : descriptionLines.length > 0 ? (
+                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <h3 className="font-bold text-sm uppercase tracking-wide text-black mb-4">Beskrivning</h3>
+                  <ul className="space-y-2">
+                    {descriptionLines.map((line, i) => (
+                      <li key={i} className="flex gap-2 text-sm text-gray-700">
+                        <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : product.description && !hasCyrillic(product.description) ? (
+                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <h3 className="font-bold text-sm uppercase tracking-wide text-black mb-2">Beskrivning</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
+                </div>
+              ) : null}
+            </>
           )}
 
         </div>

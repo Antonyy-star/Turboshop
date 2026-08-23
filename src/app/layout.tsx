@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
+import { CartProvider } from "@/context/CartContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,7 +49,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <meta name="theme-color" content="#111827" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <CartProvider>{children}</CartProvider>
+      </body>
     </html>
   );
 }

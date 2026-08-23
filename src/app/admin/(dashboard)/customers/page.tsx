@@ -18,7 +18,13 @@ export default async function AdminCustomers() {
     supabase.from("discount_codes").select("*").order("created_at", { ascending: false }),
   ]);
 
-  const customers = (users ?? []).filter(u => u.email !== ADMIN_EMAIL);
+  const allUsers = users ?? [];
+  const customers = allUsers.filter(u => u.email !== ADMIN_EMAIL);
+  // Include admin in discount dropdown so discounts can be assigned to any account
+  const discountCustomers = allUsers.map(u => ({
+    email: u.email!,
+    name: u.user_metadata?.name || u.email?.split("@")[0] || "—",
+  }));
 
   return (
     <div>
@@ -88,10 +94,7 @@ export default async function AdminCustomers() {
       )}
 
       <DiscountCodesManager
-        customers={customers.map(u => ({
-          email: u.email!,
-          name: u.user_metadata?.name || u.email?.split("@")[0] || "—",
-        }))}
+        customers={discountCustomers}
         codes={discountCodes ?? []}
       />
     </div>

@@ -6,6 +6,8 @@ import { logActivity } from "@/lib/logActivity";
 
 function revalidateAll() {
   revalidatePath("/admin/products");
+  revalidatePath("/admin/activity");
+  revalidatePath("/admin");
   revalidatePath("/", "layout");
 }
 

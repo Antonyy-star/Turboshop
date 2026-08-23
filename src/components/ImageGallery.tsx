@@ -37,7 +37,7 @@ export default function ImageGallery({ images, name }: { images: string[]; name:
 
   if (!images || images.length === 0) {
     return (
-      <div className="bg-gray-100 rounded-xl border border-gray-200 overflow-hidden" style={{ height: 400 }}>
+      <div className="bg-gray-100 rounded-xl border border-gray-200 overflow-hidden h-56 md:h-[400px]">
         <Placeholder />
       </div>
     );
@@ -45,17 +45,17 @@ export default function ImageGallery({ images, name }: { images: string[]; name:
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden" style={{ height: 400 }}>
+      <div className="bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden h-56 md:h-[400px]">
         <DirectImage
           src={images[active]}
           alt={name}
-          className="w-full h-full object-contain p-4"
+          className="w-full h-full object-contain p-3 md:p-4"
           priority
         />
       </div>
 
       {images.length > 1 && (
-        <div className="flex gap-3">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {images.map((img, i) => (
             <button
               key={i}
@@ -63,7 +63,7 @@ export default function ImageGallery({ images, name }: { images: string[]; name:
               className={`border-2 rounded-lg overflow-hidden flex-shrink-0 transition ${
                 i === active ? "border-red-500" : "border-gray-200 hover:border-gray-400"
               }`}
-              style={{ width: 80, height: 80 }}
+              style={{ width: 64, height: 64 }}
             >
               <DirectImage src={img} alt={`${name} ${i + 1}`} className="w-full h-full object-contain p-1" />
             </button>

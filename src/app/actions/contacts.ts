@@ -1,8 +1,34 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { logActivity } from "@/lib/logActivity";
+
+const ADMIN_EMAIL = "yucellevon@gmail.com";
+
+function revalidateAll() {
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/activity");
+  revalidatePath("/admin/products");
+  revalidatePath("/admin");
+}
+
+async function log(
+  supabase: ReturnType<typeof createServiceClient>,
+  action_type: string,
+  entity_id: string,
+  entity_name: string,
+  metadata: Record<string, unknown> = {},
+) {
+  await supabase.from("activity_log").insert({
+    admin_email: ADMIN_EMAIL,
+    admin_name: ADMIN_EMAIL,
+    action_type,
+    entity_type: "contact",
+    entity_id,
+    entity_name,
+    metadata,
+  });
+}
 
 export async function markContactHandled(
   contactId: string,
@@ -10,7 +36,7 @@ export async function markContactHandled(
   handledByEmail: string,
   handledByName: string,
 ) {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { error } = await supabase.from("contact_submissions").update({
     status: "handled",
     handled_by_email: handledByEmail,
@@ -18,19 +44,23 @@ export async function markContactHandled(
     handled_at: new Date().toISOString(),
   }).eq("id", contactId);
   if (error) throw new Error(error.message);
-  revalidatePath("/admin/orders");
-  const { data: authData } = await supabase.auth.getUser();
-  await logActivity(supabase, authData?.user, {
-    action_type: "contact_handled",
-    entity_type: "contact",
-    entity_id: contactId,
-    entity_name: contactName,
-    metadata: { handled_by_name: handledByName, handled_by_email: handledByEmail },
+
+  await log(supabase, "contact_handled", contactId, contactName, {
+    handled_by: handledByName,
+    email: handledByEmail,
   });
+
+  revalidateAll();
 }
 
 export async function reopenContact(contactId: string) {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
+  const { data: contact } = await supabase
+    .from("contact_submissions")
+    .select("fornamn, efternamn, email")
+    .eq("id", contactId)
+    .single();
+
   const { error } = await supabase.from("contact_submissions").update({
     status: "open",
     handled_by_email: null,
@@ -38,27 +68,22 @@ export async function reopenContact(contactId: string) {
     handled_at: null,
   }).eq("id", contactId);
   if (error) throw new Error(error.message);
-  revalidatePath("/admin/orders");
+
+  const name = contact ? `${contact.fornamn ?? ""} ${contact.efternamn ?? ""}`.trim() || contact.email : contactId;
+  await log(supabase, "contact_reopened", contactId, name);
+
+  revalidateAll();
 }
 
 export async function getAdminList(): Promise<{ email: string; name: string }[]> {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   try {
-    const { data } = await supabase
-      .from("activity_log")
-      .select("admin_email, admin_name")
-      .order("created_at", { ascending: false })
-      .limit(200);
-    const seen = new Set<string>();
-    const admins: { email: string; name: string }[] = [];
-    for (const row of data ?? []) {
-      if (!seen.has(row.admin_email)) {
-        seen.add(row.admin_email);
-        admins.push({ email: row.admin_email, name: row.admin_name || row.admin_email });
-      }
-    }
-    return admins;
+    const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    return (users ?? []).map(u => ({
+      email: u.email!,
+      name: u.user_metadata?.full_name || u.user_metadata?.name || u.email!,
+    }));
   } catch {
-    return [];
+    return [{ email: ADMIN_EMAIL, name: ADMIN_EMAIL }];
   }
 }

@@ -1,6 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import ProductsManager from "@/components/admin/ProductsManager";
-import { Package } from "lucide-react";
+import NewEventsCarousel from "@/components/admin/NewEventsCarousel";
 import { normalizeRef } from "@/lib/normalize";
 
 const PAGE_SIZE = 50;
@@ -100,65 +100,7 @@ export default async function AdminProducts({
 
   return (
     <div>
-      {/* ── Nya Händelser — Nya Produkter (ONLY product imports, never stock changes) ── */}
-      <div style={{ marginBottom: 36 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Nya Händelser</h2>
-          <span style={{ background: "#3b82f6", color: "#fff", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99 }}>
-            {1 + (importLogs?.length ?? 0)}
-          </span>
-          <span style={{ fontSize: 11, color: "#555", marginLeft: 4 }}>Nya produkter &amp; importer</span>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {/* Always-visible hardcoded entry for the 132-product import */}
-          <div style={{ background: "#141414", border: "1px solid #3b82f633", borderLeft: "3px solid #3b82f6", borderRadius: 10, padding: "16px 20px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 7, background: "#3b82f618", border: "1px solid #3b82f633", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Package size={13} color="#3b82f6" />
-              </div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{INITIAL_IMPORT.title}</p>
-              <span style={{ marginLeft: "auto", fontSize: 11, color: "#555", flexShrink: 0 }}>{INITIAL_IMPORT.date}</span>
-            </div>
-            <div style={{ paddingLeft: 38 }}>
-              {INITIAL_IMPORT.details.map((line, i) =>
-                line === "" ? (
-                  <div key={i} style={{ height: 6 }} />
-                ) : (
-                  <p key={i} style={{
-                    fontSize: 12,
-                    lineHeight: 1.7,
-                    color: line.startsWith("TUNING") || line.startsWith("UTRUSTNING") ? "#aaa" : "#555",
-                    fontWeight: line.startsWith("TUNING") || line.startsWith("UTRUSTNING") ? 600 : 400,
-                  }}>
-                    {line}
-                  </p>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* Dynamic entries from activity_log (system_import only) */}
-          {importLogs?.map((l) => (
-            <div key={l.id} style={{ background: "#141414", border: "1px solid #3b82f633", borderLeft: "3px solid #3b82f6", borderRadius: 10, padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 7, background: "#3b82f618", border: "1px solid #3b82f633", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Package size={13} color="#3b82f6" />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, color: "#fff", fontWeight: 500 }}>{l.entity_name ?? "Systemimport"}</p>
-                {Array.isArray(l.metadata?.details) && (
-                  <p style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
-                    {(l.metadata.details as string[]).slice(0, 2).join(" · ")}
-                  </p>
-                )}
-              </div>
-              <span style={{ fontSize: 11, color: "#444", flexShrink: 0 }}>
-                {new Date(l.created_at).toLocaleDateString("sv-SE")}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <NewEventsCarousel hardcoded={INITIAL_IMPORT} logs={importLogs ?? []} />
 
       <ProductsManager
         initialProducts={products ?? []}
