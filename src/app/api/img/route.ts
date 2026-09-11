@@ -50,9 +50,14 @@ export async function GET(req: NextRequest) {
     return placeholder();
   }
 
-  // Only proxy turbocentras images (safety check)
-  if (!originalUrl.includes("turbocentras.com")) {
-    return NextResponse.redirect(originalUrl, { status: 302 });
+  // Only proxy turbocentras images — parse hostname to prevent SSRF bypass
+  try {
+    const hostname = new URL(originalUrl).hostname;
+    if (hostname !== "turbocentras.com" && !hostname.endsWith(".turbocentras.com")) {
+      return placeholder();
+    }
+  } catch {
+    return placeholder();
   }
 
   const path = storagePath(originalUrl);

@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import { createServiceClient } from "@/lib/supabase/server";
 import ProductImage from "@/components/ProductImage";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -139,6 +140,9 @@ export default async function BrandPage({
   ]);
 
   const total = totalCount ?? 0;
+
+  if (total === 0 && !metaDirect && !metaBySpace) notFound();
+
   const totalPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
   const from = (safePage - 1) * PRODUCTS_PER_PAGE;
@@ -168,7 +172,7 @@ export default async function BrandPage({
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-2 text-sm text-gray-500">
             <Link href="/" className="hover:text-red-600 transition">Hem</Link>
             <span>›</span>
-            <Link href="/kategori/turboladdare" className="hover:text-red-600 transition">Turboladdare</Link>
+            <Link href="/katalog" className="hover:text-red-600 transition">Katalog</Link>
             <span>›</span>
             <span className="text-black font-medium">{meta.displayName}</span>
           </div>

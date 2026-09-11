@@ -45,7 +45,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="preload" href="/3d%20Logo/Logo.pack.glb" as="fetch" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://hudzxedyjaswddamapwf.supabase.co" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://turbocentras.com" />
         <meta name="theme-color" content="#111827" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>

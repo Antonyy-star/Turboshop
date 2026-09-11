@@ -65,11 +65,8 @@ export default async function SearchPage({
 
     results = [...(primary ?? []), ...oemOnly, ...normOnly];
 
-    const extraCount = oemOnly.length + normOnly.length;
-    if (extraCount > 0 && currentPage === 1) {
-      totalCount += extraCount;
-      totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-    }
+    // Extra OEM/normalized results are bonus hits on page 1 only — don't inflate
+    // totalCount or pagination breaks on page 2+ (extras don't re-appear)
   }
 
   const from = (currentPage - 1) * PAGE_SIZE + 1;

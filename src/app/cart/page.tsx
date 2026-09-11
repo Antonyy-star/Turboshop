@@ -139,9 +139,12 @@ export default function CartPage() {
                   <p className="text-xs text-gray-400 mt-1">Inkl. moms · Exkl. frakt</p>
                 </div>
 
-                <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-lg transition text-sm mb-3">
+                <Link
+                  href="/kontakt"
+                  className="block w-full text-center bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-lg transition text-sm mb-3"
+                >
                   Gå till kassan →
-                </button>
+                </Link>
                 <Link
                   href="/kategori/turboladdare"
                   className="block w-full text-center text-sm text-gray-500 hover:text-red-600 transition py-2"

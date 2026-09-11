@@ -5,7 +5,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import { Cpu, Layers, Wrench, Settings, Zap } from "lucide-react";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Produktkatalog",

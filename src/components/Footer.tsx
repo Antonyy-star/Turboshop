@@ -22,9 +22,9 @@ export default function Footer() {
             Produkter
           </h4>
           <ul className="space-y-2 text-gray-400 text-sm mt-3">
-            <li><Link href="#" className="hover:text-white transition">Turboladdare</Link></li>
-            <li><Link href="#" className="hover:text-white transition">Turbodelar</Link></li>
-            <li><Link href="#" className="hover:text-white transition">Utrustning</Link></li>
+            <li><Link href="/kategori/turboladdare" className="hover:text-white transition">Turboladdare</Link></li>
+            <li><Link href="/kategori/turbodelar" className="hover:text-white transition">Turbodelar</Link></li>
+            <li><Link href="/kategori/utrustning" className="hover:text-white transition">Utrustning</Link></li>
           </ul>
         </div>
 
@@ -34,11 +34,11 @@ export default function Footer() {
             Företag
           </h4>
           <ul className="space-y-2 text-gray-400 text-sm mt-3">
-            <li><Link href="#" className="hover:text-white transition">Om oss</Link></li>
-            <li><Link href="#" className="hover:text-white transition">Kontakt</Link></li>
-            <li><Link href="#" className="hover:text-white transition">Fraktinformation</Link></li>
-            <li><Link href="#" className="hover:text-white transition">Returer & Garanti</Link></li>
-            <li><Link href="#" className="hover:text-white transition">Integritetspolicy</Link></li>
+            <li><Link href="/kontakta-oss" className="hover:text-white transition">Om oss</Link></li>
+            <li><Link href="/kontakt" className="hover:text-white transition">Kontakt</Link></li>
+            <li><Link href="/kontakt" className="hover:text-white transition">Fraktinformation</Link></li>
+            <li><Link href="/kontakt" className="hover:text-white transition">Returer & Garanti</Link></li>
+            <li><Link href="/kontakt" className="hover:text-white transition">Integritetspolicy</Link></li>
           </ul>
         </div>
 
@@ -90,7 +90,7 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-gray-800 py-4 text-center text-gray-500 text-xs">
-        © 2024 TurboTeknik. Alla rättigheter förbehållna.
+        © 2026 TurboTeknik. Alla rättigheter förbehållna.
       </div>
     </footer>
   );

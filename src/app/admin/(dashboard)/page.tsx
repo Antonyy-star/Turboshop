@@ -4,7 +4,7 @@ import StockFeed from "@/components/StockFeed";
 import Link from "next/link";
 import DashboardStatCards from "@/components/admin/DashboardStatCards";
 
-const ADMIN_EMAIL = "yucellevon@gmail.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "yucellevon@gmail.com";
 
 export default async function AdminDashboard() {
   const supabase = createServiceClient();
