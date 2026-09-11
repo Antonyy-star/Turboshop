@@ -9,6 +9,30 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { applySubcatFilter, SUBCAT_NAMES } from "@/lib/subcategories";
 
+const TURBODELAR_SUBCATS = [
+  { slug: "bearing-housings",               label: "Bearing Housings" },
+  { slug: "compressor-wheels",              label: "Compressor Wheels" },
+  { slug: "compressor-housings-cold-sides", label: "Compressor Housings" },
+  { slug: "compressor-plate",               label: "Compressor Plate" },
+  { slug: "shaft-wheels-rotors",            label: "Shaft & Wheels / Rotors" },
+  { slug: "shaft-nuts",                     label: "Shaft Nuts" },
+  { slug: "heat-shields",                   label: "Heat Shields" },
+  { slug: "nozzle-ring-assemblies",         label: "Nozzle Ring Assemblies" },
+  { slug: "vnt-nozzle-cages",              label: "VNT Nozzle Cages" },
+  { slug: "actuators",                      label: "Actuators" },
+  { slug: "actuator-clips",                 label: "Actuator Clips" },
+  { slug: "actuator-rods",                  label: "Actuator Rods" },
+  { slug: "electric-motors",               label: "Electric Motors" },
+  { slug: "wastegate-valves",              label: "Wastegate Valves" },
+  { slug: "repair-kits",                    label: "Repair Kits" },
+  { slug: "gaskets-gasket-kits",           label: "Gaskets & Gasket Kits" },
+  { slug: "seal-rings-piston-rings",       label: "Seal Rings / Piston Rings" },
+  { slug: "turbine-housings-hot-sides",    label: "Turbine Housings / Hot Sides" },
+  { slug: "thrust-bearings",               label: "Thrust Bearings" },
+  { slug: "bolts-nuts-screws-washers",     label: "Bolts, Nuts, Screws, Washers" },
+  { slug: "recirculation-valves",          label: "Recirculation Valves" },
+];
+
 export const revalidate = 120;
 
 const categoryNames: Record<string, string> = {
@@ -172,6 +196,8 @@ export default async function CategoryPage({
               prisMin={prisMin ?? ""}
               prisMax={prisMax ?? ""}
               lager={lagerOnly}
+              subcategories={slug === "turbodelar" ? TURBODELAR_SUBCATS : undefined}
+              selectedSubkat={subkat}
             />
           </Suspense>
 

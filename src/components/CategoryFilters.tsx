@@ -3,6 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+type Subcat = { slug: string; label: string };
+
 type Props = {
   slug: string;
   brands: string[];
@@ -10,9 +12,11 @@ type Props = {
   prisMin: string;
   prisMax: string;
   lager: boolean;
+  subcategories?: Subcat[];
+  selectedSubkat?: string;
 };
 
-export default function CategoryFilters({ slug, brands, selectedBrands, prisMin, prisMax, lager }: Props) {
+export default function CategoryFilters({ slug, brands, selectedBrands, prisMin, prisMax, lager, subcategories, selectedSubkat }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [minVal, setMinVal] = useState(prisMin);
@@ -46,7 +50,18 @@ export default function CategoryFilters({ slug, brands, selectedBrands, prisMin,
     router.push(`/kategori/${slug}`, { scroll: false });
   }
 
-  const hasFilters = selectedBrands.length > 0 || prisMin || prisMax || lager;
+  function selectSubkat(subkatSlug: string) {
+    const current = new URLSearchParams(searchParams.toString());
+    if (current.get("subkat") === subkatSlug) {
+      current.delete("subkat");
+    } else {
+      current.set("subkat", subkatSlug);
+    }
+    current.delete("sida");
+    router.push(`/kategori/${slug}?${current.toString()}`, { scroll: false });
+  }
+
+  const hasFilters = selectedBrands.length > 0 || prisMin || prisMax || lager || !!selectedSubkat;
 
   return (
     <aside className="hidden md:block w-56 flex-shrink-0">
@@ -57,6 +72,29 @@ export default function CategoryFilters({ slug, brands, selectedBrands, prisMin,
         >
           Rensa alla filter ×
         </button>
+      )}
+
+      {/* Subcategory filter */}
+      {subcategories && subcategories.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+          <h3 className="font-bold text-sm text-black mb-3 uppercase tracking-wide">Deltyp</h3>
+          <ul className="space-y-1 max-h-72 overflow-y-auto">
+            {subcategories.map((sub) => (
+              <li key={sub.slug}>
+                <button
+                  onClick={() => selectSubkat(sub.slug)}
+                  className={`w-full text-left text-sm px-2 py-1 rounded transition ${
+                    selectedSubkat === sub.slug
+                      ? "bg-red-600 text-white font-semibold"
+                      : "text-gray-700 hover:text-red-600 hover:bg-red-50"
+                  }`}
+                >
+                  {sub.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {/* Brand filter */}
