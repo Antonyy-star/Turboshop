@@ -89,7 +89,7 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
 
   return (
     <div ref={wrapperRef} style={{ position: "relative", width: "100%" }}>
-      <BorderBeam size="line" colorVariant="colorful" duration={3.1} borderRadius={6}>
+      <BorderBeam size="line" colorVariant="sunset" duration={3.1} borderRadius={6}>
       <div style={{ display: "flex" }}>
         <input
           ref={inputRef}
