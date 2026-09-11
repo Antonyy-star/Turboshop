@@ -266,8 +266,31 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         })
     : [];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    sku: product.sku,
+    brand: { "@type": "Brand", name: product.brand },
+    image: product.images?.[0] ?? undefined,
+    description: product.description?.slice(0, 200) || undefined,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "SEK",
+      price: product.price,
+      availability: product.in_stock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      seller: { "@type": "Organization", name: "TurboTeknik" },
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
       <main className="bg-gray-50 min-h-screen">
 

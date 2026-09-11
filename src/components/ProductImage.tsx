@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 interface Props {
   src: string | null | undefined;
@@ -8,12 +9,20 @@ interface Props {
   className?: string;
 }
 
-export default function ProductImage({ src, alt, className = "w-full h-full object-contain p-2" }: Props) {
+const SUPABASE_HOST = "hudzxedyjaswddamapwf.supabase.co";
+
+function isOptimizable(src: string) {
+  try {
+    return new URL(src).hostname === SUPABASE_HOST;
+  } catch {
+    return false;
+  }
+}
+
+export default function ProductImage({ src, alt }: Props) {
   const [failed, setFailed] = useState(false);
 
-  const imgSrc = src && !failed ? src : null;
-
-  if (!imgSrc) {
+  if (!src || failed) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-100">
         <svg viewBox="0 0 64 64" fill="none" className="w-12 h-12 text-gray-300">
@@ -28,11 +37,24 @@ export default function ProductImage({ src, alt, className = "w-full h-full obje
     );
   }
 
+  if (isOptimizable(src)) {
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 768px) 50vw, 25vw"
+        className="object-contain p-2"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
   return (
     <img
-      src={imgSrc}
+      src={src}
       alt={alt}
-      className={className}
+      className="w-full h-full object-contain p-2"
       onError={() => setFailed(true)}
       loading="lazy"
     />
