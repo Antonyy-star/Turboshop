@@ -67,9 +67,9 @@ export function applySubcatFilter(q: any, subkat: string): any {
     case "turbine-housings-hot-sides":
       return q.ilike("name", "Turbine housing%");
     case "thrust-bearings":
-      return q.or("name.ilike.Thrust bearing%,name.ilike.Thrust flinger%,name.ilike.Thrust washer%");
+      return q.or("name.ilike.Thrust bearing*,name.ilike.Thrust flinger*,name.ilike.Thrust washer*");
     case "bolts-nuts-screws-washers":
-      return q.or("name.ilike.Retaining%,name.ilike.Lock plate%,name.ilike.Anti-rotation pin%,name.ilike.Oil deflector%");
+      return q.or("name.ilike.Retaining*,name.ilike.Lock plate*,name.ilike.Anti-rotation pin*,name.ilike.Oil deflector*");
     case "recirculation-valves":
       return q.ilike("name", "Recirculation%");
     default:
