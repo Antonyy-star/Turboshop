@@ -103,7 +103,7 @@ export default function SecondBrainGraph({
   const canvasRef    = useRef<HTMLCanvasElement>(null)
   const nodesRef     = useRef<GNode[]>([])
   const hoveredRef   = useRef<string | null>(null)
-  const animRef      = useRef<number>()
+  const animRef      = useRef<number>(0)
 
   const [notes,   setNotes]   = useState<Note[]>(initialNotes)
   const [selected, setSelected] = useState<GNode | null>(null)
