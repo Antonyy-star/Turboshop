@@ -175,7 +175,7 @@ export default async function CategoryPage({
 
   const activeFilterCount = selectedBrands.length + (prisMinNum ? 1 : 0) + (prisMaxNum ? 1 : 0) + (lagerOnly ? 1 : 0);
 
-  const previewProducts = products.filter((p) => p.images[0]).slice(0, 6);
+  const previewProducts = products.filter((p: any) => p.images[0]).slice(0, 6);
 
   return (
     <>
@@ -214,7 +214,7 @@ export default async function CategoryPage({
           >
             {previewProducts.length > 0 ? (
               <div className="grid grid-cols-3 gap-2 p-3 h-full">
-                {previewProducts.map((p) => (
+                {previewProducts.map((p: any) => (
                   <Link
                     key={p.id}
                     href={`/produkt/${p.id}`}
