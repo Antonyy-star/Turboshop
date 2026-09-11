@@ -213,17 +213,17 @@ export default async function CategoryPage({
             }
           >
             {previewProducts.length > 0 ? (
-              <div className="grid grid-cols-3 gap-2 p-3 h-full">
+              <div className="grid grid-cols-3 gap-3 p-4 h-full">
                 {previewProducts.map((p: any) => (
                   <Link
                     key={p.id}
                     href={`/produkt/${p.id}`}
-                    className="bg-[#1a1a1a] rounded-xl overflow-hidden flex items-center justify-center hover:bg-[#222] transition"
+                    className="bg-white rounded-xl overflow-hidden flex items-center justify-center hover:scale-105 transition-transform shadow-sm"
                   >
                     <img
                       src={p.images[0]}
                       alt={p.name}
-                      className="max-w-full max-h-full object-contain p-3"
+                      className="w-full h-full object-contain p-2"
                     />
                   </Link>
                 ))}
