@@ -224,7 +224,9 @@ export default async function KatalogPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {orderedGroups.map(({ name, products }) => {
               const previews = products.filter((p) => p.images[0]).slice(0, 3);
-              const categoryHref = name === "Core assemblies (CHRA)" ? "/kategori/chra" : "/kategori/turbodelar";
+              const subkat = slugify(name);
+              const baseHref = name === "Core assemblies (CHRA)" ? "/kategori/chra" : "/kategori/turbodelar";
+              const categoryHref = `${baseHref}?subkat=${subkat}`;
               return (
                 <Link
                   key={name}

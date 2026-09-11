@@ -7,6 +7,7 @@ import CategoryFilters from "@/components/CategoryFilters";
 import CategorySort from "@/components/CategorySort";
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { applySubcatFilter, SUBCAT_NAMES } from "@/lib/subcategories";
 
 export const revalidate = 120;
 
@@ -49,10 +50,10 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ sida?: string; marke?: string; prisMin?: string; prisMax?: string; lager?: string; sortera?: string }>;
+  searchParams: Promise<{ sida?: string; marke?: string; prisMin?: string; prisMax?: string; lager?: string; sortera?: string; subkat?: string }>;
 }) {
   const { slug } = await params;
-  const { sida, marke, prisMin, prisMax, lager, sortera } = await searchParams;
+  const { sida, marke, prisMin, prisMax, lager, sortera, subkat } = await searchParams;
 
   const categoryName = categoryNames[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
   const dbCategory = slugToDbCategory[slug];
@@ -77,7 +78,9 @@ export default async function CategoryPage({
   const brands = [...new Set((brandsRaw ?? []).map((r: any) => r.brand).filter(Boolean))].sort() as string[];
 
   function applyFilters(q: any) {
-    if (dbCategory) {
+    if (subkat) {
+      q = applySubcatFilter(q, subkat);
+    } else if (dbCategory) {
       if (slug === "turboladdare") {
         q = q.or(`category.eq.${dbCategory},category.is.null`);
       } else {
@@ -142,7 +145,15 @@ export default async function CategoryPage({
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-2 text-sm text-gray-500">
             <Link href="/" className="hover:text-red-600 transition">Hem</Link>
             <span>›</span>
-            <span className="text-black font-medium">{categoryName}</span>
+            {subkat ? (
+              <>
+                <Link href={`/kategori/${slug}`} className="hover:text-red-600 transition">{categoryName}</Link>
+                <span>›</span>
+                <span className="text-black font-medium">{SUBCAT_NAMES[subkat] ?? subkat}</span>
+              </>
+            ) : (
+              <span className="text-black font-medium">{categoryName}</span>
+            )}
             {activeFilterCount > 0 && (
               <>
                 <span>›</span>
