@@ -4,15 +4,16 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, Package, MessageSquare, Users, FileText, LogOut, ClipboardList, Menu, X } from "lucide-react";
+import { LayoutDashboard, Package, MessageSquare, Users, FileText, LogOut, ClipboardList, Menu, X, Brain } from "lucide-react";
 
 const navItems = [
-  { href: "/admin",            label: "Översikt",             Icon: LayoutDashboard },
-  { href: "/admin/products",   label: "Produkter",            Icon: Package },
-  { href: "/admin/orders",     label: "Kontaktförfrågningar", Icon: MessageSquare },
-  { href: "/admin/customers",  label: "Kunder",               Icon: Users },
-  { href: "/admin/content",    label: "Innehåll",             Icon: FileText },
-  { href: "/admin/activity",   label: "Ändringslogg",         Icon: ClipboardList },
+  { href: "/admin",               label: "Översikt",             Icon: LayoutDashboard },
+  { href: "/admin/products",      label: "Produkter",            Icon: Package },
+  { href: "/admin/orders",        label: "Kontaktförfrågningar", Icon: MessageSquare },
+  { href: "/admin/customers",     label: "Kunder",               Icon: Users },
+  { href: "/admin/content",       label: "Innehåll",             Icon: FileText },
+  { href: "/admin/activity",      label: "Ändringslogg",         Icon: ClipboardList },
+  { href: "/admin/second-brain",  label: "Second Brain",         Icon: Brain },
 ];
 
 const SIDEBAR_W = 240;
