@@ -1,10 +1,12 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import Image from "next/image";
 import { createServiceClient } from "@/lib/supabase/server";
 import ProductImage from "@/components/ProductImage";
 import CategoryFilters from "@/components/CategoryFilters";
 import CategorySort from "@/components/CategorySort";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { applySubcatFilter, SUBCAT_NAMES } from "@/lib/subcategories";
@@ -173,12 +175,69 @@ export default async function CategoryPage({
 
   const activeFilterCount = selectedBrands.length + (prisMinNum ? 1 : 0) + (prisMaxNum ? 1 : 0) + (lagerOnly ? 1 : 0);
 
+  const previewProducts = products.filter((p) => p.images[0]).slice(0, 6);
+
   return (
     <>
       <Header />
       <main className="bg-gray-50 min-h-screen">
+
+        {/* ContainerScroll hero */}
+        <div className="bg-black overflow-hidden">
+          <ContainerScroll
+            titleComponent={
+              <div className="text-white px-4">
+                <p className="text-red-500 text-xs font-semibold uppercase tracking-widest mb-3">
+                  <Link href="/katalog" className="hover:text-red-400 transition">Katalog</Link>
+                  {" › "}
+                  {subkat ? (
+                    <>
+                      <Link href={`/kategori/${slug}`} className="hover:text-red-400 transition">{categoryName}</Link>
+                      {" › "}{SUBCAT_NAMES[subkat] ?? subkat}
+                    </>
+                  ) : categoryName}
+                </p>
+                <h1 className="text-3xl md:text-6xl font-black leading-tight mb-3">
+                  {subkat ? (SUBCAT_NAMES[subkat] ?? categoryName) : categoryName}
+                </h1>
+                <p className="text-gray-400 text-sm md:text-base mb-6">
+                  {total.toLocaleString("sv-SE")} produkter
+                </p>
+                <a
+                  href="#products"
+                  className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition text-sm"
+                >
+                  Bläddra produkter ↓
+                </a>
+              </div>
+            }
+          >
+            {previewProducts.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2 p-3 h-full">
+                {previewProducts.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/produkt/${p.id}`}
+                    className="bg-[#1a1a1a] rounded-xl overflow-hidden flex items-center justify-center hover:bg-[#222] transition"
+                  >
+                    <img
+                      src={p.images[0]}
+                      alt={p.name}
+                      className="max-w-full max-h-full object-contain p-3"
+                    />
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <img src="/Images/teknik1.jpeg" alt={categoryName} className="w-full h-full object-cover" />
+              </div>
+            )}
+          </ContainerScroll>
+        </div>
+
         {/* Breadcrumb */}
-        <div className="bg-white border-b border-gray-200">
+        <div id="products" className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-2 text-sm text-gray-500">
             <Link href="/" className="hover:text-red-600 transition">Hem</Link>
             <span>›</span>
