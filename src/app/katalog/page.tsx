@@ -15,7 +15,6 @@ export const metadata: Metadata = {
 
 const categories = [
   { label: "Turboladdare",          href: "/kategori/turboladdare", Icon: Zap },
-  { label: "Patroner (CHRA)",       href: "/kategori/chra",         Icon: Cpu },
   { label: "Turbodelar",            href: "/kategori/turbodelar",   Icon: Layers },
   { label: "Reparationsutrustning", href: "/kategori/utrustning",   Icon: Wrench },
   { label: "Tuning",                href: "/kategori/tuning",       Icon: Settings },
@@ -258,32 +257,6 @@ export default async function KatalogPage() {
           </div>
         </section>
 
-        {/* Brands */}
-        <div className="border-t border-[#1a1a1a] py-10">
-          <div className="max-w-6xl mx-auto px-4">
-            <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-5">Varumärken</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {allBrands.map((brand) => (
-                <Link
-                  key={brand.name}
-                  href={brand.href}
-                  className="feature-card p-4 flex flex-col items-center justify-center gap-2 hover:border-red-600 transition min-h-[72px] group"
-                >
-                  {brand.logo ? (
-                    <>
-                      <div className="bg-white rounded flex items-center justify-center" style={{ width: 80, height: 34, padding: "4px 8px" }}>
-                        <img src={brand.logo} alt={brand.name} className="max-w-full max-h-full object-contain" />
-                      </div>
-                      <span className="text-[11px] text-gray-500 group-hover:text-gray-300 transition">{brand.name}</span>
-                    </>
-                  ) : (
-                    <span className="font-bold text-sm text-gray-400 group-hover:text-white transition text-center">{brand.name}</span>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
 
       </main>
       <Footer />
