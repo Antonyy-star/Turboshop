@@ -11,10 +11,13 @@ export default function IntroAnimation() {
   const [visible, setVisible] = useState(true);
   // Only play animations after we confirm it's a first visit
   const [animate, setAnimate] = useState(false);
+  // Skip exit animation on repeat visits
+  const [instant, setInstant] = useState(false);
 
   useEffect(() => {
     if (sessionStorage.getItem("tt_intro_shown")) {
       // Already seen — hide instantly, no animation
+      setInstant(true);
       setVisible(false);
       return;
     }
@@ -31,15 +34,14 @@ export default function IntroAnimation() {
     document.body.style.overflow = "";
   }
 
-  if (!visible) return null;
-
   return (
     <AnimatePresence>
+      {visible && (
       <motion.div
         key="intro"
         initial={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.9, ease: "easeInOut" }}
+        transition={instant ? { duration: 0 } : { duration: 0.9, ease: "easeInOut" }}
         onClick={dismiss}
         style={{
           position: "fixed",
@@ -139,6 +141,7 @@ export default function IntroAnimation() {
           Klicka för att hoppa över
         </motion.p>
       </motion.div>
+      )}
     </AnimatePresence>
   );
 }
