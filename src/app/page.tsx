@@ -1,10 +1,8 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import Image from "next/image";
 import { Wrench, Package, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 
 const brands = [
   { name: "Garrett",     logo: "/brands/kisspng-turbocharger-garrett-airesearch-business-engine-in-garrett-5b3dfc697c5e14.6655578415307889695094.jpg" },
@@ -70,40 +68,34 @@ export default async function Home() {
     <>
       <Header />
       <main>
-        {/* ─── Hero scroll ──────────────────────────────────────────────────── */}
-        <section className="bg-black overflow-hidden">
-          <ContainerScroll
-            titleComponent={
-              <div className="text-white px-4">
-                <p className="text-red-500 font-semibold text-xs md:text-sm uppercase tracking-widest mb-3">
-                  {hero.eyebrow}
-                </p>
-                <h1 className="text-3xl md:text-6xl font-black leading-tight mb-4" style={{ whiteSpace: "pre-line" }}>
-                  {hero.heading}
-                </h1>
-                <p className="text-gray-400 text-sm md:text-lg mb-6 max-w-xl mx-auto">
-                  {hero.subtext}
-                </p>
-                <div className="flex gap-3 flex-wrap justify-center">
-                  <Link href={hero.button1_href} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition text-sm md:text-base">
-                    {hero.button1_label}
-                  </Link>
-                  <Link href={hero.button2_href} className="border border-gray-500 hover:border-white text-white font-semibold px-6 py-3 rounded-md transition text-sm md:text-base">
-                    {hero.button2_label}
-                  </Link>
-                </div>
+        {/* ─── Hero ─────────────────────────────────────────────────────────── */}
+        {/* Mobile: py-12 (48px). Desktop: md:py-16 (64px). Was py-[120px] on mobile. */}
+        <section className="relative text-white py-12 md:py-16 overflow-hidden" style={{ backgroundColor: "#111827" }}>
+          <div className="absolute inset-0 z-0" style={{
+            backgroundImage: "url('/Images/Turboteknik.png')",
+            backgroundSize: "contain", backgroundPosition: "center", backgroundRepeat: "no-repeat",
+            opacity: 1,
+            maskImage: "radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 75%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 75%)",
+          }} />
+          <div className="absolute inset-0 z-0 bg-gradient-to-r from-black via-black/60 to-black" />
+          <div className="relative z-10 max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-1">
+              <p className="text-red-400 font-semibold text-xs md:text-sm uppercase tracking-widest mb-3 anim-fade-up" style={{ animationDelay: "0s" }}>{hero.eyebrow}</p>
+              <h1 className="text-3xl md:text-5xl font-black leading-tight mb-4 anim-fade-up" style={{ whiteSpace: "pre-line", animationDelay: "0.1s" }}>
+                {hero.heading}
+              </h1>
+              <p className="text-gray-400 text-sm md:text-lg mb-6 md:mb-8 max-w-md anim-fade-up" style={{ animationDelay: "0.18s" }}>{hero.subtext}</p>
+              <div className="flex gap-3 flex-wrap anim-fade-up" style={{ animationDelay: "0.25s" }}>
+                <Link href={hero.button1_href} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
+                  {hero.button1_label}
+                </Link>
+                <Link href={hero.button2_href} className="border border-gray-500 hover:border-white text-white font-semibold px-5 py-2.5 md:px-6 md:py-3 rounded-md transition text-sm md:text-base">
+                  {hero.button2_label}
+                </Link>
               </div>
-            }
-          >
-            <Image
-              src="/Images/teknik1.jpeg"
-              alt="TurboTeknik"
-              fill
-              className="object-cover object-center"
-              draggable={false}
-              priority
-            />
-          </ContainerScroll>
+            </div>
+          </div>
         </section>
 
         {/* Decorative accent strip */}
