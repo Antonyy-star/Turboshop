@@ -101,7 +101,20 @@ export default async function CategoryPage({
   const { data: brandsRaw } = await brandsQuery;
   const brands = [...new Set((brandsRaw ?? []).map((r: any) => r.brand).filter(Boolean))].sort() as string[];
 
+  // Pre-fetch IDs for subcategories that need multiple ilike patterns
+  let multiPrefixIds: number[] | null = null;
+  if (subkat === "bolts-nuts-screws-washers") {
+    const prefixes = ["Retaining", "Lock plate", "Anti-rotation pin", "Oil deflector"];
+    const results = await Promise.all(
+      prefixes.map((p) => supabase.from("products").select("id").ilike("name", `${p}%`))
+    );
+    multiPrefixIds = results.flatMap((r) => (r.data ?? []).map((row: any) => row.id));
+  }
+
   function applyFilters(q: any) {
+    if (multiPrefixIds !== null) {
+      return q.in("id", multiPrefixIds.length > 0 ? multiPrefixIds : [0]);
+    }
     if (subkat) {
       q = applySubcatFilter(q, subkat);
     } else if (dbCategory) {
