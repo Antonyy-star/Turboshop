@@ -219,72 +219,44 @@ export default async function KatalogPage() {
           </div>
         </section>
 
-        {/* Parts catalog — sidebar + groups */}
-        <div className="max-w-6xl mx-auto px-4 py-8 flex gap-8 items-start">
-
-          {/* Sticky sidebar — desktop only */}
-          <aside className="hidden lg:block w-48 flex-shrink-0">
-            <div className="sticky top-4">
-              <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Deltyper</p>
-              <nav className="space-y-0.5">
-                {orderedGroups.map(({ name, products }) => (
-                  <a
-                    key={name}
-                    href={`#${slugify(name)}`}
-                    className="flex items-center justify-between text-[12px] text-gray-400 hover:text-white py-1 px-2 rounded hover:bg-white/5 transition group"
-                  >
-                    <span className="truncate">{name}</span>
-                    <span className="text-[10px] text-gray-700 group-hover:text-gray-400 ml-2 flex-shrink-0">{products.length}</span>
-                  </a>
-                ))}
-              </nav>
-            </div>
-          </aside>
-
-          {/* Part groups */}
-          <div className="flex-1 min-w-0 space-y-10">
-            {orderedGroups.map(({ name, products }) => (
-              <section key={name} id={slugify(name)}>
-                <div className="flex items-center gap-3 mb-3">
-                  <h2 className="text-sm font-bold text-white">{name}</h2>
-                  <span className="text-[11px] text-gray-600 bg-[#161616] border border-[#2a2a2a] rounded-full px-2 py-0.5 flex-shrink-0">
-                    {products.length}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-[1px] bg-[#1f1f1f] border border-[#1f1f1f] rounded-lg overflow-hidden">
-                  {products.map((p) => (
-                    <Link
-                      key={p.id}
-                      href={`/produkt/${p.id}`}
-                      className="bg-[#111] flex flex-col hover:bg-[#191919] transition group"
-                    >
-                      <div className="flex-1 flex items-center justify-center p-2 min-h-[80px]">
-                        {p.images[0] ? (
-                          <img
-                            src={p.images[0]}
-                            alt={p.name}
-                            className="max-w-full max-h-[70px] object-contain"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded bg-[#1f1f1f] flex items-center justify-center">
-                            <span className="text-[9px] text-gray-700">—</span>
-                          </div>
-                        )}
+        {/* Parts catalog — subcategory cards */}
+        <section className="max-w-6xl mx-auto px-4 py-10">
+          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-5">Reservdelar & komponenter</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {orderedGroups.map(({ name, products }) => {
+              const previews = products.filter((p) => p.images[0]).slice(0, 3);
+              const categoryHref = name === "Core assemblies (CHRA)" ? "/kategori/chra" : "/kategori/turbodelar";
+              return (
+                <Link
+                  key={name}
+                  href={categoryHref}
+                  className="feature-card p-4 flex flex-col gap-3 hover:border-red-600 transition group"
+                >
+                  {/* Image previews */}
+                  <div className="flex gap-1.5">
+                    {previews.length > 0 ? previews.map((p, i) => (
+                      <div key={i} className="w-12 h-12 rounded bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 overflow-hidden border border-[#2a2a2a]">
+                        <img src={p.images[0]} alt="" className="max-w-full max-h-full object-contain p-1" loading="lazy" />
                       </div>
-                      <div className="px-2 pb-2">
-                        <span className="text-[10px] text-[#60a5fa] group-hover:text-blue-300 leading-tight line-clamp-2 transition">
-                          {p.code}
-                        </span>
+                    )) : (
+                      <div className="w-12 h-12 rounded bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
+                        <span className="text-gray-700 text-xs">—</span>
                       </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            ))}
+                    )}
+                  </div>
+
+                  {/* Name + count */}
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-white leading-snug group-hover:text-red-400 transition">{name}</p>
+                    <p className="text-[11px] text-gray-500 mt-1">{products.length.toLocaleString("sv-SE")} delar</p>
+                  </div>
+
+                  <span className="text-[11px] text-red-600 font-semibold group-hover:text-red-400 transition">Bläddra →</span>
+                </Link>
+              );
+            })}
           </div>
-        </div>
+        </section>
 
         {/* Brands */}
         <div className="border-t border-[#1a1a1a] py-10">
