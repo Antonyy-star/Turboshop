@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { BorderBeam } from "@/components/ui/border-beam-search";
 
 interface SearchResult {
   id: string;
@@ -88,6 +89,7 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
 
   return (
     <div ref={wrapperRef} style={{ position: "relative", width: "100%" }}>
+      <BorderBeam size="line" colorVariant="colorful" duration={3.1} borderRadius={6}>
       <div style={{ display: "flex" }}>
         <input
           ref={inputRef}
@@ -141,6 +143,7 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
           Sök
         </button>
       </div>
+      </BorderBeam>
 
       {showDropdown && (
         <div
