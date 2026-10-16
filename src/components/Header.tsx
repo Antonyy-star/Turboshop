@@ -26,6 +26,8 @@ const brandLogos = [
 const categories = [
   { name: "Turboladdare", href: "/kategori/turboladdare" },
   { name: "Turbodelar", href: "/kategori/turbodelar" },
+  { name: "CHRA / Patroner", href: "/kategori/chra" },
+  { name: "Injektorer", href: "/kategori/injektorer" },
   { name: "Reparationsutrustning", href: "/kategori/utrustning" },
   { name: "Tuning", href: "/kategori/tuning" },
   { name: "Kontaktformulär", href: "/kontakt" },
@@ -33,9 +35,43 @@ const categories = [
   { name: "Kontakta oss", href: "/kontakta-oss" },
 ];
 
+const turbodelarSubcats = [
+  // Column 1 — Rotating assembly
+  [
+    { label: "Core Assemblies (CHRA)",        slug: "core-assemblies-chra" },
+    { label: "Shaft & Wheels / Rotors",       slug: "shaft-wheels-rotors" },
+    { label: "Kompressorhjul",                slug: "compressor-wheels" },
+  ],
+  // Column 2 — Housings
+  [
+    { label: "Lagerhusar",                    slug: "bearing-housings" },
+    { label: "Turbinhus / Varm sida",         slug: "turbine-housings-hot-sides" },
+    { label: "Kompressorhus / Kall sida",     slug: "compressor-housings-cold-sides" },
+    { label: "Bakplåtar",                     slug: "back-plates" },
+  ],
+  // Column 3 — Sealing & repair
+  [
+    { label: "Reparationssatser",             slug: "repair-kits" },
+    { label: "Packningar & Tätningar",        slug: "gaskets-gasket-kits" },
+    { label: "VNT Packningar & Centreringsringar", slug: "vnt-gaskets" },
+    { label: "EGR Packningar",               slug: "egr-gaskets" },
+  ],
+  // Column 4 — VNT / Actuators / Other
+  [
+    { label: "Dysmunstycken",                 slug: "nozzle-ring-assemblies" },
+    { label: "VNT Dysburar",                  slug: "vnt-nozzle-cages" },
+    { label: "Aktuatorer",                    slug: "actuators" },
+    { label: "Värmesköldar",                  slug: "heat-shields" },
+    { label: "Oljeförsörjningssystem",        slug: "oil-supply-systems" },
+    { label: "Bultar & Muttrar",              slug: "bolts-nuts-screws-washers" },
+    { label: "Övriga Delar",                  slug: "other-parts" },
+  ],
+];
+
 const desktopCategories = [
   { name: "Turboladdare", type: "brands" },
-  { name: "Turbodelar", type: "link", href: "/kategori/turbodelar" },
+  { name: "Turbodelar", type: "turbodelar" },
+  { name: "Injektorer", type: "link", href: "/kategori/injektorer" },
   { name: "Utrustning", type: "link", href: "/kategori/utrustning" },
   { name: "Tuning", type: "link", href: "/kategori/tuning" },
   { name: "Kontaktformulär", type: "link", href: "/kontakt" },
@@ -139,6 +175,8 @@ export default function Header() {
                       </svg>
                     </button>
                   )}
+
+                  {/* Turboladdare — brand grid */}
                   {activeMenu === cat.name && cat.type === "brands" && (
                     <div className="absolute top-full left-0 bg-white text-black shadow-xl border border-gray-200 z-50 p-4" style={{ width: 420 }}>
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Handla efter varumärke</p>
@@ -155,17 +193,34 @@ export default function Header() {
                       </div>
                     </div>
                   )}
-                  {activeMenu === cat.name && cat.type === "list" && (
-                    <ul className="absolute top-full left-0 bg-white text-black shadow-xl border border-gray-200 min-w-[220px] z-50">
-                      {(cat as any).subcategories?.map((sub: string) => (
-                        <li key={sub}>
-                          <Link href={`/kategori/${sub.toLowerCase().replace(/\s+/g, "-")}`}
-                            className="block px-4 py-2 text-sm hover:bg-red-50 hover:text-red-600 border-b border-gray-100 transition">
-                            {sub}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
+
+                  {/* Turbodelar — megamenu */}
+                  {activeMenu === cat.name && cat.type === "turbodelar" && (
+                    <div className="absolute top-full left-0 bg-white text-black shadow-xl border border-gray-200 z-50 p-5" style={{ width: 680 }}>
+                      <div className="grid grid-cols-4 gap-4">
+                        {turbodelarSubcats.map((col, colIdx) => (
+                          <div key={colIdx}>
+                            {col.map((item) => (
+                              <Link
+                                key={item.slug}
+                                href={`/kategori/turbodelar?subkat=${item.slug}`}
+                                className="block py-1.5 text-sm text-gray-700 hover:text-red-600 transition border-b border-gray-50 last:border-0"
+                              >
+                                {item.label}
+                              </Link>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                        <Link href="/kategori/chra" className="text-sm text-gray-600 hover:text-red-600 font-medium transition">
+                          CHRA / Patroner →
+                        </Link>
+                        <Link href="/kategori/turbodelar" className="text-sm text-red-600 hover:text-red-700 font-medium">
+                          Visa alla turbodelar →
+                        </Link>
+                      </div>
+                    </div>
                   )}
                 </li>
               ))}

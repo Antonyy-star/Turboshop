@@ -10,40 +10,44 @@ import { Suspense } from "react";
 import { applySubcatFilter, SUBCAT_NAMES } from "@/lib/subcategories";
 
 const TURBODELAR_SUBCATS = [
-  { slug: "bearing-housings",               label: "Bearing Housings" },
-  { slug: "compressor-wheels",              label: "Compressor Wheels" },
-  { slug: "compressor-housings-cold-sides", label: "Compressor Housings" },
-  { slug: "compressor-plate",               label: "Compressor Plate" },
+  // Rotating assembly
+  { slug: "core-assemblies-chra",           label: "Core Assemblies (CHRA)" },
   { slug: "shaft-wheels-rotors",            label: "Shaft & Wheels / Rotors" },
-  { slug: "shaft-nuts",                     label: "Shaft Nuts" },
-  { slug: "heat-shields",                   label: "Heat Shields" },
-  { slug: "nozzle-ring-assemblies",         label: "Nozzle Ring Assemblies" },
-  { slug: "vnt-nozzle-cages",              label: "VNT Nozzle Cages" },
-  { slug: "actuators",                      label: "Actuators" },
-  { slug: "actuator-clips",                 label: "Actuator Clips" },
-  { slug: "actuator-rods",                  label: "Actuator Rods" },
-  { slug: "electric-motors",               label: "Electric Motors" },
-  { slug: "wastegate-valves",              label: "Wastegate Valves" },
+  { slug: "compressor-wheels",              label: "Compressor Wheels" },
+  // Housings
+  { slug: "bearing-housings",               label: "Bearing Housings" },
+  { slug: "turbine-housings-hot-sides",     label: "Turbine Housings / Hot Sides" },
+  { slug: "compressor-housings-cold-sides", label: "Compressor Housings / Cold Sides" },
+  { slug: "back-plates",                    label: "Back Plates" },
+  // Sealing & repair
   { slug: "repair-kits",                    label: "Repair Kits" },
-  { slug: "gaskets-gasket-kits",           label: "Gaskets & Gasket Kits" },
-  { slug: "seal-rings-piston-rings",       label: "Seal Rings / Piston Rings" },
-  { slug: "turbine-housings-hot-sides",    label: "Turbine Housings / Hot Sides" },
-  { slug: "thrust-bearings",               label: "Thrust Bearings" },
-  { slug: "bolts-nuts-screws-washers",     label: "Bolts, Nuts, Screws, Washers" },
-  { slug: "recirculation-valves",          label: "Recirculation Valves" },
+  { slug: "gaskets-gasket-kits",            label: "Gaskets & Gasket Kits" },
+  { slug: "vnt-gaskets",                    label: "VNT Gaskets & Centring Rings" },
+  { slug: "egr-gaskets",                    label: "EGR Gaskets" },
+  // VNT / Nozzle
+  { slug: "nozzle-ring-assemblies",         label: "Nozzle Ring Assemblies" },
+  { slug: "vnt-nozzle-cages",               label: "VNT Nozzle Cages" },
+  // Actuation
+  { slug: "actuators",                      label: "Actuators" },
+  { slug: "wastegate-valves",               label: "Wastegate Valves" },
+  // Hardware & other
+  { slug: "heat-shields",                   label: "Heat Shields" },
+  { slug: "bolts-nuts-screws-washers",      label: "Bolts, Nuts, Screws, Washers" },
+  { slug: "oil-supply-systems",             label: "Oil Supply Systems" },
+  { slug: "seal-rings-piston-rings",        label: "Seal Rings / Piston Rings" },
+  { slug: "shaft-nuts",                     label: "Shaft Nuts" },
+  { slug: "other-parts",                    label: "Other Parts" },
 ];
 
 export const revalidate = 120;
 
 const categoryNames: Record<string, string> = {
   turboladdare: "Turboladdare",
-  chra: "Patroner (CHRA)",
-  turbodelar: "Turbodelar",
-  kompressorhjul: "Kompressorhjul",
-  packningar: "Packningar & tätningar",
-  prestanda: "Prestandadelar",
-  utrustning: "Reparationsutrustning",
-  tuning: "Tuning",
+  chra:         "Patroner (CHRA)",
+  turbodelar:   "Turbodelar",
+  utrustning:   "Reparationsutrustning",
+  tuning:       "Tuning",
+  injektorer:   "Injektorer",
 };
 
 // Maps URL slug → one or more DB category values (API import uses English names)
@@ -51,12 +55,21 @@ const slugToDbCategories: Record<string, string[]> = {
   turboladdare: ["Turbochargers"],
   chra:         ["CHRA", "Core assemblies (CHRA)"],
   utrustning:   ["Turbocharger repair equipment"],
-  tuning:       ["Tuning"],
+  tuning:       ["Turbocharger tuning", "Tuning"],
+  injektorer:   ["Injectors"],
   // turbodelar = everything that isn't a top-level category (handled specially below)
 };
 
-// The main categories to EXCLUDE when showing turbodelar
-const NON_TURBODELAR = ["Turbochargers", "CHRA", "Core assemblies (CHRA)", "Turbocharger repair equipment", "Tuning"];
+// Top-level categories excluded from "turbodelar" catch-all
+const NON_TURBODELAR = [
+  "Turbochargers",
+  "CHRA",
+  "Core assemblies (CHRA)",
+  "Turbocharger repair equipment",
+  "Turbocharger tuning",
+  "Tuning",
+  "Injectors",
+];
 
 const PRODUCTS_PER_PAGE = 40;
 
@@ -101,20 +114,7 @@ export default async function CategoryPage({
   const { data: brandsRaw } = await brandsQuery;
   const brands = [...new Set((brandsRaw ?? []).map((r: any) => r.brand).filter(Boolean))].sort() as string[];
 
-  // Pre-fetch IDs for subcategories that need multiple ilike patterns
-  let multiPrefixIds: number[] | null = null;
-  if (subkat === "bolts-nuts-screws-washers") {
-    const prefixes = ["Retaining", "Lock plate", "Anti-rotation pin", "Oil deflector"];
-    const results = await Promise.all(
-      prefixes.map((p) => supabase.from("products").select("id").ilike("name", `${p}%`))
-    );
-    multiPrefixIds = results.flatMap((r) => (r.data ?? []).map((row: any) => row.id));
-  }
-
   function applyFilters(q: any) {
-    if (multiPrefixIds !== null) {
-      return q.in("id", multiPrefixIds.length > 0 ? multiPrefixIds : [0]);
-    }
     if (subkat) {
       q = applySubcatFilter(q, subkat);
     } else if (isTurbodelar) {
