@@ -25,8 +25,9 @@ const API_BASE  = 'https://turbocentras.com/api';
 const API_KEY   = 'UE79U7CTUM89HTBDC1NIYLDFSMB97N3I';
 const API_UA    = 'PsWs TurboTeknik';
 const BUCKET    = 'product-images';
-const DELAY_MS  = 150;   // pause between image downloads (ms)
-const PAGE_SIZE = 500;   // products per Supabase page
+const CONCURRENCY = 10;  // products processed in parallel
+const DELAY_MS    = 50;  // pause between image downloads (ms)
+const PAGE_SIZE   = 500; // products per Supabase page
 
 // ── Env ───────────────────────────────────────────────────────────────────────
 const envPath = path.join(__dirname, '../.env.local');
@@ -129,29 +130,18 @@ async function main() {
 
   log(`Total products: ${allProducts.length} | To mirror: ${toMirror.length} | Already done: ${doneSet.size}`);
 
-  let mirrored = 0, failed = 0;
+  let mirrored = 0, failed = 0, completed = 0;
 
-  for (let i = 0; i < toMirror.length; i++) {
-    const product = toMirror[i];
+  async function processProduct(product) {
     const productId = String(product.id);
     const newImages = [];
     let anyFailed = false;
 
     for (const imgUrl of product.images) {
-      // Skip already-mirrored Supabase URLs
-      if (imgUrl?.includes('supabase.co')) {
-        newImages.push(imgUrl);
-        continue;
-      }
-
+      if (imgUrl?.includes('supabase.co')) { newImages.push(imgUrl); continue; }
       const imageId = extractImageId(imgUrl);
-      if (!imageId) {
-        newImages.push(imgUrl); // keep unknown URLs as-is
-        continue;
-      }
-
+      if (!imageId) { newImages.push(imgUrl); continue; }
       const storagePath = `products/${productId}/${imageId}.jpg`;
-
       try {
         const { buf, contentType } = await downloadImage(productId, imageId);
         const publicUrl = await uploadToStorage(buf, contentType, storagePath);
@@ -159,37 +149,32 @@ async function main() {
         await sleep(DELAY_MS);
       } catch (err) {
         log(`  ✗ ${productId}/${imageId}: ${err.message}`);
-        newImages.push(imgUrl); // keep original on failure
+        newImages.push(imgUrl);
         anyFailed = true;
       }
     }
 
-    // Update Supabase with new image URLs
     if (newImages.some(u => u?.includes('supabase.co'))) {
-      const { error } = await supabase
-        .from('products')
-        .update({ images: newImages })
-        .eq('id', productId);
-      if (error) {
-        log(`  Supabase update error for ${productId}: ${error.message}`);
-      }
-    }
-
-    if (anyFailed) {
-      progress.failed.push(productId);
-      failed++;
-    } else {
-      mirrored++;
+      const { error } = await supabase.from('products').update({ images: newImages }).eq('id', productId);
+      if (error) log(`  Supabase update error for ${productId}: ${error.message}`);
     }
 
     doneSet.add(productId);
-    progress.done = [...doneSet];
+    if (anyFailed) { progress.failed.push(productId); failed++; } else { mirrored++; }
+    completed++;
 
-    if ((i + 1) % 100 === 0 || i === toMirror.length - 1) {
-      const pct = Math.round((i + 1) / toMirror.length * 100);
-      log(`Progress: ${i + 1}/${toMirror.length} (${pct}%) — mirrored: ${mirrored}, failed: ${failed}`);
+    if (completed % 100 === 0 || completed === toMirror.length) {
+      const pct = Math.round(completed / toMirror.length * 100);
+      log(`Progress: ${completed}/${toMirror.length} (${pct}%) — mirrored: ${mirrored}, failed: ${failed}`);
+      progress.done = [...doneSet];
       saveProgress(progress);
     }
+  }
+
+  // Process CONCURRENCY products at a time
+  for (let i = 0; i < toMirror.length; i += CONCURRENCY) {
+    const batch = toMirror.slice(i, i + CONCURRENCY);
+    await Promise.all(batch.map(p => processProduct(p)));
   }
 
   saveProgress(progress);

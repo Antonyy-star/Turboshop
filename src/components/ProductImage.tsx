@@ -11,6 +11,16 @@ interface Props {
 
 const SUPABASE_HOST = "hudzxedyjaswddamapwf.supabase.co";
 
+function resolveUrl(src: string): string {
+  try {
+    const host = new URL(src).hostname;
+    if (host === "turbocentras.com" || host.endsWith(".turbocentras.com")) {
+      return `/api/img?u=${encodeURIComponent(src)}`;
+    }
+  } catch {}
+  return src;
+}
+
 function isOptimizable(src: string) {
   try {
     return new URL(src).hostname === SUPABASE_HOST;
@@ -21,8 +31,9 @@ function isOptimizable(src: string) {
 
 export default function ProductImage({ src, alt }: Props) {
   const [failed, setFailed] = useState(false);
+  const resolved = src ? resolveUrl(src) : src;
 
-  if (!src || failed) {
+  if (!resolved || failed) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-100">
         <svg viewBox="0 0 64 64" fill="none" className="w-12 h-12 text-gray-300">
@@ -37,10 +48,10 @@ export default function ProductImage({ src, alt }: Props) {
     );
   }
 
-  if (isOptimizable(src)) {
+  if (isOptimizable(resolved)) {
     return (
       <Image
-        src={src}
+        src={resolved}
         alt={alt}
         fill
         sizes="(max-width: 768px) 50vw, 25vw"
@@ -52,7 +63,7 @@ export default function ProductImage({ src, alt }: Props) {
 
   return (
     <img
-      src={src}
+      src={resolved}
       alt={alt}
       className="w-full h-full object-contain p-2"
       onError={() => setFailed(true)}
