@@ -18,8 +18,7 @@ async function fetchStockFromApi(): Promise<Map<string, boolean>> {
   // Match each stock_available block
   const blocks = xml.matchAll(/<stock_available>([\s\S]*?)<\/stock_available>/g);
   for (const [, block] of blocks) {
-    const productId = block.match(/<id_product[^>]*><!\\[CDATA\\[(\d+)/)?.[1]
-      ?? block.match(/<id_product[^>]*>\s*<!\[CDATA\[(\d+)/)?.[1];
+    const productId = block.match(/<id_product[^>]*>\s*<!\[CDATA\[(\d+)/)?.[1];
     const attr = block.match(/<id_product_attribute[^>]*>\s*<!\[CDATA\[(\d+)/)?.[1];
     const qty  = block.match(/<quantity[^>]*>\s*<!\[CDATA\[(-?\d+)/)?.[1];
     // Only count the base product record (no attribute variant)
