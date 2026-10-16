@@ -46,16 +46,17 @@ const categoryNames: Record<string, string> = {
   tuning: "Tuning",
 };
 
-const slugToDbCategory: Record<string, string> = {
-  turboladdare: "Turboladdare",
-  chra: "CHRA",
-  turbodelar: "Turbodelar",
-  kompressorhjul: "Kompressorhjul",
-  packningar: "Packningar & Tätningar",
-  reparationskit: "Reparationskit",
-  utrustning: "Utrustning",
-  tuning: "Tuning",
+// Maps URL slug → one or more DB category values (API import uses English names)
+const slugToDbCategories: Record<string, string[]> = {
+  turboladdare: ["Turbochargers"],
+  chra:         ["CHRA", "Core assemblies (CHRA)"],
+  utrustning:   ["Turbocharger repair equipment"],
+  tuning:       ["Tuning"],
+  // turbodelar = everything that isn't a top-level category (handled specially below)
 };
+
+// The main categories to EXCLUDE when showing turbodelar
+const NON_TURBODELAR = ["Turbochargers", "CHRA", "Core assemblies (CHRA)", "Turbocharger repair equipment", "Tuning"];
 
 const PRODUCTS_PER_PAGE = 40;
 
@@ -80,7 +81,8 @@ export default async function CategoryPage({
   const { sida, marke, prisMin, prisMax, lager, sortera, subkat } = await searchParams;
 
   const categoryName = categoryNames[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
-  const dbCategory = slugToDbCategory[slug];
+  const dbCategories = slugToDbCategories[slug] ?? null;
+  const isTurbodelar = slug === "turbodelar";
 
   const selectedBrands = marke ? marke.split(",").map((b) => b.trim()).filter(Boolean) : [];
   const prisMinNum = prisMin ? parseFloat(prisMin) : null;
@@ -91,12 +93,10 @@ export default async function CategoryPage({
 
   // Fetch distinct brands for this category
   let brandsQuery = supabase.from("products").select("brand").not("brand", "is", null);
-  if (dbCategory) {
-    if (slug === "turboladdare") {
-      brandsQuery = (brandsQuery as any).or(`category.eq.${dbCategory},category.is.null`);
-    } else {
-      brandsQuery = (brandsQuery as any).eq("category", dbCategory);
-    }
+  if (isTurbodelar) {
+    brandsQuery = (brandsQuery as any).not("category", "in", `(${NON_TURBODELAR.map(c => `"${c}"`).join(",")})`);
+  } else if (dbCategories) {
+    brandsQuery = (brandsQuery as any).in("category", dbCategories);
   }
   const { data: brandsRaw } = await brandsQuery;
   const brands = [...new Set((brandsRaw ?? []).map((r: any) => r.brand).filter(Boolean))].sort() as string[];
@@ -117,12 +117,10 @@ export default async function CategoryPage({
     }
     if (subkat) {
       q = applySubcatFilter(q, subkat);
-    } else if (dbCategory) {
-      if (slug === "turboladdare") {
-        q = q.or(`category.eq.${dbCategory},category.is.null`);
-      } else {
-        q = q.eq("category", dbCategory);
-      }
+    } else if (isTurbodelar) {
+      q = (q as any).not("category", "in", `(${NON_TURBODELAR.map(c => `"${c}"`).join(",")})`);
+    } else if (dbCategories) {
+      q = (q as any).in("category", dbCategories);
     }
     if (selectedBrands.length > 0) q = q.in("brand", selectedBrands);
     if (prisMinNum !== null) q = q.gte("price", prisMinNum);

@@ -26,7 +26,7 @@ export const SUBCAT_NAMES: Record<string, string> = {
 export function applySubcatFilter(q: any, subkat: string): any {
   switch (subkat) {
     case "core-assemblies-chra":
-      return q.eq("category", "CHRA");
+      return (q as any).in("category", ["CHRA", "Core assemblies (CHRA)"]);
     case "bearing-housings":
       return q.ilike("name", "Bearing housing%");
     case "compressor-wheels":

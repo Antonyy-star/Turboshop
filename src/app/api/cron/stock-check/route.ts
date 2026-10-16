@@ -76,6 +76,22 @@ export async function GET(req: NextRequest) {
         .upsert(updates.slice(i, i + BATCH), { onConflict: "id" });
     }
 
+    // Write individual stock change events so the dashboard feed stays live
+    const fullChanges = changes.map(c => {
+      const p = (dbProducts ?? []).find(d => String(d.id) === c.id);
+      return {
+        product_id: c.id,
+        sku: p?.sku ?? "",
+        product_name: c.name,
+        brand: p?.brand ?? "",
+        old_status: c.old,
+        new_status: c.new,
+      };
+    });
+    if (fullChanges.length > 0) {
+      await supabase.from("stock_events").insert(fullChanges);
+    }
+
     // Log to activity_log
     await supabase.from("activity_log").insert({
       admin_email: "system@turboteknik.se",
@@ -86,6 +102,13 @@ export async function GET(req: NextRequest) {
       metadata: { changed: changes.slice(0, 20), total_checked: stockMap.size },
     });
   }
+
+  // Update cron_state so dashboard shows last scan time
+  await supabase.from("cron_state").upsert({
+    key: "stock_check_cursor",
+    value: String(stockMap.size),
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "key" });
 
   return NextResponse.json({
     checked: stockMap.size,

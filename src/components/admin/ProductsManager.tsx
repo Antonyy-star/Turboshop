@@ -16,7 +16,28 @@ interface Props {
   category: string;
 }
 
-const CATEGORIES = ["", "Turboladdare", "CHRA", "Turbodelar"];
+const CATEGORIES = [
+  "",
+  "Turbochargers",
+  "CHRA",
+  "Core assemblies (CHRA)",
+  "Turbodelar",
+  "Gaskets & Gasket Kits",
+  "Compressor wheels",
+  "Back plates",
+  "Shaft & wheels / Rotors",
+  "Repair kits",
+  "O-rings",
+  "Actuators",
+  "Retaining rings",
+  "Shaft nuts",
+  "Heat shields",
+  "Seal rings / Piston rings",
+  "Journal bearings",
+  "Turbine housings / Hot sides",
+  "Turbocharger repair equipment",
+  "Tuning",
+];
 
 export default function ProductsManager({
   initialProducts, totalCount, page, totalPages, search, category,
