@@ -15,8 +15,9 @@ const brands = [
   { name: "Hitachi",     logo: "/brands/Hitachi-Logo.png" },
   { name: "Valeo",       logo: "/brands/Valeo_Logo.svg.png" },
   { name: "Continental", logo: "/brands/continental-logo-png_seeklogo-270061.png" },
-  { name: "CZ Turbo",    logo: "/brands/Logo_CZ.jpg" },
-  { name: "Master",      logo: "/brands/master2.png" },
+  { name: "CZ Turbo",     logo: "/brands/Logo_CZ.jpg" },
+  { name: "Master",       logo: "/brands/master2.png" },
+  { name: "Turbocentras", logo: "/brands/turbocentras.jpeg" },
 ];
 
 const whyIcons = [Wrench, Package, ShieldCheck];
