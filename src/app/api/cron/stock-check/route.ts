@@ -1,78 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 
-const PRODUCTS_PER_RUN = 20; // check 20 product pages per cron hit (fetched in parallel)
-const PARALLEL_BATCH = 5;   // fetch 5 at a time — stays well under Vercel's timeout
+const API_BASE = "https://turbocentras.com/api";
+const API_KEY  = "UE79U7CTUM89HTBDC1NIYLDFSMB97N3I";
+const API_UA   = "PsWs TurboTeknik";
 
-// Maps DB category → turbocentras URL path segment
-const CATEGORY_PATH: Record<string, string> = {
-  Turboladdare:  "turbochargers",
-  CHRA:          "core-assemblies",
-  Turbodelar:    "turbocharger-parts",
-  Utrustning:    "turbocharger-repair-equipment",
-  Tuning:        "turbocharger-tuning",
-};
+async function fetchStockFromApi(): Promise<Map<string, boolean>> {
+  const auth = Buffer.from(`${API_KEY}:`).toString("base64");
+  const res = await fetch(`${API_BASE}/stock_availables?display=full`, {
+    headers: { Authorization: `Basic ${auth}`, "User-Agent": API_UA },
+    next: { revalidate: 0 },
+  });
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  const xml = await res.text();
 
-// Realistic browser headers to avoid bot detection
-const HEADERS: Record<string, string> = {
-  "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-  "Accept-Language": "lt-LT,lt;q=0.9,en-US;q=0.8,en;q=0.7",
-  "Accept-Encoding": "gzip, deflate, br",
-  "Cache-Control": "no-cache",
-  "Pragma": "no-cache",
-  "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-  "Sec-Ch-Ua-Mobile": "?0",
-  "Sec-Ch-Ua-Platform": '"macOS"',
-  "Sec-Fetch-Dest": "document",
-  "Sec-Fetch-Mode": "navigate",
-  "Sec-Fetch-Site": "none",
-  "Sec-Fetch-User": "?1",
-  "Upgrade-Insecure-Requests": "1",
-};
-
-function buildProductUrl(id: number | string, name: string, category: string | null): string {
-  const categoryPath = CATEGORY_PATH[category ?? "Turboladdare"] ?? "turbochargers";
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return `https://www.turbocentras.com/en/${categoryPath}/${id}-${slug}`;
-}
-
-async function fetchPage(url: string): Promise<string | null> {
-  try {
-    const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(url, { headers: HEADERS, signal: controller.signal });
-    clearTimeout(t);
-    if (!res.ok) return null;
-    return await res.text();
-  } catch {
-    return null;
+  const stockMap = new Map<string, boolean>();
+  // Match each stock_available block
+  const blocks = xml.matchAll(/<stock_available>([\s\S]*?)<\/stock_available>/g);
+  for (const [, block] of blocks) {
+    const productId = block.match(/<id_product[^>]*><!\\[CDATA\\[(\d+)/)?.[1]
+      ?? block.match(/<id_product[^>]*>\s*<!\[CDATA\[(\d+)/)?.[1];
+    const attr = block.match(/<id_product_attribute[^>]*>\s*<!\[CDATA\[(\d+)/)?.[1];
+    const qty  = block.match(/<quantity[^>]*>\s*<!\[CDATA\[(-?\d+)/)?.[1];
+    // Only count the base product record (no attribute variant)
+    if (productId && attr === "0" && !stockMap.has(productId)) {
+      stockMap.set(productId, parseInt(qty ?? "0", 10) > 0);
+    }
   }
-}
-
-function parseStockStatus(html: string): boolean {
-  const lower = html.toLowerCase();
-
-  // Out of stock — schema.org markup is most reliable
-  if (
-    lower.includes('"availability":"http://schema.org/outofstock"') ||
-    lower.includes('"availability": "http://schema.org/outofstock"') ||
-    lower.includes("outofstock") ||
-    lower.includes("out-of-stock") ||
-    lower.includes("product-unavailable")
-  ) return false;
-
-  // In stock
-  if (
-    lower.includes('"availability":"http://schema.org/instock"') ||
-    lower.includes('"availability": "http://schema.org/instock"') ||
-    lower.includes('data-button-action="add-to-cart"') ||
-    lower.includes("add to cart") ||
-    lower.includes("instock")
-  ) return true;
-
-  // Default: assume in stock if page loaded but no clear signal
-  return true;
+  return stockMap;
 }
 
 export async function GET(req: NextRequest) {
@@ -84,84 +39,58 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServiceClient();
 
-  // Read cursor
-  const { data: cursorRow } = await supabase
-    .from("cron_state")
-    .select("value")
-    .eq("key", "stock_check_cursor")
-    .single();
-
-  let productIndex = 0;
-  try { productIndex = parseInt(cursorRow?.value ?? "0") || 0; } catch {}
-
-  // Fetch next batch of products
-  const { data: products, error: fetchErr } = await supabase
-    .from("products")
-    .select("id, name, brand, sku, category, in_stock")
-    .order("id", { ascending: true })
-    .range(productIndex, productIndex + PRODUCTS_PER_RUN - 1);
-
-  if (fetchErr || !products || products.length === 0) {
-    // Wrapped around — reset cursor
-    await supabase.from("cron_state").upsert({
-      key: "stock_check_cursor",
-      value: "0",
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "key" });
-    return NextResponse.json({ message: "Wrapped cursor to 0", checked: 0, changed: 0 });
+  // Fetch all stock from the PrestaShop API in one call
+  let stockMap: Map<string, boolean>;
+  try {
+    stockMap = await fetchStockFromApi();
+  } catch (err) {
+    return NextResponse.json({ error: `API fetch failed: ${(err as Error).message}` }, { status: 502 });
   }
 
-  const changes: { sku: string; name: string; old: boolean; new: boolean }[] = [];
-  let checked = 0;
-  let failed = 0;
+  if (stockMap.size === 0) {
+    return NextResponse.json({ error: "No stock records returned from API" }, { status: 502 });
+  }
 
-  // Fetch product pages in parallel batches to stay within Vercel timeout
-  for (let i = 0; i < products.length; i += PARALLEL_BATCH) {
-    const batch = products.slice(i, i + PARALLEL_BATCH);
-    const results = await Promise.allSettled(
-      batch.map(p => fetchPage(buildProductUrl(p.id, p.name, p.category)))
-    );
+  // Read current stock from Supabase to find what actually changed
+  const { data: dbProducts } = await supabase
+    .from("products")
+    .select("id, in_stock, name, sku, brand");
 
-    for (let j = 0; j < batch.length; j++) {
-      const product = batch[j];
-      const result = results[j];
-      const html = result.status === "fulfilled" ? result.value : null;
+  const changes: { id: string; name: string; old: boolean; new: boolean }[] = [];
+  const updates: { id: string; in_stock: boolean }[] = [];
 
-      if (!html) { failed++; continue; }
-
-      const inStock = parseStockStatus(html);
-      const oldStatus = product.in_stock ?? true;
-      checked++;
-
-      if (inStock !== oldStatus) {
-        await supabase.from("products").update({ in_stock: inStock }).eq("id", product.id);
-        await supabase.from("stock_events").insert({
-          product_id: String(product.id),
-          sku: product.sku,
-          product_name: product.name,
-          brand: product.brand ?? "",
-          old_status: oldStatus,
-          new_status: inStock,
-        });
-        changes.push({ sku: product.sku, name: product.name, old: oldStatus, new: inStock });
-      }
+  for (const p of dbProducts ?? []) {
+    const apiStock = stockMap.get(String(p.id));
+    if (apiStock === undefined) continue; // product not in API response — skip
+    if (apiStock !== p.in_stock) {
+      changes.push({ id: String(p.id), name: p.name, old: p.in_stock, new: apiStock });
+      updates.push({ id: String(p.id), in_stock: apiStock });
     }
   }
 
-  // Advance cursor (wrap to 0 when finished all products)
-  const nextIndex = products.length < PRODUCTS_PER_RUN ? 0 : productIndex + PRODUCTS_PER_RUN;
-  await supabase.from("cron_state").upsert({
-    key: "stock_check_cursor",
-    value: String(nextIndex),
-    updated_at: new Date().toISOString(),
-  }, { onConflict: "key" });
+  // Batch-update only the changed rows
+  if (updates.length > 0) {
+    const BATCH = 500;
+    for (let i = 0; i < updates.length; i += BATCH) {
+      await supabase
+        .from("products")
+        .upsert(updates.slice(i, i + BATCH), { onConflict: "id" });
+    }
+
+    // Log to activity_log
+    await supabase.from("activity_log").insert({
+      admin_email: "system@turboteknik.se",
+      admin_name: "System",
+      action_type: "stock_sync",
+      entity_type: "products",
+      entity_name: `Lagerstatus synkroniserad — ${changes.length} ändringar`,
+      metadata: { changed: changes.slice(0, 20), total_checked: stockMap.size },
+    });
+  }
 
   return NextResponse.json({
-    checked,
-    failed,
+    checked: stockMap.size,
     changed: changes.length,
-    changes,
-    nextIndex,
-    wrapping: nextIndex === 0,
+    changes: changes.slice(0, 20),
   });
 }
