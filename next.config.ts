@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
         hostname: "hudzxedyjaswddamapwf.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
+      {
+        protocol: "https",
+        hostname: "turbocentras.com",
+      },
     ],
     formats: ["image/avif", "image/webp"],
   },
