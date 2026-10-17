@@ -33,6 +33,50 @@ function extractSku(text: string): string | null {
   return m ? m[1] : null;
 }
 
+// Parse the raw HTML description_short stored in description field.
+// Returns alternative part numbers, turbocharger OEM compatibility list, and clean remark.
+function parseDescriptionHtml(html: string, mainSku: string) {
+  if (!html) return { altNumbers: [] as string[], turbos: [] as string[], remark: "" };
+
+  const stripHtml = (s: string) =>
+    s.replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/gi, " ").replace(/\s+/g, " ").trim();
+
+  // Extract <p> paragraphs; fall back to full text if no <p> tags
+  const raw = html.match(/<p[^>]*>([\s\S]*?)<\/p>/gi) ?? [html];
+  const paragraphs = raw.map(p => stripHtml(p)).filter(p => p.length > 2);
+
+  const altNumbers: string[] = [];
+  const turbos: string[] = [];
+  const remarkLines: string[] = [];
+
+  for (const para of paragraphs) {
+    if (hasCyrillic(para)) continue;
+    if (/see below|more info/i.test(para)) continue;
+    if (/TurboCentras|Data updated/i.test(para)) continue;
+
+    // "for turbos A, B, C" / "for turbo A, B, C"
+    const turboMatch = para.match(/for turbos?\s+(.+?)\.?\s*$/i);
+    if (turboMatch) {
+      turbos.push(...turboMatch[1].split(",").map(s => s.trim()).filter(Boolean));
+      continue;
+    }
+
+    // Comma-separated part codes: all CAPS / digits / hyphens, at least 2 items
+    // Matches "IH-00-0035, RHF5-088, RHF5-219" but not sentences
+    if (/^[A-Z0-9][A-Z0-9\-]+(?:,\s*[A-Z0-9][A-Z0-9\-]+)+$/.test(para)) {
+      const codes = para.split(",")
+        .map(s => s.trim())
+        .filter(c => c.length > 2 && c.toUpperCase() !== mainSku.toUpperCase());
+      altNumbers.push(...codes);
+      continue;
+    }
+
+    remarkLines.push(para);
+  }
+
+  return { altNumbers, turbos, remark: remarkLines.join("\n") };
+}
+
 function getPartType(category: string): string {
   const map: Record<string, string> = {
     "CHRA":                           "Cartridge",
@@ -175,17 +219,24 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  const altNumbers = specs?.turbo_numbers ?? [];
-  const partType   = getPartType(product.category);
+  const partType = getPartType(product.category);
 
-  // Clean description — strip Cyrillic, extract readable lines
-  const cleanDesc = (product.description ?? "")
-    .split("\n")
-    .map((l: string) => l.trim())
-    .filter((l: string) => l.length > 3 && !hasCyrillic(l) &&
-      !l.startsWith("Brand:") && !l.includes("TurboCentras") && !l.startsWith("Data updated:"))
-    .join("\n")
-    .trim();
+  // Parse description HTML to extract alternative numbers, turbo compatibility, remark
+  const { altNumbers: descAltNumbers, turbos: descTurbos, remark: descRemark } =
+    parseDescriptionHtml(product.description ?? "", product.sku);
+
+  // Merge: specs.turbo_numbers take priority, fall back to description-parsed alt numbers
+  const specAltNumbers = specs?.turbo_numbers ?? [];
+  const altNumbers = specAltNumbers.length > 0
+    ? specAltNumbers.map(n => ({ label: n.type, value: n.number }))
+    : descAltNumbers.map(n => ({ label: "", value: n }));
+
+  // Used in turbochargers: from specs.replacements first, then parsed from description
+  const usedInTurbos: string[] = specs?.replacements?.length
+    ? specs.replacements
+    : specs?.interchangeable_with?.length
+      ? specs.interchangeable_with
+      : descTurbos;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -253,8 +304,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {altNumbers.map((n, i) => (
                     <div key={i} style={{ fontSize: 12 }}>
-                      <span style={{ color: "#666" }}>{n.type}: </span>
-                      <span style={{ fontWeight: 500 }}>{n.number}</span>
+                      {n.label && <span style={{ color: "#666" }}>{n.label}: </span>}
+                      <span style={{ fontWeight: 500 }}>{n.value}</span>
                     </div>
                   ))}
                 </div>
@@ -265,31 +316,15 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
             {/* USED IN TURBOCHARGERS */}
             <InfoBox title="Used in Turbochargers">
-              {specs?.replacements?.length ? (
+              {usedInTurbos.length > 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  {specs.replacements.map((r, i) => {
+                  {usedInTurbos.map((r, i) => {
                     const rSku = extractSku(r);
                     const rMatch = rSku ? skuToProduct[rSku.toUpperCase()] : null;
                     return (
                       <div key={i} style={{ fontSize: 12 }}>
                         {rMatch ? (
                           <Link href={`/produkt/${rMatch.id}`} style={{ color: "#0891b2", textDecoration: "none" }}>{r}</Link>
-                        ) : (
-                          <span style={{ color: "#333" }}>{r}</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : specs?.interchangeable_with?.length ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  {specs.interchangeable_with.map((r, i) => {
-                    const iSku = extractSku(r);
-                    const iMatch = iSku ? skuToProduct[iSku.toUpperCase()] : null;
-                    return (
-                      <div key={i} style={{ fontSize: 12 }}>
-                        {iMatch ? (
-                          <Link href={`/produkt/${iMatch.id}`} style={{ color: "#0891b2", textDecoration: "none" }}>{r}</Link>
                         ) : (
                           <span style={{ color: "#333" }}>{r}</span>
                         )}
@@ -322,9 +357,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
             {/* REMARK */}
             <InfoBox title={`${product.sku} Remark`}>
-              {cleanDesc ? (
+              {descRemark ? (
                 <p style={{ fontSize: 12, color: "#444", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line" }}>
-                  {cleanDesc.slice(0, 400)}
+                  {descRemark}
                 </p>
               ) : (
                 <span style={{ color: "#888", fontSize: 12 }}>No part remark available</span>
