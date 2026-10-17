@@ -25,7 +25,7 @@ const API_BASE  = 'https://turbocentras.com/api';
 const API_KEY   = 'UE79U7CTUM89HTBDC1NIYLDFSMB97N3I';
 const API_UA    = 'PsWs TurboTeknik';
 const BUCKET    = 'product-images';
-const CONCURRENCY = 10;  // products processed in parallel
+const CONCURRENCY = 4;   // products processed in parallel
 const DELAY_MS    = 50;  // pause between image downloads (ms)
 const PAGE_SIZE   = 500; // products per Supabase page
 
@@ -64,9 +64,12 @@ function saveProgress(p) {
   fs.writeFileSync(PROGRESS_FILE, JSON.stringify(p, null, 2));
 }
 
-// Extract image ID from stored URL: .../img/p/2/8/6/8/2868-large_default.jpg → "2868"
+// Extract image ID from any turbocentras URL format:
+//   .../img/p/2/8/6/8/2868-large_default.jpg
+//   .../4560-large_default/nozzle-ring-assembly-bw-06-0023.jpg
+//   .../4558-thickbox_default/nozzle-ring-assembly-bw-06-0023.jpg
 function extractImageId(url) {
-  const m = url.match(/\/(\d+)-large_default\.jpg/);
+  const m = url.match(/\/(\d+)-(?:large|thickbox)_default[/.]/) ?? url.match(/\/(\d+)-large_default\.jpg/);
   return m ? m[1] : null;
 }
 

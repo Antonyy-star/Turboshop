@@ -183,6 +183,18 @@ async function fetchAndUpsertBatch(ids, categories, manufacturers) {
   const products = parseProducts(xml, categories, manufacturers);
   if (products.length === 0) return { ok: ids, fail: [] };
 
+  // Preserve existing Supabase Storage URLs — never overwrite them with turbocentras.com URLs
+  const { data: existing } = await supabase.from('products').select('id, images').in('id', ids);
+  const existingMap = {};
+  (existing ?? []).forEach(row => { existingMap[String(row.id)] = row.images; });
+
+  for (const p of products) {
+    const prev = existingMap[String(p.id)];
+    if (Array.isArray(prev) && prev.some(u => u?.includes('supabase.co'))) {
+      p.images = prev; // keep mirrored Supabase URLs
+    }
+  }
+
   const { error } = await supabase.from('products').upsert(products, { onConflict: 'id' });
   if (error) throw new Error(`Supabase: ${error.message}`);
   return { ok: products.map(p => p.id), fail: ids.filter(id => !products.find(p => p.id === id)) };
