@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import Image from "next/image";
 import { createServiceClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 
@@ -143,11 +144,14 @@ export default async function KatalogPage() {
                       padding: 5,
                     }}>
                       {p.images[0] ? (
-                        <img
+                        <Image
                           src={p.images[0]}
                           alt={p.sku}
-                          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                          width={100}
+                          height={80}
+                          style={{ objectFit: "contain", maxWidth: "100%", maxHeight: "100%" }}
                           loading="lazy"
+                          quality={75}
                         />
                       ) : (
                         <span style={{ fontSize: 9, color: "#9ca3af", textAlign: "center", lineHeight: 1.4 }}>

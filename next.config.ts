@@ -15,7 +15,10 @@ const nextConfig: NextConfig = {
         hostname: "turbocentras.com",
       },
     ],
-    formats: ["image/avif", "image/webp"],
+    formats: ["image/webp"],
+    minimumCacheTTL: 86400,
+    deviceSizes: [640, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 64, 112, 160, 256, 384],
   },
   async headers() {
     return [

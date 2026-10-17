@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Image from "next/image";
 import AddToCartButton from "@/components/AddToCartButton";
 import Link from "next/link";
 import { getProductById } from "@/lib/realProducts";
@@ -377,10 +378,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                       background: "#fff",
                       padding: 4,
                     }}>
-                      <img
+                      <Image
                         src={img}
                         alt={`${product.sku} image ${i + 1}`}
-                        style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                        width={100}
+                        height={100}
+                        style={{ objectFit: "contain", maxWidth: "100%", maxHeight: "100%" }}
+                        priority={i === 0}
+                        quality={80}
                       />
                     </div>
                   ))}

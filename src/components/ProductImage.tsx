@@ -54,7 +54,7 @@ export default function ProductImage({ src, alt }: Props) {
         src={resolved}
         alt={alt}
         fill
-        sizes="(max-width: 768px) 50vw, 25vw"
+        sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 22vw"
         className="object-contain p-2"
         onError={() => setFailed(true)}
       />
