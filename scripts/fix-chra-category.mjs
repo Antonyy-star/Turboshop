@@ -6,7 +6,7 @@
 import * as fs from "fs";
 
 const env = fs.readFileSync(".env.local", "utf8");
-for (const line of env.split("\n")) {
+for (const line of env.split(/\r?\n/)) {
   const m = line.match(/^([^#=\s]+)\s*=\s*(.+)$/);
   if (m) process.env[m[1]] = m[2].trim();
 }

@@ -22,7 +22,7 @@ const LOG_FILE      = path.join(__dirname, 'mirror-api.log');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const API_BASE  = 'https://turbocentras.com/api';
-const API_KEY   = 'UE79U7CTUM89HTBDC1NIYLDFSMB97N3I';
+const API_KEY   = (process.env.TURBOCENTRAS_API_KEY || (fs.readFileSync(new URL('../.env.local', import.meta.url), 'utf8').match(/^TURBOCENTRAS_API_KEY\s*=\s*(\S+)/m) || [])[1]);
 const API_UA    = 'PsWs TurboTeknik';
 const BUCKET    = 'product-images';
 const CONCURRENCY = 4;   // products processed in parallel
@@ -32,7 +32,7 @@ const PAGE_SIZE   = 500; // products per Supabase page
 // ── Env ───────────────────────────────────────────────────────────────────────
 const envPath = path.join(__dirname, '../.env.local');
 if (fs.existsSync(envPath)) {
-  for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
+  for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
     const m = line.match(/^([^#=\s]+)\s*=\s*(.+)$/);
     if (m) process.env[m[1]] = m[2].trim();
   }

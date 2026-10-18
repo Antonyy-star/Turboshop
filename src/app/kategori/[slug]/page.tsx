@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { createServiceClient } from "@/lib/supabase/server";
+import { fetchAll } from "@/lib/supabase/fetchAll";
 import ProductImage from "@/components/ProductImage";
 import CategoryFilters from "@/components/CategoryFilters";
 import CategorySort from "@/components/CategorySort";
@@ -105,13 +106,15 @@ export default async function CategoryPage({
   const supabase = createServiceClient();
 
   // Fetch distinct brands for this category
-  let brandsQuery = supabase.from("products").select("brand").not("brand", "is", null);
-  if (isTurbodelar) {
-    brandsQuery = (brandsQuery as any).not("category", "in", `(${NON_TURBODELAR.map(c => `"${c}"`).join(",")})`);
-  } else if (dbCategories) {
-    brandsQuery = (brandsQuery as any).in("category", dbCategories);
-  }
-  const { data: brandsRaw } = await brandsQuery;
+  const brandsRaw = await fetchAll<{ brand: string | null }>((rangeFrom, rangeTo) => {
+    let brandsQuery: any = supabase.from("products").select("brand").not("brand", "is", null);
+    if (isTurbodelar) {
+      brandsQuery = brandsQuery.not("category", "in", `(${NON_TURBODELAR.map(c => `"${c}"`).join(",")})`);
+    } else if (dbCategories) {
+      brandsQuery = brandsQuery.in("category", dbCategories);
+    }
+    return brandsQuery.order("id").range(rangeFrom, rangeTo);
+  }).catch(() => []);
   const brands = [...new Set((brandsRaw ?? []).map((r: any) => r.brand).filter(Boolean))].sort() as string[];
 
   function applyFilters(q: any) {

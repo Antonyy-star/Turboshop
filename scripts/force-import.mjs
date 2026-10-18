@@ -23,7 +23,7 @@ const LOG_FILE      = path.join(__dirname, 'force-import.log');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const API_BASE   = 'https://turbocentras.com/api';
-const API_KEY    = 'UE79U7CTUM89HTBDC1NIYLDFSMB97N3I';
+const API_KEY    = (process.env.TURBOCENTRAS_API_KEY || (fs.readFileSync(new URL('../.env.local', import.meta.url), 'utf8').match(/^TURBOCENTRAS_API_KEY\s*=\s*(\S+)/m) || [])[1]);
 const API_UA     = 'PsWs TurboTeknik';
 const EUR_TO_SEK = 11.5;
 const BATCH_SIZE = 50;   // IDs per API fetch
@@ -33,7 +33,7 @@ const LANG_ID    = '1';
 // ── Env ───────────────────────────────────────────────────────────────────────
 const envPath = path.join(__dirname, '../.env.local');
 if (fs.existsSync(envPath)) {
-  for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
+  for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
     const m = line.match(/^([^#=\s]+)\s*=\s*(.+)$/);
     if (m) process.env[m[1]] = m[2].trim();
   }
@@ -211,8 +211,8 @@ async function main() {
 
   // Fetch all active product IDs from API
   log('Fetching all active product IDs from API…');
-  const idXml = await apiFetch('products?filter%5Bactive%5D=1');
-  const allIds = [...new Set([...idXml.matchAll(/\/products\/(\d+)"/g)].map(m => m[1]))];
+  const idXml = await apiFetch('products?display=%5Bid,active%5D');
+  const allIds = [...new Set([...idXml.matchAll(/<id><!\[CDATA\[(\d+)\]\]><\/id>\s*<active><!\[CDATA\[1\]\]><\/active>/g)].map(m => m[1]))];
   const total = allIds.length;
   log(`Found ${total} active products in API`);
 

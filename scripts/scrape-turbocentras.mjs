@@ -16,7 +16,7 @@ const ENV_FILE = path.join(__dirname, '../.env.local');
 // Load .env.local
 function loadEnv() {
   if (!fs.existsSync(ENV_FILE)) return;
-  for (const line of fs.readFileSync(ENV_FILE, 'utf8').split('\n')) {
+  for (const line of fs.readFileSync(ENV_FILE, 'utf8').split(/\r?\n/)) {
     const m = line.match(/^([^#=\s]+)\s*=\s*(.+)$/);
     if (m) process.env[m[1]] = m[2].trim();
   }

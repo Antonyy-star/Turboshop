@@ -1,24 +1,24 @@
 import { MetadataRoute } from "next";
 import { createServiceClient } from "@/lib/supabase/server";
+import { fetchAll, SITE_URL } from "@/lib/supabase/fetchAll";
 
 export const revalidate = 86400;
 
-const base = "https://turboshop-pi.vercel.app";
+const base = SITE_URL;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const brands = ["garrett", "borgwarner", "mitsubishi", "holset", "ihi", "toyota", "bmts", "hitachi", "valeo", "continental", "cz-turbo", "master"];
   const categories = ["turboladdare", "turbodelar", "chra", "kompressorhjul", "packningar", "prestanda", "utrustning", "tuning"];
 
   const supabase = createServiceClient();
-  const { data: products } = await supabase
-    .from("products")
-    .select("id, updated_at")
-    .order("id", { ascending: true })
-    .limit(10000);
+  // products has no updated_at column; created_at is the closest available date
+  const products = await fetchAll<{ id: string; created_at: string | null }>((from, to) =>
+    supabase.from("products").select("id, created_at").order("id", { ascending: true }).range(from, to),
+  ).catch(() => []);
 
-  const productUrls: MetadataRoute.Sitemap = (products ?? []).map((p) => ({
+  const productUrls: MetadataRoute.Sitemap = products.map((p) => ({
     url: `${base}/produkt/${p.id}`,
-    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+    lastModified: p.created_at ? new Date(p.created_at) : new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));

@@ -27,7 +27,7 @@ const LOG_FILE = path.join(__dirname, "mirror-images.log");
 // Load .env.local
 const envPath = path.join(__dirname, "../.env.local");
 if (fs.existsSync(envPath)) {
-  for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
+  for (const line of fs.readFileSync(envPath, "utf8").split(/\r?\n/)) {
     const m = line.match(/^([^#=\s]+)\s*=\s*(.+)$/);
     if (m) process.env[m[1]] = m[2].trim();
   }

@@ -22,6 +22,7 @@ type Specs = {
   interchangeable_with?: string[];
   turbo_parts?: { type: string; sku: string; url?: string }[];
   features?: string[];
+  used_in?: string[]; // turbochargers this part fits (from the Turbocentras API)
 };
 
 function hasCyrillic(text: string) {
@@ -198,6 +199,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     const refs: string[] = [];
     specs.replacements?.forEach(r => { const s = extractSku(r); if (s) refs.push(s); });
     specs.interchangeable_with?.forEach(r => { const s = extractSku(r); if (s) refs.push(s); });
+    specs.used_in?.forEach(r => { const s = extractSku(r); if (s) refs.push(s); });
     specs.turbo_parts?.forEach(p => refs.push(p.sku));
 
     if (refs.length > 0) {
@@ -232,7 +234,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     : descAltNumbers.map(n => ({ label: "", value: n }));
 
   // Used in turbochargers: from specs.replacements first, then parsed from description
-  const usedInTurbos: string[] = specs?.replacements?.length
+  const usedInTurbos: string[] = specs?.used_in?.length
+    ? specs.used_in
+    : specs?.replacements?.length
     ? specs.replacements
     : specs?.interchangeable_with?.length
       ? specs.interchangeable_with

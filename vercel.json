@@ -2,11 +2,15 @@
   "crons": [
     {
       "path": "/api/cron/stock-check",
-      "schedule": "0 8 * * *"
+      "schedule": "0 6 * * *"
     },
     {
-      "path": "/api/cron/stock-check",
-      "schedule": "0 20 * * *"
+      "path": "/api/cron/product-sync",
+      "schedule": "15 2 * * *"
+    },
+    {
+      "path": "/api/cron/specs-sync",
+      "schedule": "30 3 * * *"
     }
   ]
 }

@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/server";
+import { fetchAll } from "@/lib/supabase/fetchAll";
 import SecondBrainGraph from "@/components/admin/SecondBrainGraph";
 import type { Metadata } from "next";
 
@@ -32,8 +33,10 @@ export default async function SecondBrainPage() {
     supabase.from("contact_submissions").select("*", { count: "exact", head: true }).or("status.is.null,status.eq.open"),
     supabase.from("contact_submissions").select("*", { count: "exact", head: true }).eq("status", "handled"),
     supabase.auth.admin.listUsers({ perPage: 1000 }),
-    supabase.from("products").select("category").not("category", "is", null),
-    supabase.from("products").select("brand").not("brand", "is", null),
+    fetchAll<{ category: string }>((f, t) => supabase.from("products").select("category").not("category", "is", null).order("id").range(f, t))
+      .then(data => ({ data }), () => ({ data: [] as { category: string }[] })),
+    fetchAll<{ brand: string }>((f, t) => supabase.from("products").select("brand").not("brand", "is", null).order("id").range(f, t))
+      .then(data => ({ data }), () => ({ data: [] as { brand: string }[] })),
     supabase.from("activity_log").select("*", { count: "exact", head: true }).gte("created_at", today.toISOString()),
     supabase.from("activity_log").select("action, admin_name, created_at").order("created_at", { ascending: false }).limit(1),
     supabase.from("cron_state").select("updated_at").eq("key", "stock_check_cursor").maybeSingle(),

@@ -23,7 +23,7 @@ const LOG_FILE = path.join(__dirname, 'api-import.log');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const API_BASE    = 'https://turbocentras.com/api';
-const API_KEY     = 'UE79U7CTUM89HTBDC1NIYLDFSMB97N3I';
+const API_KEY     = (process.env.TURBOCENTRAS_API_KEY || (fs.readFileSync(new URL('../.env.local', import.meta.url), 'utf8').match(/^TURBOCENTRAS_API_KEY\s*=\s*(\S+)/m) || [])[1]);
 const API_UA      = 'PsWs TurboTeknik';
 const EUR_TO_SEK  = 11.5;   // update if needed
 const PAGE_SIZE   = 50;     // products per API page
@@ -33,7 +33,7 @@ const LANG_ID     = '1';    // language 1 = English
 // ── Env ───────────────────────────────────────────────────────────────────────
 const envPath = path.join(__dirname, '../.env.local');
 if (fs.existsSync(envPath)) {
-  for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
+  for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
     const m = line.match(/^([^#=\s]+)\s*=\s*(.+)$/);
     if (m) process.env[m[1]] = m[2].trim();
   }
@@ -145,7 +145,8 @@ function parseProducts(xml, categories, manufacturers) {
     const descFull  = $p.find(`description language[id="${LANG_ID}"]`).text().trim();
     const description = descShort || descFull || null;
 
-    // quantity is a notFilterable attribute, sits directly on the product
+    // NOTE: product.quantity is always 0 in PrestaShop 1.7+; real stock is in stock_availables.
+    // in_stock is left out here (see below) and set by `--stock` / the stock-check cron instead.
     const qty = parseInt($p.children('quantity').text().trim() || '0', 10);
     const inStock = qty > 0;
 
@@ -167,7 +168,7 @@ function parseProducts(xml, categories, manufacturers) {
       images,
       badge: null,
       description,
-      in_stock: inStock,
+      ...(qty > 0 ? { in_stock: inStock } : {}),
     });
   });
 
@@ -183,9 +184,9 @@ async function runFullImport() {
 
   // Step 1: fetch all active product IDs (lightweight — no display=full)
   log('Fetching all active product IDs...');
-  const idXml = await apiFetch('products?filter%5Bactive%5D=1');
+  const idXml = await apiFetch('products?display=%5Bid,active%5D');
   const allIds = [...new Set(
-    [...idXml.matchAll(/\/products\/(\d+)"/g)].map(m => m[1])
+    [...idXml.matchAll(/<id><!\[CDATA\[(\d+)\]\]><\/id>\s*<active><!\[CDATA\[1\]\]><\/active>/g)].map(m => m[1])
   )];
   const total = allIds.length;
   log(`Found ${total} active products`);

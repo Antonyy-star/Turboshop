@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import Image from "next/image";
 import { createServiceClient } from "@/lib/supabase/server";
+import { fetchAll } from "@/lib/supabase/fetchAll";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -55,9 +56,11 @@ type Prod = { id: string; sku: string; images: string[] };
 export default async function KatalogPage() {
   const supabase = createServiceClient();
 
-  const [{ count: countTotal }, { data: raw }] = await Promise.all([
+  const [{ count: countTotal }, raw] = await Promise.all([
     supabase.from("products").select("*", { count: "exact", head: true }),
-    supabase.from("products").select("id, sku, images, category").order("id").limit(10000),
+    fetchAll<{ id: string; sku: string | null; images: string[] | null; category: string | null }>((from, to) =>
+      supabase.from("products").select("id, sku, images, category").order("id").range(from, to),
+    ),
   ]);
 
   // Group by DB category field

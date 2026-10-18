@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import IntroAnimation from "@/components/IntroAnimation";
+import { SITE_URL } from "@/lib/supabase/fetchAll";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   keywords: ["turborenovering", "turboladdare", "bildelar", "turbo", "garrett", "borgwarner", "turboteknik", "bilverkstad", "stockholm", "norsborg"],
   authors: [{ name: "TurboTeknik" }],
   creator: "TurboTeknik",
-  metadataBase: new URL("https://turboshop-pi.vercel.app"),
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     type: "website",
     locale: "sv_SE",

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_KEY = "UE79U7CTUM89HTBDC1NIYLDFSMB97N3I";
-const API_UA  = "PsWs TurboTeknik";
+import { authHeader, API_UA } from "@/lib/turbocentras/api";
 
 export const runtime = "nodejs";
 
@@ -23,7 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const auth = Buffer.from(`${API_KEY}:`).toString("base64");
+    const auth = authHeader().replace(/^Basic /, "");
     const res = await fetch(url.toString(), {
       headers: {
         Authorization: `Basic ${auth}`,
