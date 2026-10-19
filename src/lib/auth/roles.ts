@@ -6,7 +6,7 @@ export type AccountRole = "admin" | "customer";
 
 // Fallback for admin accounts created before roles existed (no app_metadata.role).
 // Set ADMIN_EMAILS in the environment as a comma-separated list to override.
-const FALLBACK_ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "yucellevon@gmail.com")
+const FALLBACK_ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "yucellevon@gmail.com,antony9922@outlook.com")
   .split(",")
   .map(e => e.trim().toLowerCase())
   .filter(Boolean);

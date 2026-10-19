@@ -14,7 +14,8 @@
 update auth.users
 set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
 where lower(email) in (
-  'yucellevon@gmail.com'
+  'yucellevon@gmail.com',
+  'antony9922@outlook.com'
 );
 
 -- 2. is_admin(): true when the signed-in user has the admin role. Reads
@@ -77,6 +78,17 @@ begin
     end;
   end loop;
 end $$;
+
+-- 3b. cron_state and stock_events had "full access" policies for every role,
+--     including anonymous visitors. The server uses the service role, which
+--     bypasses these policies, so they only opened the tables to the public.
+--     Admins keep read access to stock_events for the live stock feed.
+drop policy if exists "Service role full access on cron_state" on public.cron_state;
+drop policy if exists "Service role full access on stock_events" on public.stock_events;
+drop policy if exists "Admins can read stock events" on public.stock_events;
+create policy "Admins can read stock events"
+  on public.stock_events for select to authenticated
+  using (public.is_admin());
 
 -- 4. Check the result. Every policy for signed-in users should now contain
 --    is_admin(). The second query lists tables with row level security turned
