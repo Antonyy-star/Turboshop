@@ -229,24 +229,6 @@ export async function setCustomerPassword(userId: string, password: string): Pro
   return { ok: true };
 }
 
-// Gives login access to an account that has no role yet (created before roles
-// existed). Admin accounts are never touched.
-export async function activateCustomer(userId: string): Promise<Result> {
-  const admin = await requireAdmin();
-  const supabase = createServiceClient();
-  const existing = await loadCustomer(supabase, userId);
-  if (!existing) return { ok: false, error: "Kunden hittades inte." };
-
-  const { error } = await supabase.auth.admin.updateUserById(userId, {
-    app_metadata: { ...existing.app_metadata, role: "customer" },
-  });
-  if (error) return { ok: false, error: authErrorMessage(error.message) };
-
-  await logActivity(supabase, admin, "activate_customer", "customer", userId, nameOf(existing));
-  revalidateAll();
-  return { ok: true };
-}
-
 export async function setCustomerBlocked(userId: string, blocked: boolean): Promise<Result> {
   const admin = await requireAdmin();
   const supabase = createServiceClient();

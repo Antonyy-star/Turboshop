@@ -4,11 +4,11 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search, UserPlus, X, Copy, Check, Eye, EyeOff, RefreshCw, Users,
-  KeyRound, Ban, ShieldCheck, Trash2, UserCheck,
+  KeyRound, Ban, ShieldCheck, Trash2,
 } from "lucide-react";
 import {
   createCustomer, updateCustomer, setCustomerPassword, setCustomerBlocked,
-  activateCustomer, deleteCustomer, type CustomerInput,
+  deleteCustomer, type CustomerInput,
 } from "@/app/admin/(dashboard)/customers/actions";
 import { PASSWORD_MIN_LENGTH, passwordProblem } from "@/lib/auth/messages";
 
@@ -20,7 +20,7 @@ export type CustomerRow = {
   foretag: string;
   createdAt: string;
   lastSignInAt: string | null;
-  status: "active" | "blocked" | "inactive";
+  status: "active" | "blocked";
 };
 
 type Credentials = { name: string; email: string; password: string; isNew: boolean };
@@ -43,7 +43,6 @@ const C = {
 const STATUS: Record<CustomerRow["status"], { label: string; fg: string; bg: string; hint: string }> = {
   active:   { label: "Aktiv",        fg: "#4ade80", bg: "#14532d", hint: "Kan logga in" },
   blocked:  { label: "Spärrad",      fg: "#f87171", bg: "#3f1212", hint: "Kan inte logga in" },
-  inactive: { label: "Ej aktiverad", fg: "#f59e0b", bg: "#2a2005", hint: "Saknar inloggningsbehörighet" },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -493,22 +492,7 @@ function ManageCustomerDialog({ customer, onClose, onChanged }: {
 
       {/* Access */}
       <div className="cm-section" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
-        {customer.status === "inactive" ? (
-          <>
-            <SectionTitle
-              icon={<UserCheck size={15} color={C.amber} />}
-              title="Aktivera inloggning"
-              text="Kontot skapades innan kundinloggningen fanns och kan inte logga in än. Aktivera det för att ge kunden åtkomst."
-            />
-            {noticeFor("access")}
-            <div>
-              <button type="button" className="cm-btn cm-primary" disabled={busy}
-                onClick={() => run("access", () => activateCustomer(customer.id), "Kontot är aktiverat.")}>
-                <UserCheck size={14} /> {busySection === "access" ? "Aktiverar..." : "Aktivera inloggning"}
-              </button>
-            </div>
-          </>
-        ) : customer.status === "blocked" ? (
+        {customer.status === "blocked" ? (
           <>
             <SectionTitle
               icon={<ShieldCheck size={15} color={C.muted} />}
@@ -593,7 +577,6 @@ export default function CustomersManager({ customers }: { customers: CustomerRow
     );
   }, [customers, query]);
 
-  const inactiveCount = customers.filter(c => c.status === "inactive").length;
 
   return (
     <section aria-labelledby="customers-title" style={{ marginBottom: 40 }}>
@@ -610,13 +593,6 @@ export default function CustomersManager({ customers }: { customers: CustomerRow
           <UserPlus size={15} /> Skapa kund
         </button>
       </div>
-
-      {inactiveCount > 0 && (
-        <p role="status" style={{ background: "#1f1a0a", border: "1px solid #3a2f0f", color: C.amber, fontSize: 13, borderRadius: 10, padding: "11px 14px", margin: "0 0 16px", lineHeight: 1.5 }}>
-          {inactiveCount === 1 ? "1 konto" : `${inactiveCount} konton`} skapades innan kundinloggningen fanns och kan inte logga in än.
-          Öppna kontot och välj Aktivera inloggning.
-        </p>
-      )}
 
       {customers.length === 0 ? (
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "56px 24px", textAlign: "center" }}>

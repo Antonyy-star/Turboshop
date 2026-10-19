@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { listAllUsers } from "@/lib/supabase/users";
-import { isAdminUser, isBlocked, roleOf } from "@/lib/auth/roles";
+import { isAdminUser, isBlocked } from "@/lib/auth/roles";
 import CustomersManager, { type CustomerRow } from "@/components/admin/CustomersManager";
 import DiscountCodesManager from "@/components/admin/DiscountCodesManager";
 
@@ -26,7 +26,7 @@ export default async function AdminCustomers() {
         foretag: meta.foretag ?? "",
         createdAt: u.created_at,
         lastSignInAt: u.last_sign_in_at ?? null,
-        status: isBlocked(u) ? "blocked" : roleOf(u) === "customer" ? "active" : "inactive",
+        status: isBlocked(u) ? "blocked" : "active",
       };
     })
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));

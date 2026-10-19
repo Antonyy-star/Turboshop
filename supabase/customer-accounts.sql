@@ -117,6 +117,33 @@ begin
   end loop;
 end $;
 
+-- 3d. Every account that is not an admin is a customer. Sign-up is off, so
+--     accounts are only created by admins (admin panel or Supabase dashboard).
+--     Give existing accounts without a role the customer role, and give every
+--     new account the customer role unless it already has one.
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"customer"}'::jsonb
+where coalesce(raw_app_meta_data ->> 'role', '') = '';
+
+create or replace function public.set_default_account_role()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if coalesce(new.raw_app_meta_data ->> 'role', '') = '' then
+    new.raw_app_meta_data := coalesce(new.raw_app_meta_data, '{}'::jsonb) || '{"role":"customer"}'::jsonb;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists set_default_account_role on auth.users;
+create trigger set_default_account_role
+  before insert on auth.users
+  for each row execute function public.set_default_account_role();
+
 -- 4. Check the result. Every policy for signed-in users should now contain
 --    is_admin(). The second query lists tables with row level security turned
 --    off — anyone with the public key can read and write those.

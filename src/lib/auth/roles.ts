@@ -25,10 +25,13 @@ export function isAdminUser(user: AuthUser | null | undefined): boolean {
   return !!user.email && FALLBACK_ADMIN_EMAILS.includes(user.email.toLowerCase());
 }
 
-// A customer can only sign in once an admin has created (or activated) the account,
-// which sets app_metadata.role = "customer".
+// Every account that is not an admin is a customer. Self sign-up is turned off
+// in Supabase, so only admins can create accounts (admin panel or dashboard).
+// A database trigger also gives new accounts role "customer" automatically.
 export function isCustomerUser(user: AuthUser | null | undefined): boolean {
-  return roleOf(user) === "customer";
+  if (!user) return false;
+  const role = roleOf(user);
+  return role === "customer" || (role === null && !isAdminUser(user));
 }
 
 export function isBlocked(user: AuthUser | null | undefined): boolean {
