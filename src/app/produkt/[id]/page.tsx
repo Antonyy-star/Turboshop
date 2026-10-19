@@ -289,7 +289,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px 48px", display: "flex", flexDirection: "column", gap: 4 }}>
 
           {/* ROW 1: 4 columns */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap: 4 }}>
 
             {/* MAIN INFO */}
             <InfoBox title={`${product.sku} Main Info`}>
@@ -357,7 +357,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* ROW 2: 3 columns */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4 }}>
+          <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 4 }}>
 
             {/* REMARK */}
             <InfoBox title={`${product.sku} Remark`}>

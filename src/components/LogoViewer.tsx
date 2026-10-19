@@ -13,6 +13,7 @@ export default function LogoViewer({ size = 112, silver = false }: { size?: numb
 
   useEffect(() => {
     let animId: number;
+    let disposed = false;
     const mount = mountRef.current;
     if (!mount) return;
 
@@ -74,6 +75,7 @@ export default function LogoViewer({ size = 112, silver = false }: { size?: numb
     loader.load(
       "/3d%20Logo/Logo.pack.glb",
       (gltf) => {
+        if (disposed) return;
         const blackColor    = silver ? 0xb8bec6 : 0x111111;
         const blackMetal    = silver ? 1.0      : 0.95;
         const blackRoughness = silver ? 0.06    : 0.1;
@@ -112,6 +114,7 @@ export default function LogoViewer({ size = 112, silver = false }: { size?: numb
       },
       undefined,
       () => {
+        if (disposed) return;
         setFailed(true);
         cancelAnimationFrame(animId);
         renderer.dispose();
@@ -119,9 +122,12 @@ export default function LogoViewer({ size = 112, silver = false }: { size?: numb
     );
 
     return () => {
+      // Use the captured element: mountRef.current can already be null here,
+      // which used to leave a second logo canvas behind after a remount.
+      disposed = true;
       cancelAnimationFrame(animId);
       renderer.dispose();
-      if (mountRef.current) mountRef.current.innerHTML = "";
+      renderer.domElement.remove();
     };
   }, []);
 

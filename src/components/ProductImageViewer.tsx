@@ -224,7 +224,8 @@ function Lightbox({ images, sku, start, onClose }: {
       </div>
 
       <p className="piv-hint">
-        {zoomed ? "Klicka igen för att zooma ut" : "Klicka på bilden för att zooma"}
+        <span className="piv-hint-mouse">{zoomed ? "Klicka igen för att zooma ut" : "Klicka på bilden för att zooma"}</span>
+        <span className="piv-hint-touch">{zoomed ? "Dra för att flytta, tryck för att zooma ut" : "Tryck på bilden för att zooma, svep för nästa"}</span>
       </p>
 
       {count > 1 && (
@@ -288,7 +289,7 @@ const THUMB_STYLES = `
 `;
 
 const LIGHTBOX_STYLES = `
-  .piv-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(8,8,8,.94);
+  .piv-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(8,8,8,.985);
     display: flex; flex-direction: column; color: #fff; outline: none;
     animation: piv-in .18s ease-out; }
   @keyframes piv-in { from { opacity: 0; } to { opacity: 1; } }
@@ -317,6 +318,11 @@ const LIGHTBOX_STYLES = `
     border: 2px solid transparent; border-radius: 3px; opacity: .55; transition: opacity .15s, border-color .15s; }
   .piv-strip-btn:hover { opacity: .9; }
   .piv-strip-btn.is-active { border-color: #dc2626; opacity: 1; }
+  .piv-hint-touch { display: none; }
+  @media (hover: none) and (pointer: coarse) {
+    .piv-hint-mouse { display: none; }
+    .piv-hint-touch { display: inline; }
+  }
   .piv-overlay button:focus-visible { outline: 2px solid #f87171; outline-offset: 2px; }
   @media (max-width: 640px) {
     .piv-main { padding: 0; }

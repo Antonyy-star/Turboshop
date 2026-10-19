@@ -184,6 +184,20 @@ body {
   margin-left: -4px;
 }
 
+/* Phones: a smaller wordmark that still fits next to the cart, account and menu buttons. */
+@media (max-width: 639px) {
+  .wordmark-img {
+    height: auto;
+    width: min(150px, calc(100vw - 240px));
+    max-width: none;
+    margin-left: -2px;
+  }
+}
+
+@media (max-width: 339px) {
+  .wordmark-img { display: none; }
+}
+
 @media (min-width: 768px) {
   .wordmark-img {
     height: 28px;

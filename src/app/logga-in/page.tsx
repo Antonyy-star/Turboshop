@@ -30,7 +30,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
             {/* Brand panel */}
             <section className="relative bg-black text-white overflow-hidden px-6 py-8 md:px-10 md:py-12 min-h-[168px] md:min-h-[520px]">
-              <CompressorWheel className="pointer-events-none absolute -right-24 -bottom-24 w-72 md:w-[420px] md:-right-40 md:-bottom-40 opacity-90" />
+              <CompressorWheel className="pointer-events-none absolute -right-28 -bottom-32 w-64 opacity-40 md:opacity-90 md:w-[420px] md:-right-40 md:-bottom-40" />
               <div className="relative max-w-xs">
                 <h1 className="text-3xl md:text-4xl font-black leading-tight">Kundinloggning</h1>
                 <p className="mt-3 text-sm text-gray-400 leading-relaxed">
