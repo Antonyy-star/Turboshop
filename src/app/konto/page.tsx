@@ -68,11 +68,15 @@ export default async function AccountPage() {
   const firstName = name.split(/\s+/)[0];
   const codes = user.email ? await personalDiscountCodes(user.email) : [];
 
+  const postort = [meta.postnummer, meta.ort].filter(Boolean).join(" ");
+  const address = [meta.adress, postort].filter(Boolean).join(", ");
   const details: [string, string][] = [
     ["Namn", name || "—"],
-    ["Företag", meta.foretag || "—"],
-    ["Telefon", meta.telefon || "—"],
     ["E-post", user.email ?? "—"],
+    ["Telefon", meta.telefon || "—"],
+    ["Företag", meta.foretag || "—"],
+    ...(meta.orgnr ? [["Organisationsnummer", meta.orgnr] as [string, string]] : []),
+    ["Adress", address || "—"],
   ];
 
   return (

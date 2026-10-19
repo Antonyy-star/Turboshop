@@ -108,11 +108,19 @@ export async function deleteDiscountCode(id: string) {
 
 // ── Customers ──────────────────────────────────────────────────────────────
 
+// Contact details live in user_metadata (shown on the customer's account page).
+// The internal note lives in app_metadata, which only the server can read and
+// write, so customers never see it.
 export type CustomerInput = {
   name: string;
   email: string;
   telefon: string;
   foretag: string;
+  orgnr: string;
+  adress: string;
+  postnummer: string;
+  ort: string;
+  anteckning: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -124,13 +132,29 @@ function cleanInput(input: CustomerInput) {
     email: (input.email ?? "").trim().toLowerCase(),
     telefon: (input.telefon ?? "").trim().slice(0, 40),
     foretag: (input.foretag ?? "").trim().slice(0, 120),
+    orgnr: (input.orgnr ?? "").trim().slice(0, 20),
+    adress: (input.adress ?? "").trim().slice(0, 160),
+    postnummer: (input.postnummer ?? "").trim().slice(0, 12),
+    ort: (input.ort ?? "").trim().slice(0, 80),
+    anteckning: (input.anteckning ?? "").trim().slice(0, 2000),
   };
 }
 
-function inputProblem(c: ReturnType<typeof cleanInput>): string | null {
+type Clean = ReturnType<typeof cleanInput>;
+
+function profileOf(c: Clean) {
+  return {
+    name: c.name, telefon: c.telefon, foretag: c.foretag,
+    orgnr: c.orgnr, adress: c.adress, postnummer: c.postnummer, ort: c.ort,
+  };
+}
+
+function inputProblem(c: Clean): string | null {
   if (!c.name) return "Ange kundens namn.";
   if (!c.email) return "Ange kundens e-postadress.";
   if (!EMAIL_RE.test(c.email)) return "E-postadressen ser inte giltig ut.";
+  if (c.orgnr && !/^[0-9\s-]{6,20}$/.test(c.orgnr)) return "Organisationsnumret får bara innehålla siffror och bindestreck.";
+  if (c.postnummer && !/^[0-9A-Za-z\s-]{3,12}$/.test(c.postnummer)) return "Postnumret ser inte giltigt ut.";
   return null;
 }
 
@@ -167,8 +191,8 @@ export async function createCustomer(input: CustomerInput, password: string): Pr
     email: c.email,
     password,
     email_confirm: true,
-    app_metadata: { role: "customer" },
-    user_metadata: { name: c.name, telefon: c.telefon, foretag: c.foretag },
+    app_metadata: { role: "customer", admin_note: c.anteckning },
+    user_metadata: profileOf(c),
   });
   if (error || !data.user) return { ok: false, error: authErrorMessage(error?.message ?? "okänt fel") };
 
@@ -193,7 +217,8 @@ export async function updateCustomer(userId: string, input: CustomerInput): Prom
   const emailChanged = (existing.email ?? "").toLowerCase() !== c.email;
   const { error } = await supabase.auth.admin.updateUserById(userId, {
     ...(emailChanged ? { email: c.email, email_confirm: true } : {}),
-    user_metadata: { ...existing.user_metadata, name: c.name, telefon: c.telefon, foretag: c.foretag },
+    user_metadata: { ...existing.user_metadata, ...profileOf(c) },
+    app_metadata: { ...existing.app_metadata, role: "customer", admin_note: c.anteckning },
   });
   if (error) return { ok: false, error: authErrorMessage(error.message) };
 

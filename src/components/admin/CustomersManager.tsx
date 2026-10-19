@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search, UserPlus, X, Copy, Check, Eye, EyeOff, RefreshCw, Users,
-  KeyRound, Ban, ShieldCheck, Trash2,
+  KeyRound, Ban, ShieldCheck, Trash2, Pencil,
 } from "lucide-react";
 import {
   createCustomer, updateCustomer, setCustomerPassword, setCustomerBlocked,
@@ -18,6 +18,11 @@ export type CustomerRow = {
   email: string;
   telefon: string;
   foretag: string;
+  orgnr: string;
+  adress: string;
+  postnummer: string;
+  ort: string;
+  anteckning: string;
   createdAt: string;
   lastSignInAt: string | null;
   status: "active" | "blocked";
@@ -107,6 +112,8 @@ const STYLES = `
   .cm-row-btn { background: #1c1c1c; border: 1px solid ${C.borderStrong}; color: #ddd; border-radius: 7px;
     padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
   .cm-row-btn:hover { background: #242424; color: #fff; }
+  .cm-row-del { color: #f87171; }
+  .cm-row-del:hover { background: #2a1212; border-color: #4a1d1d; color: #fca5a5; }
   .cm-section + .cm-section { border-top: 1px solid ${C.border}; }
   @media (max-width: 640px) {
     .cm-head { flex-direction: column; align-items: stretch !important; }
@@ -138,7 +145,7 @@ function Modal({ title, subtitle, onClose, children, busy }: {
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
-    const first = panelRef.current?.querySelector<HTMLElement>("input, button:not([data-close])");
+    const first = panelRef.current?.querySelector<HTMLElement>("input, textarea, button:not([data-close])");
     first?.focus();
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -153,7 +160,7 @@ function Modal({ title, subtitle, onClose, children, busy }: {
       if (e.key === "Escape" && !busy) onClose();
       if (e.key !== "Tab" || !panelRef.current) return;
       const focusables = panelRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
       );
       if (focusables.length === 0) return;
       const first = focusables[0], last = focusables[focusables.length - 1];
@@ -180,7 +187,7 @@ function Modal({ title, subtitle, onClose, children, busy }: {
         aria-labelledby="cm-dialog-title"
         style={{
           background: "#111", border: "1px solid #222", borderRadius: 14,
-          width: "100%", maxWidth: 480, boxShadow: "0 24px 60px rgba(0,0,0,.55)",
+          width: "100%", maxWidth: 560, boxShadow: "0 24px 60px rgba(0,0,0,.55)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, padding: "22px 24px 18px", borderBottom: `1px solid ${C.border}` }}>
@@ -297,29 +304,109 @@ function CredentialsPanel({ creds, onDone }: { creds: Credentials; onDone: () =>
 
 // ── Create customer ────────────────────────────────────────────────────────
 
-const EMPTY: CustomerInput = { name: "", email: "", telefon: "", foretag: "" };
+const DETAIL_KEYS = ["name", "email", "telefon", "foretag", "orgnr", "adress", "postnummer", "ort", "anteckning"] as const;
+
+const EMPTY: CustomerInput = {
+  name: "", email: "", telefon: "", foretag: "", orgnr: "", adress: "", postnummer: "", ort: "", anteckning: "",
+};
+
+function detailsOf(c: CustomerRow): CustomerInput {
+  return Object.fromEntries(DETAIL_KEYS.map(k => [k, c[k] ?? ""])) as CustomerInput;
+}
+
+function GroupLabel({ children }: { children: React.ReactNode }) {
+  return <p style={{ margin: "6px 0 -4px", fontSize: 12, fontWeight: 600, color: "#ccc" }}>{children}</p>;
+}
 
 function DetailsFields({ value, onChange, idPrefix }: {
   value: CustomerInput; onChange: (v: CustomerInput) => void; idPrefix: string;
 }) {
-  const set = (k: keyof CustomerInput) => (e: React.ChangeEvent<HTMLInputElement>) => onChange({ ...value, [k]: e.target.value });
+  const set = (k: keyof CustomerInput) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    onChange({ ...value, [k]: e.target.value });
+  const id = (k: string) => `${idPrefix}-${k}`;
   return (
     <>
-      <Field label="Namn" htmlFor={`${idPrefix}-name`}>
-        <input id={`${idPrefix}-name`} className="cm-input" value={value.name} onChange={set("name")} autoComplete="off" required />
+      <GroupLabel>Kontakt</GroupLabel>
+      <Field label="Namn" htmlFor={id("name")}>
+        <input id={id("name")} className="cm-input" value={value.name} onChange={set("name")} autoComplete="off" required />
       </Field>
-      <Field label="E-post" htmlFor={`${idPrefix}-email`} hint="Kunden loggar in med den här adressen.">
-        <input id={`${idPrefix}-email`} className="cm-input" type="email" value={value.email} onChange={set("email")} autoComplete="off" required />
-      </Field>
-      <div className="cm-grid2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        <Field label="Telefon (valfritt)" htmlFor={`${idPrefix}-tel`}>
-          <input id={`${idPrefix}-tel`} className="cm-input" type="tel" value={value.telefon} onChange={set("telefon")} autoComplete="off" />
+      <div className="cm-grid2" style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 14 }}>
+        <Field label="E-post" htmlFor={id("email")} hint="Kunden loggar in med den här adressen.">
+          <input id={id("email")} className="cm-input" type="email" value={value.email} onChange={set("email")} autoComplete="off" required />
         </Field>
-        <Field label="Företag (valfritt)" htmlFor={`${idPrefix}-company`}>
-          <input id={`${idPrefix}-company`} className="cm-input" value={value.foretag} onChange={set("foretag")} autoComplete="off" />
+        <Field label="Telefon" htmlFor={id("tel")}>
+          <input id={id("tel")} className="cm-input" type="tel" value={value.telefon} onChange={set("telefon")} autoComplete="off" />
         </Field>
       </div>
+
+      <GroupLabel>Företag</GroupLabel>
+      <div className="cm-grid2" style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 14 }}>
+        <Field label="Företagsnamn" htmlFor={id("company")}>
+          <input id={id("company")} className="cm-input" value={value.foretag} onChange={set("foretag")} autoComplete="off" />
+        </Field>
+        <Field label="Organisationsnummer" htmlFor={id("orgnr")}>
+          <input id={id("orgnr")} className="cm-input" inputMode="numeric" placeholder="556677-8899" value={value.orgnr} onChange={set("orgnr")} autoComplete="off" />
+        </Field>
+      </div>
+
+      <GroupLabel>Adress</GroupLabel>
+      <Field label="Gatuadress" htmlFor={id("adress")}>
+        <input id={id("adress")} className="cm-input" value={value.adress} onChange={set("adress")} autoComplete="off" />
+      </Field>
+      <div className="cm-grid2" style={{ display: "grid", gridTemplateColumns: "2fr 3fr", gap: 14 }}>
+        <Field label="Postnummer" htmlFor={id("postnr")}>
+          <input id={id("postnr")} className="cm-input" inputMode="numeric" placeholder="123 45" value={value.postnummer} onChange={set("postnummer")} autoComplete="off" />
+        </Field>
+        <Field label="Ort" htmlFor={id("ort")}>
+          <input id={id("ort")} className="cm-input" value={value.ort} onChange={set("ort")} autoComplete="off" />
+        </Field>
+      </div>
+
+      <GroupLabel>Intern anteckning</GroupLabel>
+      <Field label="Syns bara för admins, aldrig för kunden" htmlFor={id("note")}>
+        <textarea id={id("note")} className="cm-input" rows={3} value={value.anteckning} onChange={set("anteckning")}
+          style={{ resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
+      </Field>
     </>
+  );
+}
+
+function DeleteCustomerDialog({ customer, onClose, onDeleted }: {
+  customer: CustomerRow; onClose: () => void; onDeleted: () => void;
+}) {
+  const [error, setError] = useState("");
+  const [pending, startTransition] = useTransition();
+
+  function confirm() {
+    setError("");
+    startTransition(async () => {
+      try {
+        const res = await deleteCustomer(customer.id);
+        if (!res.ok) { setError(res.error); return; }
+        onDeleted();
+        onClose();
+      } catch {
+        setError("Kontot kunde inte tas bort. Ladda om sidan och försök igen.");
+      }
+    });
+  }
+
+  return (
+    <Modal title="Ta bort kund" subtitle={customer.email} onClose={onClose} busy={pending}>
+      <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: "#ddd" }}>
+          Kontot för <strong style={{ color: "#fff" }}>{customer.name}</strong> raderas permanent. Kunden kan inte
+          längre logga in och alla uppgifter försvinner. Det går inte att ångra.
+        </p>
+        <ErrorText>{error}</ErrorText>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", flexWrap: "wrap" }}>
+          <button type="button" className="cm-btn cm-ghost" onClick={onClose} disabled={pending}>Avbryt</button>
+          <button type="button" className="cm-btn cm-danger-solid" onClick={confirm} disabled={pending}>
+            <Trash2 size={14} /> {pending ? "Tar bort..." : "Ta bort permanent"}
+          </button>
+        </div>
+      </div>
+    </Modal>
   );
 }
 
@@ -389,9 +476,7 @@ function SectionTitle({ icon, title, text }: { icon: React.ReactNode; title: str
 function ManageCustomerDialog({ customer, onClose, onChanged }: {
   customer: CustomerRow; onClose: () => void; onChanged: () => void;
 }) {
-  const [details, setDetails] = useState<CustomerInput>({
-    name: customer.name, email: customer.email, telefon: customer.telefon, foretag: customer.foretag,
-  });
+  const [details, setDetails] = useState<CustomerInput>(() => detailsOf(customer));
   const [password, setPassword] = useState("");
   const [creds, setCreds] = useState<Credentials | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -399,9 +484,8 @@ function ManageCustomerDialog({ customer, onClose, onChanged }: {
   const [busySection, setBusySection] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const dirty =
-    details.name !== customer.name || details.email !== customer.email ||
-    details.telefon !== customer.telefon || details.foretag !== customer.foretag;
+  const saved = detailsOf(customer);
+  const dirty = DETAIL_KEYS.some(k => details[k].trim() !== saved[k].trim());
 
   function run(section: string, action: () => Promise<{ ok: true } | { ok: false; error: string }>, success: string, after?: () => void) {
     setNotice(null);
@@ -565,15 +649,17 @@ export default function CustomersManager({ customers }: { customers: CustomerRow
   const [query, setQuery] = useState("");
   const [creating, setCreating] = useState(false);
   const [managingId, setManagingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const managing = customers.find(c => c.id === managingId) ?? null;
+  const deleting = customers.find(c => c.id === deletingId) ?? null;
   const refresh = () => router.refresh();
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return customers;
     return customers.filter(c =>
-      [c.name, c.email, c.foretag, c.telefon].some(v => v.toLowerCase().includes(q))
+      [c.name, c.email, c.foretag, c.telefon, c.orgnr, c.ort].some(v => v.toLowerCase().includes(q))
     );
   }, [customers, query]);
 
@@ -677,9 +763,17 @@ export default function CustomersManager({ customers }: { customers: CustomerRow
                           {formatDate(c.lastSignInAt) ?? "Aldrig"}
                         </td>
                         <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                          <button type="button" className="cm-row-btn" onClick={() => setManagingId(c.id)} aria-label={`Hantera ${c.name}`}>
-                            Hantera
-                          </button>
+                          <div style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                            <button type="button" className="cm-row-btn" onClick={() => setManagingId(c.id)} aria-label={`Redigera ${c.name}`}
+                              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                              <Pencil size={13} /> Redigera
+                            </button>
+                            <button type="button" className="cm-row-btn cm-row-del" onClick={() => setDeletingId(c.id)}
+                              aria-label={`Ta bort ${c.name}`} title="Ta bort kund"
+                              style={{ display: "inline-flex", alignItems: "center", padding: "6px 8px" }}>
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -698,6 +792,14 @@ export default function CustomersManager({ customers }: { customers: CustomerRow
           customer={managing}
           onClose={() => setManagingId(null)}
           onChanged={refresh}
+        />
+      )}
+      {deleting && (
+        <DeleteCustomerDialog
+          key={deleting.id}
+          customer={deleting}
+          onClose={() => setDeletingId(null)}
+          onDeleted={refresh}
         />
       )}
     </section>
