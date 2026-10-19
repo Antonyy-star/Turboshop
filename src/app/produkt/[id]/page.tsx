@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import Image from "next/image";
 import AddToCartButton from "@/components/AddToCartButton";
+import ProductImageViewer from "@/components/ProductImageViewer";
 import Link from "next/link";
 import { getProductById } from "@/lib/realProducts";
 import { getRealProductById } from "@/lib/parseProducts";
@@ -404,39 +404,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
             {/* PART IMAGES */}
             <InfoBox title={`${product.sku} Part Images`}>
-              {product.images.length > 0 ? (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {product.images.slice(0, 4).map((img: string, i: number) => (
-                    <div key={i} style={{
-                      width: 110,
-                      height: 110,
-                      border: "1px solid #e5e7eb",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: "#fff",
-                      padding: 4,
-                    }}>
-                      <Image
-                        src={img}
-                        alt={`${product.sku} image ${i + 1}`}
-                        width={100}
-                        height={100}
-                        style={{ objectFit: "contain", maxWidth: "100%", maxHeight: "100%" }}
-                        priority={i === 0}
-                        quality={80}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div style={{
-                  width: 110, height: 110, border: "1px solid #e5e7eb",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <span style={{ fontSize: 10, color: "#9ca3af", textAlign: "center" }}>No image<br />available</span>
-                </div>
-              )}
+              <ProductImageViewer images={product.images ?? []} sku={product.sku || product.name} />
             </InfoBox>
 
           </div>
