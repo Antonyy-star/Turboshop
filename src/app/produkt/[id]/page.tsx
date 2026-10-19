@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ImageGallery from "@/components/ImageGallery";
 import AddToCartButton from "@/components/AddToCartButton";
-import ProductImageViewer from "@/components/ProductImageViewer";
 import Link from "next/link";
 import { getProductById } from "@/lib/realProducts";
 import { getRealProductById } from "@/lib/parseProducts";
@@ -25,6 +25,8 @@ type Specs = {
   used_in?: string[]; // turbochargers this part fits (from the Turbocentras API)
 };
 
+type SkuMap = Record<string, { id: string; brand: string }>;
+
 function hasCyrillic(text: string) {
   return /[Ѐ-ӿ]/.test(text);
 }
@@ -34,16 +36,16 @@ function extractSku(text: string): string | null {
   return m ? m[1] : null;
 }
 
-// Parse the raw HTML description_short stored in description field.
-// Returns alternative part numbers, turbocharger OEM compatibility list, and clean remark.
+function stripHtml(s: string) {
+  return s.replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/gi, " ").replace(/\s+/g, " ").trim();
+}
+
+// The description comes from the Turbocentras API as HTML. Pull out the
+// alternative part numbers, the turbochargers it fits, and the readable remark.
 function parseDescriptionHtml(html: string, mainSku: string) {
   if (!html) return { altNumbers: [] as string[], turbos: [] as string[], remark: "" };
 
-  const stripHtml = (s: string) =>
-    s.replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/gi, " ").replace(/\s+/g, " ").trim();
-
-  // Extract <p> paragraphs; fall back to full text if no <p> tags
-  const raw = html.match(/<p[^>]*>([\s\S]*?)<\/p>/gi) ?? [html];
+  const raw = html.match(/<p[^>]*>([\s\S]*?)<\/p>/gi) ?? html.split(/\n+/);
   const paragraphs = raw.map(p => stripHtml(p)).filter(p => p.length > 2);
 
   const altNumbers: string[] = [];
@@ -62,13 +64,11 @@ function parseDescriptionHtml(html: string, mainSku: string) {
       continue;
     }
 
-    // Comma-separated part codes: all CAPS / digits / hyphens, at least 2 items
-    // Matches "IH-00-0035, RHF5-088, RHF5-219" but not sentences
+    // Comma-separated part codes ("IH-00-0035, RHF5-088"), not sentences
     if (/^[A-Z0-9][A-Z0-9\-]+(?:,\s*[A-Z0-9][A-Z0-9\-]+)+$/.test(para)) {
-      const codes = para.split(",")
+      altNumbers.push(...para.split(",")
         .map(s => s.trim())
-        .filter(c => c.length > 2 && c.toUpperCase() !== mainSku.toUpperCase());
-      altNumbers.push(...codes);
+        .filter(c => c.length > 2 && c.toUpperCase() !== mainSku.toUpperCase()));
       continue;
     }
 
@@ -78,68 +78,133 @@ function parseDescriptionHtml(html: string, mainSku: string) {
   return { altNumbers, turbos, remark: remarkLines.join("\n") };
 }
 
-function getPartType(category: string): string {
-  const map: Record<string, string> = {
-    "CHRA":                           "Cartridge",
-    "Core assemblies (CHRA)":         "Cartridge",
-    "Turbochargers":                  "Turbocharger",
-    "Compressor wheels":              "Compressor wheel",
-    "Repair kits":                    "Repair kit",
-    "Gaskets & Gasket Kits":          "Gasket kit",
-    "Nozzle ring assemblies":         "Nozzle ring assembly",
-    "Shaft & wheels / Rotors":        "Shaft & wheel / Rotor",
-    "Bearing housings":               "Bearing housing",
-    "Heat shields":                   "Heat shield",
-    "Turbine housings / Hot sides":   "Turbine housing",
-    "Compressor housings / Cold sides":"Compressor housing",
-    "Bolts, nuts, screws, washers":   "Bolt / nut / screw",
-    "VNT gaskets & Centring rings":   "VNT gasket",
-    "Actuators":                      "Actuator",
-    "Back plates":                    "Back plate",
-    "Wastegate valves":               "Wastegate valve",
-    "VNT nozzle cages":               "VNT nozzle cage",
-    "Recirculation valves":           "Recirculation valve",
-    "Shaft nuts":                     "Shaft nut",
-    "Seal rings / Piston rings":      "Seal ring / Piston ring",
-    "O-rings":                        "O-ring",
-    "Actuator clips":                 "Actuator clip",
-    "Electric motors":                "Electric motor",
-    "Turbocharger repair equipment":  "Repair equipment",
-    "Tuning":                         "Tuning part",
-    "Injectors":                      "Injector",
-  };
-  return map[category] || category || "—";
+// Breadcrumb: the shop's top-level category for a product's database category.
+function topCategory(category: string): { href: string; label: string } {
+  switch (category) {
+    case "Turbochargers":                 return { href: "/kategori/turboladdare", label: "Turboladdare" };
+    case "CHRA":
+    case "Core assemblies (CHRA)":        return { href: "/kategori/chra",         label: "CHRA" };
+    case "Turbocharger repair equipment": return { href: "/kategori/utrustning",   label: "Utrustning" };
+    case "Turbocharger tuning":
+    case "Tuning":                        return { href: "/kategori/tuning",       label: "Tuning" };
+    case "Injectors":                     return { href: "/kategori/injektorer",   label: "Injektorer" };
+    default:                              return { href: "/kategori/turbodelar",   label: "Turbodelar" };
+  }
 }
 
-// Dark header info box — matches turbocentras.com card style
-function InfoBox({ title, children }: { title: string; children: React.ReactNode }) {
+function partLabel(p: { type: string; sku: string }) {
+  return p.type.replace(p.sku, "").replace(/\s*:\s*$/, "").trim() || p.type;
+}
+
+function SpecRow({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", border: "1px solid #d1d5db", background: "#fff", minWidth: 0 }}>
-      <div style={{
-        background: "#4a4a4a",
-        color: "#fff",
-        padding: "7px 12px",
-        fontSize: 11,
-        fontWeight: 700,
-        textTransform: "uppercase",
-        letterSpacing: "0.06em",
-        lineHeight: 1.3,
-        flexShrink: 0,
-      }}>
-        {title}
-      </div>
-      <div style={{ padding: "10px 12px", fontSize: 13, color: "#222", flex: 1 }}>
-        {children}
-      </div>
+    <div className="flex justify-between items-start py-1.5 border-b border-gray-100 last:border-0">
+      <span className="text-xs text-gray-500 shrink-0 mr-3">{label}</span>
+      <span className="text-xs font-semibold text-black text-right">{value}</span>
     </div>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", gap: 6, marginBottom: 4, fontSize: 13 }}>
-      <span style={{ color: "#666", flexShrink: 0 }}>{label}:</span>
-      <span style={{ fontWeight: 500, color: "#111" }}>{value}</span>
+    <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-4 mb-2 pt-3 border-t border-gray-100">
+      {children}
+    </h3>
+  );
+}
+
+function ProductLink({ text, skuToProduct, className }: { text: string; skuToProduct: SkuMap; className?: string }) {
+  const sku = extractSku(text);
+  const match = sku ? skuToProduct[sku.toUpperCase()] : null;
+  return match
+    ? <Link href={`/produkt/${match.id}`} className={`text-red-600 hover:underline font-medium ${className ?? ""}`}>{text}</Link>
+    : <span className={`text-gray-700 ${className ?? ""}`}>{text}</span>;
+}
+
+function SpecsPanel({ specs, sku, altNumbers, usedIn, skuToProduct }: {
+  specs: Specs;
+  sku: string;
+  altNumbers: { label: string; value: string }[];
+  usedIn: string[];
+  skuToProduct: SkuMap;
+}) {
+  const header = [specs.series, sku].filter(Boolean).join(" · ");
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden h-fit lg:sticky lg:top-24">
+      {header && (
+        <div className="bg-gray-900 text-white px-4 py-3">
+          <p className="text-xs font-bold tracking-wide">{header}</p>
+        </div>
+      )}
+      <div className="px-4 py-4 lg:max-h-[80vh] overflow-y-auto">
+        {specs.series     && <SpecRow label="Series"     value={specs.series} />}
+        {specs.model      && <SpecRow label="Model"      value={specs.model} />}
+        {specs.technology && <SpecRow label="Technology" value={specs.technology} />}
+        {specs.actuation  && <SpecRow label="Actuation"  value={specs.actuation} />}
+        {specs.reference  && <SpecRow label="Reference"  value={specs.reference} />}
+
+        {altNumbers.length > 0 && (
+          <>
+            <SectionTitle>Turbo Numbers</SectionTitle>
+            <div className="space-y-1">
+              {altNumbers.map((n, i) => (
+                <div key={i} className="flex justify-between items-start gap-2">
+                  {n.label && <span className="text-[11px] text-gray-400 shrink-0">{n.label}</span>}
+                  <span className="text-[11px] font-mono font-medium text-black text-right ml-auto">{n.value}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {usedIn.length > 0 && (
+          <>
+            <SectionTitle>Used in Turbochargers</SectionTitle>
+            <div className="space-y-1">
+              {usedIn.map((r, i) => (
+                <p key={i} className="text-[11px] leading-snug">
+                  <ProductLink text={r} skuToProduct={skuToProduct} />
+                </p>
+              ))}
+            </div>
+          </>
+        )}
+
+        {!!specs.interchangeable_with?.length && (
+          <>
+            <SectionTitle>Interchangeable With</SectionTitle>
+            <div className="space-y-1">
+              {specs.interchangeable_with.map((r, i) => (
+                <p key={i} className="text-[11px] leading-snug">
+                  <ProductLink text={r} skuToProduct={skuToProduct} />
+                </p>
+              ))}
+            </div>
+          </>
+        )}
+
+        {!!specs.turbo_parts?.length && (
+          <>
+            <SectionTitle>Turbo Parts</SectionTitle>
+            <div className="space-y-1.5">
+              {specs.turbo_parts.map((p, i) => {
+                const pMatch = skuToProduct[p.sku.toUpperCase()];
+                return (
+                  <div key={i} className="flex justify-between items-center gap-2">
+                    <span className="text-[11px] text-gray-500">{partLabel(p)}</span>
+                    {pMatch ? (
+                      <Link href={`/produkt/${pMatch.id}`} className="text-[11px] font-mono font-semibold text-red-600 hover:underline">{p.sku}</Link>
+                    ) : (
+                      <span className="text-[11px] font-mono font-semibold text-red-600">{p.sku}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -154,7 +219,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     .single();
   if (!data) return { title: "Produkt" };
   const title = `${data.name}${data.brand ? ` — ${data.brand}` : ""}`;
-  const description = data.description?.slice(0, 160) ||
+  const text = data.description ? stripHtml(data.description) : "";
+  const description = (!hasCyrillic(text) && text.slice(0, 160)) ||
     `Köp ${data.name} från ${data.brand ?? "TurboTeknik"}. Artikelnummer: ${data.sku ?? id}.`;
   return {
     title,
@@ -191,56 +257,62 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   if (!product) notFound();
 
-  const specs: Specs | null = dbProduct?.specs ?? null;
+  const specs: Specs = dbProduct?.specs ?? {};
 
-  // Resolve SKUs referenced in specs to internal product IDs
-  let skuToProduct: Record<string, { id: string; brand: string }> = {};
-  if (specs) {
-    const refs: string[] = [];
-    specs.replacements?.forEach(r => { const s = extractSku(r); if (s) refs.push(s); });
-    specs.interchangeable_with?.forEach(r => { const s = extractSku(r); if (s) refs.push(s); });
-    specs.used_in?.forEach(r => { const s = extractSku(r); if (s) refs.push(s); });
-    specs.turbo_parts?.forEach(p => refs.push(p.sku));
+  // Alternative numbers and compatible turbos: structured specs first, then
+  // whatever can be read from the description.
+  const { altNumbers: descAltNumbers, turbos: descTurbos, remark } =
+    parseDescriptionHtml(product.description ?? "", product.sku);
 
-    if (refs.length > 0) {
-      const unique = [...new Set(refs)];
-      const { data: exact } = await supabase.from("products").select("id, sku, brand").in("sku", unique);
-      (exact ?? []).forEach((p: any) => { skuToProduct[p.sku.toUpperCase()] = { id: String(p.id), brand: p.brand }; });
+  const altNumbers = specs.turbo_numbers?.length
+    ? specs.turbo_numbers.map(n => ({ label: n.type, value: n.number }))
+    : descAltNumbers.map(n => ({ label: "", value: n }));
 
-      const unmatched = unique.filter(s => !skuToProduct[s.toUpperCase()]);
-      if (unmatched.length > 0) {
-        const { data: prefix } = await supabase.from("products").select("id, sku, brand")
-          .or(unmatched.map(s => `sku.ilike.${s}%`).join(","));
-        (prefix ?? []).forEach((p: any) => {
-          unmatched.forEach(s => {
-            if (p.sku.toUpperCase().startsWith(s.toUpperCase()) && !skuToProduct[s.toUpperCase()])
-              skuToProduct[s.toUpperCase()] = { id: String(p.id), brand: p.brand };
-          });
+  const usedIn: string[] = specs.used_in?.length
+    ? specs.used_in
+    : specs.replacements?.length
+      ? specs.replacements
+      : descTurbos;
+
+  const hasSpecs = !!(
+    specs.series || specs.model || specs.technology || specs.actuation || specs.reference ||
+    altNumbers.length || usedIn.length || specs.interchangeable_with?.length || specs.turbo_parts?.length
+  );
+
+  // Link referenced part numbers to our own product pages.
+  const skuToProduct: SkuMap = {};
+  const refs: string[] = [];
+  usedIn.forEach(r => { const s = extractSku(r); if (s) refs.push(s); });
+  specs.interchangeable_with?.forEach(r => { const s = extractSku(r); if (s) refs.push(s); });
+  specs.turbo_parts?.forEach(p => refs.push(p.sku));
+
+  if (refs.length > 0) {
+    const unique = [...new Set(refs)];
+    const { data: exact } = await supabase.from("products").select("id, sku, brand").in("sku", unique);
+    (exact ?? []).forEach((p: { id: string | number; sku: string; brand: string }) => {
+      skuToProduct[p.sku.toUpperCase()] = { id: String(p.id), brand: p.brand };
+    });
+
+    const unmatched = unique.filter(s => !skuToProduct[s.toUpperCase()]);
+    if (unmatched.length > 0) {
+      const { data: prefix } = await supabase.from("products").select("id, sku, brand")
+        .or(unmatched.map(s => `sku.ilike.${s}%`).join(","));
+      (prefix ?? []).forEach((p: { id: string | number; sku: string; brand: string }) => {
+        unmatched.forEach(s => {
+          if (p.sku.toUpperCase().startsWith(s.toUpperCase()) && !skuToProduct[s.toUpperCase()]) {
+            skuToProduct[s.toUpperCase()] = { id: String(p.id), brand: p.brand };
+          }
         });
-      }
+      });
     }
   }
 
-  const partType = getPartType(product.category);
+  const oemNumbers = specs.turbo_numbers?.filter(n =>
+    n.type.toUpperCase().includes("OEM") || n.type.toUpperCase().includes("REF")
+  ) ?? [];
 
-  // Parse description HTML to extract alternative numbers, turbo compatibility, remark
-  const { altNumbers: descAltNumbers, turbos: descTurbos, remark: descRemark } =
-    parseDescriptionHtml(product.description ?? "", product.sku);
-
-  // Merge: specs.turbo_numbers take priority, fall back to description-parsed alt numbers
-  const specAltNumbers = specs?.turbo_numbers ?? [];
-  const altNumbers = specAltNumbers.length > 0
-    ? specAltNumbers.map(n => ({ label: n.type, value: n.number }))
-    : descAltNumbers.map(n => ({ label: "", value: n }));
-
-  // Used in turbochargers: from specs.replacements first, then parsed from description
-  const usedInTurbos: string[] = specs?.used_in?.length
-    ? specs.used_in
-    : specs?.replacements?.length
-    ? specs.replacements
-    : specs?.interchangeable_with?.length
-      ? specs.interchangeable_with
-      : descTurbos;
+  const crumb = topCategory(product.category);
+  const brandSlug = product.brand ? product.brand.toLowerCase().replace(/\s+/g, "-") : "";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -249,208 +321,267 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     sku: product.sku,
     brand: { "@type": "Brand", name: product.brand },
     image: product.images?.[0] ?? undefined,
-    description: product.description?.slice(0, 200) || undefined,
+    description: remark.slice(0, 200) || undefined,
     offers: {
       "@type": "Offer",
       priceCurrency: "SEK",
       price: product.price,
-      availability: product.in_stock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      availability: product.in_stock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
       seller: { "@type": "Organization", name: "TurboTeknik" },
     },
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
-      <main style={{ background: "#f5f5f5", minHeight: "100vh", color: "#111" }}>
+      <main className="bg-gray-50 min-h-screen">
 
         {/* Breadcrumb */}
-        <div style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "8px 0" }}>
-          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px", display: "flex", gap: 6, fontSize: 12, color: "#666", flexWrap: "wrap", alignItems: "center" }}>
-            <Link href="/" style={{ color: "#0891b2", textDecoration: "none" }}>Hem</Link>
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+            <Link href="/" className="hover:text-red-600 transition">Hem</Link>
             <span>›</span>
-            <Link href="/katalog" style={{ color: "#0891b2", textDecoration: "none" }}>Katalog</Link>
+            <Link href={crumb.href} className="hover:text-red-600 transition">{crumb.label}</Link>
+            {brandSlug && (
+              <>
+                <span>›</span>
+                <Link href={`/marke/${brandSlug}`} className="hover:text-red-600 transition">{product.brand}</Link>
+              </>
+            )}
             <span>›</span>
-            <span style={{ color: "#111", fontWeight: 600, textTransform: "uppercase" }}>
-              {product.sku || product.name}
-            </span>
+            <span className="text-black font-medium truncate max-w-[200px]">{product.name}</span>
           </div>
         </div>
 
-        {/* Page title */}
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "16px 20px 12px" }}>
-          <h1 style={{ fontSize: 15, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "#111", margin: 0 }}>
-            {partType} {product.sku}
-          </h1>
-        </div>
+        <div className="max-w-7xl mx-auto px-4 py-8">
 
-        {/* Card grid */}
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px 48px", display: "flex", flexDirection: "column", gap: 4 }}>
+          {/* Top section: 3 columns when there are specs, 2 otherwise */}
+          <div className={`grid grid-cols-1 gap-8 mb-10 ${hasSpecs ? "md:grid-cols-2 lg:grid-cols-[1fr_1fr_280px]" : "md:grid-cols-2"}`}>
 
-          {/* ROW 1: 4 columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap: 4 }}>
+            {/* Images */}
+            <ImageGallery images={product.images} name={product.name} sku={product.sku} />
 
-            {/* MAIN INFO */}
-            <InfoBox title={`${product.sku} Main Info`}>
-              <InfoRow label="Part type"  value={partType} />
-              <InfoRow label="Part brand" value={product.brand || "—"} />
-              <InfoRow label="Reference"  value={product.sku || "—"} />
-              {specs?.series    && <InfoRow label="Series"      value={specs.series} />}
-              {specs?.model     && <InfoRow label="Model"       value={specs.model} />}
-              {specs?.technology && <InfoRow label="Technology" value={specs.technology} />}
-              {specs?.actuation  && <InfoRow label="Actuation"  value={specs.actuation} />}
-            </InfoBox>
+            {/* Buy */}
+            <div>
+              <p className="text-sm text-gray-400 mb-1">{[product.brand, product.sku].filter(Boolean).join(" · ")}</p>
+              <h1 className="text-2xl font-black text-black mb-4 leading-snug">{product.name}</h1>
 
-            {/* ALTERNATIVE NUMBERS */}
-            <InfoBox title="Alternative Numbers">
-              {altNumbers.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  {altNumbers.map((n, i) => (
-                    <div key={i} style={{ fontSize: 12 }}>
-                      {n.label && <span style={{ color: "#666" }}>{n.label}: </span>}
-                      <span style={{ fontWeight: 500 }}>{n.value}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <span style={{ color: "#888", fontSize: 12 }}>No alternative numbers available</span>
-              )}
-            </InfoBox>
-
-            {/* USED IN TURBOCHARGERS */}
-            <InfoBox title="Used in Turbochargers">
-              {usedInTurbos.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  {usedInTurbos.map((r, i) => {
-                    const rSku = extractSku(r);
-                    const rMatch = rSku ? skuToProduct[rSku.toUpperCase()] : null;
-                    return (
-                      <div key={i} style={{ fontSize: 12 }}>
-                        {rMatch ? (
-                          <Link href={`/produkt/${rMatch.id}`} style={{ color: "#0891b2", textDecoration: "none" }}>{r}</Link>
-                        ) : (
-                          <span style={{ color: "#333" }}>{r}</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <span style={{ color: "#888", fontSize: 12 }}>No compatibility data available</span>
-              )}
-            </InfoBox>
-
-            {/* PART PROPERTIES */}
-            <InfoBox title="Part Properties">
-              {specs?.features?.length ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  {specs.features.map((f, i) => (
-                    <div key={i} style={{ fontSize: 12, color: "#333" }}>• {f}</div>
-                  ))}
-                </div>
-              ) : (
-                <span style={{ color: "#888", fontSize: 12 }}>No part properties available</span>
-              )}
-            </InfoBox>
-
-          </div>
-
-          {/* ROW 2: 3 columns */}
-          <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 4 }}>
-
-            {/* REMARK */}
-            <InfoBox title={`${product.sku} Remark`}>
-              {descRemark ? (
-                <p style={{ fontSize: 12, color: "#444", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line" }}>
-                  {descRemark}
-                </p>
-              ) : (
-                <span style={{ color: "#888", fontSize: 12 }}>No part remark available</span>
-              )}
-            </InfoBox>
-
-            {/* SHOPPING */}
-            <InfoBox title={`Shopping — ${product.sku}`}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <div style={{ fontSize: 12 }}>
-                  <span style={{ color: "#666" }}>Reference: </span>
-                  <span style={{ fontWeight: 600 }}>{product.sku}</span>
-                </div>
-                <div style={{ fontSize: 12 }}>
-                  <span style={{ color: "#666" }}>Price: </span>
-                  <span style={{ fontWeight: 700, fontSize: 15 }}>{Number(product.price).toLocaleString("sv-SE")} kr</span>
-                  {product.originalPrice && (
-                    <span style={{ color: "#999", textDecoration: "line-through", marginLeft: 6, fontSize: 12 }}>
-                      {Number(product.originalPrice).toLocaleString("sv-SE")} kr
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: product.in_stock ? "#16a34a" : "#dc2626" }}>
-                  {product.in_stock ? "In stock" : "Out of stock"}
-                </div>
-                <AddToCartButton
-                  product={{
-                    id: String(product.id),
-                    name: product.name,
-                    brand: product.brand ?? "",
-                    sku: product.sku,
-                    price: product.price,
-                    image: product.images?.[0] ?? "",
-                  }}
-                />
+              <div className="flex items-baseline gap-3 mb-5">
+                <span className="text-3xl font-bold text-black">{Number(product.price).toLocaleString("sv-SE")} kr</span>
+                {product.originalPrice && (
+                  <span className="text-lg text-gray-400 line-through">{Number(product.originalPrice).toLocaleString("sv-SE")} kr</span>
+                )}
               </div>
-            </InfoBox>
 
-            {/* PART IMAGES */}
-            <InfoBox title={`${product.sku} Part Images`}>
-              <ProductImageViewer images={product.images ?? []} sku={product.sku || product.name} />
-            </InfoBox>
+              <div className="flex items-center gap-2 mb-5">
+                {product.in_stock ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" />
+                    <span className="text-sm text-green-700 font-medium">I lager</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
+                    <span className="text-sm text-red-600 font-medium">Slut i lager</span>
+                  </>
+                )}
+              </div>
 
+              <AddToCartButton
+                product={{
+                  id: String(product.id),
+                  name: product.name,
+                  brand: product.brand ?? "",
+                  sku: product.sku,
+                  price: product.price,
+                  image: product.images?.[0] ?? "",
+                }}
+              />
+
+              <div className="border-t border-gray-200 mt-6 pt-5 space-y-2.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Artikelnummer</span>
+                  <span className="font-medium text-black">{product.sku || "—"}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Varumärke</span>
+                  <span className="font-medium text-black">{product.brand || "—"}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Frakt</span>
+                  <span className="font-medium text-black">Beräknas i kassan</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Garanti</span>
+                  <span className="font-medium text-black">12 månader</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Specs panel */}
+            {hasSpecs && (
+              <div className="md:col-span-2 lg:col-span-1">
+                <SpecsPanel specs={specs} sku={product.sku} altNumbers={altNumbers} usedIn={usedIn} skuToProduct={skuToProduct} />
+              </div>
+            )}
           </div>
 
-          {/* ROW 3: full width — PART ASSEMBLIES */}
-          <InfoBox title="Part Assemblies">
-            {specs?.turbo_parts?.length ? (
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                  <thead>
-                    <tr style={{ background: "#f9fafb" }}>
-                      {["Brand", "Part type", "Reference", "Qty", "OE Number"].map(h => (
-                        <th key={h} style={{ textAlign: "left", padding: "6px 10px", borderBottom: "1px solid #e5e7eb", fontWeight: 600, color: "#555", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
+          {/* Beskrivning */}
+          {(hasSpecs || remark || specs.features?.length) ? (
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+
+              <div className="border-b border-gray-200 flex">
+                <span className="px-6 py-3 text-sm font-semibold text-black border-b-2 border-black -mb-px">Beskrivning</span>
+              </div>
+
+              <div className="px-4 py-5 md:px-6 md:py-8">
+
+                <h2 className="text-xl font-bold text-black mb-4 leading-snug">
+                  {product.sku}
+                  {oemNumbers.length > 0 && (
+                    <span className="font-normal text-gray-600"> ({oemNumbers.map(n => n.number).join(", ")})</span>
+                  )}
+                  {" - "}{product.name}
+                </h2>
+
+                <table className="mb-8 text-sm w-full max-w-lg">
                   <tbody>
-                    {specs.turbo_parts.map((p, i) => {
-                      const pMatch = skuToProduct[p.sku.toUpperCase()];
-                      return (
-                        <tr key={i} style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
-                          <td style={{ padding: "6px 10px", color: "#555" }}>{pMatch?.brand ?? "—"}</td>
-                          <td style={{ padding: "6px 10px", color: "#555" }}>{p.type.replace(p.sku, "").replace(/\s*:\s*$/, "").trim() || p.type}</td>
-                          <td style={{ padding: "6px 10px" }}>
-                            {pMatch ? (
-                              <Link href={`/produkt/${pMatch.id}`} style={{ color: "#0891b2", textDecoration: "none", fontWeight: 600 }}>{p.sku}</Link>
-                            ) : (
-                              <span style={{ color: "#0891b2", fontWeight: 600 }}>{p.sku}</span>
-                            )}
-                          </td>
-                          <td style={{ padding: "6px 10px", color: "#555", textAlign: "center" }}>1</td>
-                          <td style={{ padding: "6px 10px", color: "#aaa" }}>—</td>
-                        </tr>
-                      );
-                    })}
+                    {product.brand && (
+                      <tr>
+                        <td className="text-gray-500 py-1 pr-8 w-48">Varumärke:</td>
+                        <td className="text-black font-medium">{product.brand}</td>
+                      </tr>
+                    )}
+                    {specs.model && (
+                      <tr>
+                        <td className="text-gray-500 py-1 pr-8">Modell:</td>
+                        <td className="text-black font-medium">{specs.model}</td>
+                      </tr>
+                    )}
+                    {specs.series && (
+                      <tr>
+                        <td className="text-gray-500 py-1 pr-8">Serie:</td>
+                        <td className="text-black font-medium">{specs.series}</td>
+                      </tr>
+                    )}
+                    {specs.technology && (
+                      <tr>
+                        <td className="text-gray-500 py-1 pr-8">Teknologi:</td>
+                        <td className="text-black font-medium">{specs.technology}</td>
+                      </tr>
+                    )}
+                    {specs.actuation && (
+                      <tr>
+                        <td className="text-gray-500 py-1 pr-8">Aktivering:</td>
+                        <td className="text-black font-medium">{specs.actuation}</td>
+                      </tr>
+                    )}
+                    {specs.reference && (
+                      <tr>
+                        <td className="text-gray-500 py-1 pr-8">{product.brand} referens:</td>
+                        <td className="text-black font-medium">{specs.reference}</td>
+                      </tr>
+                    )}
+                    {oemNumbers.length > 0 && (
+                      <tr>
+                        <td className="text-gray-500 py-1 pr-8 align-top">OEM-nummer:</td>
+                        <td className="text-black font-medium">{oemNumbers.map(n => n.number).join(", ")}</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
+
+                {remark && (
+                  <p className="mb-8 text-sm text-gray-700 leading-relaxed whitespace-pre-line max-w-3xl">{remark}</p>
+                )}
+
+                {!!specs.features?.length && (
+                  <ul className="mb-8 space-y-2">
+                    {specs.features.map((f, i) => (
+                      <li key={i} className="flex gap-2 text-sm text-gray-700">
+                        <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {altNumbers.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-bold text-black mb-3">
+                      {product.sku} - Alternativa nummer
+                    </h3>
+                    {altNumbers.map((n, i) => (
+                      <p key={i} className="text-sm text-gray-700 mb-0.5">
+                        {n.label && <span className="text-gray-500">{n.label}: </span>}
+                        <span className="font-medium">{n.value}</span>
+                      </p>
+                    ))}
+                  </div>
+                )}
+
+                {usedIn.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-bold text-black mb-3">
+                      {product.sku} - Passar turboladdare
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0.5">
+                      {usedIn.map((r, i) => (
+                        <p key={i} className="text-sm">
+                          <ProductLink text={r} skuToProduct={skuToProduct} />
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!!specs.turbo_parts?.length && (
+                  <div>
+                    <h3 className="text-lg font-bold text-black mb-4">
+                      Turbo {product.sku} - Kompatibla delar
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm border-collapse">
+                        <thead>
+                          <tr className="bg-gray-50">
+                            <th className="text-left px-3 md:px-4 py-3 font-semibold text-gray-700 border border-gray-200 text-xs uppercase tracking-wide">Varumärke</th>
+                            <th className="text-left px-3 md:px-4 py-3 font-semibold text-gray-700 border border-gray-200 text-xs uppercase tracking-wide">Benämning</th>
+                            <th className="text-left px-3 md:px-4 py-3 font-semibold text-gray-700 border border-gray-200 text-xs uppercase tracking-wide">Artikelnummer</th>
+                            <th className="text-center px-3 md:px-4 py-3 font-semibold text-gray-700 border border-gray-200 text-xs uppercase tracking-wide">Ant.</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {specs.turbo_parts.map((p, i) => {
+                            const pMatch = skuToProduct[p.sku.toUpperCase()];
+                            return (
+                              <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                                <td className="px-3 md:px-4 py-2.5 border border-gray-200 text-gray-700">{pMatch?.brand ?? "TurboCentras"}</td>
+                                <td className="px-3 md:px-4 py-2.5 border border-gray-200 text-gray-700">{partLabel(p)}</td>
+                                <td className="px-3 md:px-4 py-2.5 border border-gray-200 font-mono">
+                                  {pMatch ? (
+                                    <Link href={`/produkt/${pMatch.id}`} className="text-red-600 hover:underline font-semibold">{p.sku}</Link>
+                                  ) : (
+                                    <span className="text-red-600 font-semibold">{p.sku}</span>
+                                  )}
+                                </td>
+                                <td className="px-3 md:px-4 py-2.5 border border-gray-200 text-center text-gray-600">1</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
-            ) : (
-              <span style={{ color: "#888", fontSize: 12 }}>
-                No part assemblies available for {product.sku}
-              </span>
-            )}
-          </InfoBox>
+            </div>
+          ) : null}
 
         </div>
       </main>
