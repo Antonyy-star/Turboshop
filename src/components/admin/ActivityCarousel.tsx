@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronLeft, ChevronRight, Trash2, Package, FileText, MessageSquare, Pencil, Plus, Tag, UserPlus, UserMinus, ToggleRight, ToggleLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Package, FileText, MessageSquare, Pencil, Plus, Tag, UserPlus, UserMinus, ToggleRight, ToggleLeft, KeyRound, Ban, ShieldCheck, UserCheck, UserPen } from "lucide-react";
 import { deleteActivityLog } from "@/app/admin/(dashboard)/activity/actions";
 
 type Log = {
@@ -31,6 +31,11 @@ const ACTION_META: Record<string, { label: string; color: string; Icon: any }> =
   delete_discount_code:     { label: "Raderade rabattkod",         color: "#ef4444", Icon: Trash2 },
   create_customer:          { label: "Skapade kundkonto",          color: "#22c55e", Icon: UserPlus },
   delete_customer:          { label: "Raderade kundkonto",         color: "#ef4444", Icon: UserMinus },
+  update_customer:          { label: "Uppdaterade kundkonto",      color: "#3b82f6", Icon: UserPen },
+  reset_customer_password:  { label: "Satte nytt kundlösenord",    color: "#a855f7", Icon: KeyRound },
+  activate_customer:        { label: "Aktiverade kundinloggning",  color: "#22c55e", Icon: UserCheck },
+  block_customer:           { label: "Spärrade kundkonto",         color: "#f59e0b", Icon: Ban },
+  unblock_customer:         { label: "Hävde spärr på kundkonto",   color: "#22c55e", Icon: ShieldCheck },
   specs_update:             { label: "Uppdaterade produktspecar",  color: "#3b82f6", Icon: Pencil },
 };
 

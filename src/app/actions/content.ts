@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "@/lib/logActivity";
+import { requireAdmin } from "@/lib/auth/session";
 
 const sectionLabels: Record<string, string> = {
   hero: "Hero-sektion",
@@ -12,6 +13,7 @@ const sectionLabels: Record<string, string> = {
 };
 
 export async function saveContent(key: string, content: unknown) {
+  await requireAdmin();
   const supabase = await createClient();
 
   const { error } = await supabase

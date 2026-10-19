@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "@/lib/logActivity";
+import { requireAdmin } from "@/lib/auth/session";
 
 function revalidateAll() {
   revalidatePath("/admin/products");
@@ -20,6 +21,7 @@ export async function createProduct(data: {
   images: string[];
   description: string;
 }) {
+  await requireAdmin();
   const supabase = await createClient();
 
   // Validate required fields
@@ -62,6 +64,7 @@ export async function updateProduct(id: string, data: {
   description: string;
   in_stock: boolean;
 }) {
+  await requireAdmin();
   const supabase = await createClient();
 
   // Validate
@@ -124,6 +127,7 @@ export async function updateProduct(id: string, data: {
 }
 
 export async function updateProductStock(id: string, in_stock: boolean) {
+  await requireAdmin();
   const supabase = await createClient();
   const { data: prod } = await supabase
     .from("products")
@@ -151,6 +155,7 @@ export async function updateProductStock(id: string, in_stock: boolean) {
 }
 
 export async function deleteProduct(id: string) {
+  await requireAdmin();
   const supabase = await createClient();
   const { data: prod } = await supabase
     .from("products")

@@ -1,3 +1,4 @@
+import { isAdminUser } from "@/lib/auth/roles";
 import { createServiceClient } from "@/lib/supabase/server";
 import { fetchAll } from "@/lib/supabase/fetchAll";
 import SecondBrainGraph from "@/components/admin/SecondBrainGraph";
@@ -6,7 +7,6 @@ import type { Metadata } from "next";
 export const metadata: Metadata = { title: "Second Brain" };
 export const revalidate = 60;
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "yucellevon@gmail.com";
 
 export default async function SecondBrainPage() {
   const supabase = createServiceClient();
@@ -43,7 +43,7 @@ export default async function SecondBrainPage() {
     supabase.from("brain_notes").select("id, title, content, color, node_category").order("created_at", { ascending: false }),
   ]);
 
-  const customerCount = (users ?? []).filter((u: any) => u.email !== ADMIN_EMAIL).length;
+  const customerCount = (users ?? []).filter(u => !isAdminUser(u)).length;
 
   const categoryCounts: Record<string, number> = {};
   for (const row of allCategories ?? []) {

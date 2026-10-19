@@ -1,51 +1,66 @@
 "use server";
 
-import { createServiceClient } from "@/lib/supabase/server";
+import type { User } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+import { createServiceClient } from "@/lib/supabase/server";
+import { requireAdmin, adminDisplayName } from "@/lib/auth/session";
+import { isAdminUser } from "@/lib/auth/roles";
+import { passwordProblem } from "@/lib/auth/messages";
 
-const ADMIN_EMAIL = "yucellevon@gmail.com";
+type Service = ReturnType<typeof createServiceClient>;
+type Result = { ok: true } | { ok: false; error: string };
 
 async function logActivity(
-  supabase: ReturnType<typeof createServiceClient>,
+  supabase: Service,
+  admin: User,
   action_type: string,
   entity_type: string,
   entity_id: string,
   entity_name: string,
   metadata?: Record<string, unknown>,
 ) {
-  await supabase.from("activity_log").insert({
-    admin_email: ADMIN_EMAIL,
-    admin_name: ADMIN_EMAIL,
-    action_type,
-    entity_type,
-    entity_id,
-    entity_name,
-    metadata: metadata ?? {},
-  });
+  try {
+    await supabase.from("activity_log").insert({
+      admin_email: admin.email,
+      admin_name: adminDisplayName(admin),
+      action_type,
+      entity_type,
+      entity_id,
+      entity_name,
+      metadata: metadata ?? {},
+    });
+  } catch {
+    // Logging must never block the action itself.
+  }
 }
 
 function revalidateAll() {
   revalidatePath("/admin/customers");
   revalidatePath("/admin/activity");
-  revalidatePath("/admin/products");
+  revalidatePath("/admin");
+}
+
+function str(formData: FormData, key: string) {
+  const v = formData.get(key);
+  return typeof v === "string" ? v.trim() : "";
 }
 
 // ── Discount codes ─────────────────────────────────────────────────────────
 
-export async function createDiscountCode(_: any, formData: FormData) {
+export async function createDiscountCode(_: unknown, formData: FormData) {
+  const admin = await requireAdmin();
   const supabase = createServiceClient();
 
-  const code             = (formData.get("code")            as string ?? "").trim().toUpperCase();
-  const type             = (formData.get("type")            as string ?? "percentage");
-  const value            = parseFloat(formData.get("value") as string ?? "0");
-  const min_order_value  = parseFloat(formData.get("min_order_value") as string ?? "0") || 0;
-  const max_uses_raw     = (formData.get("max_uses") as string ?? "").trim();
-  const max_uses         = max_uses_raw ? parseInt(max_uses_raw) : null;
-  const expires_at_raw   = (formData.get("expires_at") as string ?? "").trim();
-  const expires_at       = expires_at_raw || null;
-  const applies_to       = (formData.get("applies_to") as string ?? "all");
-  const applies_to_value = (formData.get("applies_to_value") as string ?? "").trim() || null;
-  const assigned_to_email = (formData.get("assigned_to_email") as string ?? "").trim() || null;
+  const code              = str(formData, "code").toUpperCase();
+  const type              = str(formData, "type") === "fixed" ? "fixed" : "percentage";
+  const value             = parseFloat(str(formData, "value") || "0");
+  const min_order_value   = parseFloat(str(formData, "min_order_value") || "0") || 0;
+  const max_uses_raw      = str(formData, "max_uses");
+  const max_uses          = max_uses_raw ? parseInt(max_uses_raw, 10) : null;
+  const expires_at        = str(formData, "expires_at") || null;
+  const applies_to        = str(formData, "applies_to") || "all";
+  const applies_to_value  = str(formData, "applies_to_value") || null;
+  const assigned_to_email = str(formData, "assigned_to_email").toLowerCase() || null;
 
   if (!code) return { error: "Kod krävs." };
   if (!value || value <= 0) return { error: "Värdet måste vara större än 0." };
@@ -58,7 +73,7 @@ export async function createDiscountCode(_: any, formData: FormData) {
 
   if (error) return { error: error.message.includes("unique") ? "Koden finns redan." : error.message };
 
-  await logActivity(supabase, "create_discount_code", "discount_code", code, code, {
+  await logActivity(supabase, admin, "create_discount_code", "discount_code", code, code, {
     type,
     value,
     assigned_to: assigned_to_email ?? "global",
@@ -70,65 +85,196 @@ export async function createDiscountCode(_: any, formData: FormData) {
 }
 
 export async function toggleDiscountCode(id: string, active: boolean) {
+  const admin = await requireAdmin();
   const supabase = createServiceClient();
   const { data } = await supabase.from("discount_codes").select("code").eq("id", id).single();
   await supabase.from("discount_codes").update({ is_active: active }).eq("id", id);
 
-  await logActivity(supabase, active ? "activate_discount_code" : "deactivate_discount_code", "discount_code", id, data?.code ?? id, { is_active: active });
+  await logActivity(supabase, admin, active ? "activate_discount_code" : "deactivate_discount_code", "discount_code", id, data?.code ?? id, { is_active: active });
 
   revalidateAll();
 }
 
 export async function deleteDiscountCode(id: string) {
+  const admin = await requireAdmin();
   const supabase = createServiceClient();
   const { data } = await supabase.from("discount_codes").select("code").eq("id", id).single();
   await supabase.from("discount_codes").delete().eq("id", id);
 
-  await logActivity(supabase, "delete_discount_code", "discount_code", id, data?.code ?? id);
+  await logActivity(supabase, admin, "delete_discount_code", "discount_code", id, data?.code ?? id);
 
   revalidateAll();
 }
 
 // ── Customers ──────────────────────────────────────────────────────────────
 
-export async function createCustomer(prevState: any, formData: FormData) {
-  const name    = (formData.get("name")    as string ?? "").trim();
-  const email   = (formData.get("email")   as string ?? "").trim();
-  const password = (formData.get("password") as string ?? "").trim();
-  const telefon = (formData.get("telefon") as string ?? "").trim();
-  const foretag = (formData.get("foretag") as string ?? "").trim();
+export type CustomerInput = {
+  name: string;
+  email: string;
+  telefon: string;
+  foretag: string;
+};
 
-  if (!name || !email || !password) {
-    return { error: "Namn, e-post och lösenord krävs." };
-  }
-  if (password.length < 6) {
-    return { error: "Lösenordet måste vara minst 6 tecken." };
-  }
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const BLOCK_DURATION = "876000h"; // ~100 years; lifted with "none"
 
-  const supabase = createServiceClient();
-  const { error } = await supabase.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { name, telefon, foretag },
-  });
-
-  if (error) return { error: error.message };
-
-  await logActivity(supabase, "create_customer", "customer", email, name, { email, foretag: foretag || null });
-
-  revalidateAll();
-  return { success: true };
+function cleanInput(input: CustomerInput) {
+  return {
+    name: (input.name ?? "").trim().slice(0, 120),
+    email: (input.email ?? "").trim().toLowerCase(),
+    telefon: (input.telefon ?? "").trim().slice(0, 40),
+    foretag: (input.foretag ?? "").trim().slice(0, 120),
+  };
 }
 
-export async function deleteCustomer(userId: string) {
+function inputProblem(c: ReturnType<typeof cleanInput>): string | null {
+  if (!c.name) return "Ange kundens namn.";
+  if (!c.email) return "Ange kundens e-postadress.";
+  if (!EMAIL_RE.test(c.email)) return "E-postadressen ser inte giltig ut.";
+  return null;
+}
+
+function authErrorMessage(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("already been registered") || m.includes("already registered") || m.includes("email_exists")) {
+    return "Det finns redan ett konto med den e-postadressen.";
+  }
+  if (m.includes("password")) return "Lösenordet godkändes inte. Välj ett längre lösenord med bokstäver och siffror.";
+  if (m.includes("email")) return "E-postadressen godkändes inte.";
+  return "Något gick fel: " + message;
+}
+
+// Loads the account and makes sure it is a customer, never an admin.
+async function loadCustomer(supabase: Service, userId: string): Promise<User | null> {
+  if (typeof userId !== "string" || !userId) return null;
+  const { data, error } = await supabase.auth.admin.getUserById(userId);
+  if (error || !data.user || isAdminUser(data.user)) return null;
+  return data.user;
+}
+
+function nameOf(user: User) {
+  return user.user_metadata?.name || user.email || user.id;
+}
+
+export async function createCustomer(input: CustomerInput, password: string): Promise<Result> {
+  const admin = await requireAdmin();
+  const c = cleanInput(input);
+  const problem = inputProblem(c) ?? passwordProblem(password ?? "");
+  if (problem) return { ok: false, error: problem };
+
   const supabase = createServiceClient();
-  const { data: user } = await supabase.auth.admin.getUserById(userId);
-  const { error } = await supabase.auth.admin.deleteUser(userId);
-  if (error) return { error: error.message };
+  const { data, error } = await supabase.auth.admin.createUser({
+    email: c.email,
+    password,
+    email_confirm: true,
+    app_metadata: { role: "customer" },
+    user_metadata: { name: c.name, telefon: c.telefon, foretag: c.foretag },
+  });
+  if (error || !data.user) return { ok: false, error: authErrorMessage(error?.message ?? "okänt fel") };
 
-  await logActivity(supabase, "delete_customer", "customer", userId, user?.user?.email ?? userId);
-
+  await logActivity(supabase, admin, "create_customer", "customer", data.user.id, c.name, {
+    email: c.email,
+    foretag: c.foretag || null,
+  });
   revalidateAll();
-  return { success: true };
+  return { ok: true };
+}
+
+export async function updateCustomer(userId: string, input: CustomerInput): Promise<Result> {
+  const admin = await requireAdmin();
+  const c = cleanInput(input);
+  const problem = inputProblem(c);
+  if (problem) return { ok: false, error: problem };
+
+  const supabase = createServiceClient();
+  const existing = await loadCustomer(supabase, userId);
+  if (!existing) return { ok: false, error: "Kunden hittades inte." };
+
+  const emailChanged = (existing.email ?? "").toLowerCase() !== c.email;
+  const { error } = await supabase.auth.admin.updateUserById(userId, {
+    ...(emailChanged ? { email: c.email, email_confirm: true } : {}),
+    user_metadata: { ...existing.user_metadata, name: c.name, telefon: c.telefon, foretag: c.foretag },
+  });
+  if (error) return { ok: false, error: authErrorMessage(error.message) };
+
+  // Keep personal discount codes attached when the login e-mail changes.
+  if (emailChanged && existing.email) {
+    await supabase.from("discount_codes")
+      .update({ assigned_to_email: c.email })
+      .ilike("assigned_to_email", existing.email.replace(/[%_\\]/g, "\\$&"));
+  }
+
+  await logActivity(supabase, admin, "update_customer", "customer", userId, c.name, {
+    email: c.email,
+    ...(emailChanged ? { previous_email: existing.email } : {}),
+  });
+  revalidateAll();
+  return { ok: true };
+}
+
+export async function setCustomerPassword(userId: string, password: string): Promise<Result> {
+  const admin = await requireAdmin();
+  const problem = passwordProblem(password ?? "");
+  if (problem) return { ok: false, error: problem };
+
+  const supabase = createServiceClient();
+  const existing = await loadCustomer(supabase, userId);
+  if (!existing) return { ok: false, error: "Kunden hittades inte." };
+
+  const { error } = await supabase.auth.admin.updateUserById(userId, { password });
+  if (error) return { ok: false, error: authErrorMessage(error.message) };
+
+  await logActivity(supabase, admin, "reset_customer_password", "customer", userId, nameOf(existing));
+  revalidateAll();
+  return { ok: true };
+}
+
+// Gives login access to an account that has no role yet (created before roles
+// existed). Admin accounts are never touched.
+export async function activateCustomer(userId: string): Promise<Result> {
+  const admin = await requireAdmin();
+  const supabase = createServiceClient();
+  const existing = await loadCustomer(supabase, userId);
+  if (!existing) return { ok: false, error: "Kunden hittades inte." };
+
+  const { error } = await supabase.auth.admin.updateUserById(userId, {
+    app_metadata: { ...existing.app_metadata, role: "customer" },
+  });
+  if (error) return { ok: false, error: authErrorMessage(error.message) };
+
+  await logActivity(supabase, admin, "activate_customer", "customer", userId, nameOf(existing));
+  revalidateAll();
+  return { ok: true };
+}
+
+export async function setCustomerBlocked(userId: string, blocked: boolean): Promise<Result> {
+  const admin = await requireAdmin();
+  const supabase = createServiceClient();
+  const existing = await loadCustomer(supabase, userId);
+  if (!existing) return { ok: false, error: "Kunden hittades inte." };
+
+  const { error } = await supabase.auth.admin.updateUserById(userId, {
+    ban_duration: blocked ? BLOCK_DURATION : "none",
+  });
+  if (error) return { ok: false, error: authErrorMessage(error.message) };
+
+  await logActivity(supabase, admin, blocked ? "block_customer" : "unblock_customer", "customer", userId, nameOf(existing));
+  revalidateAll();
+  return { ok: true };
+}
+
+export async function deleteCustomer(userId: string): Promise<Result> {
+  const admin = await requireAdmin();
+  const supabase = createServiceClient();
+  const existing = await loadCustomer(supabase, userId);
+  if (!existing) return { ok: false, error: "Kunden hittades inte." };
+
+  const { error } = await supabase.auth.admin.deleteUser(userId);
+  if (error) return { ok: false, error: authErrorMessage(error.message) };
+
+  await logActivity(supabase, admin, "delete_customer", "customer", userId, nameOf(existing), {
+    email: existing.email,
+  });
+  revalidateAll();
+  return { ok: true };
 }

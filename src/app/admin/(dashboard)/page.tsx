@@ -1,10 +1,10 @@
+import { isAdminUser } from "@/lib/auth/roles";
 import { createServiceClient } from "@/lib/supabase/server";
 import { Package, MessageSquare, Users, TrendingUp } from "lucide-react";
 import StockFeed from "@/components/StockFeed";
 import Link from "next/link";
 import DashboardStatCards from "@/components/admin/DashboardStatCards";
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "yucellevon@gmail.com";
 
 export default async function AdminDashboard() {
   const supabase = createServiceClient();
@@ -50,7 +50,7 @@ export default async function AdminDashboard() {
       .eq("in_stock", false),
   ]);
 
-  const customerCount = (users ?? []).filter(u => u.email !== ADMIN_EMAIL).length;
+  const customerCount = (users ?? []).filter(u => !isAdminUser(u)).length;
 
   const stats = [
     { label: "Produkter",           value: productCount ?? 0,    icon: "package",     color: "#3b82f6", href: "/admin/products" },

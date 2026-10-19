@@ -2,8 +2,10 @@
 
 import { createServiceClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-
-const ADMIN_EMAIL = "yucellevon@gmail.com";
+import type { User } from "@supabase/supabase-js";
+import { requireAdmin, adminDisplayName } from "@/lib/auth/session";
+import { isAdminUser } from "@/lib/auth/roles";
+import { listAllUsers } from "@/lib/supabase/users";
 
 function revalidateAll() {
   revalidatePath("/admin/orders");
@@ -14,20 +16,25 @@ function revalidateAll() {
 
 async function log(
   supabase: ReturnType<typeof createServiceClient>,
+  admin: User,
   action_type: string,
   entity_id: string,
   entity_name: string,
   metadata: Record<string, unknown> = {},
 ) {
-  await supabase.from("activity_log").insert({
-    admin_email: ADMIN_EMAIL,
-    admin_name: ADMIN_EMAIL,
-    action_type,
-    entity_type: "contact",
-    entity_id,
-    entity_name,
-    metadata,
-  });
+  try {
+    await supabase.from("activity_log").insert({
+      admin_email: admin.email,
+      admin_name: adminDisplayName(admin),
+      action_type,
+      entity_type: "contact",
+      entity_id,
+      entity_name,
+      metadata,
+    });
+  } catch {
+    // Logging must never block the action itself.
+  }
 }
 
 export async function markContactHandled(
@@ -36,6 +43,7 @@ export async function markContactHandled(
   handledByEmail: string,
   handledByName: string,
 ) {
+  const admin = await requireAdmin();
   const supabase = createServiceClient();
   const { error } = await supabase.from("contact_submissions").update({
     status: "handled",
@@ -45,7 +53,7 @@ export async function markContactHandled(
   }).eq("id", contactId);
   if (error) throw new Error(error.message);
 
-  await log(supabase, "contact_handled", contactId, contactName, {
+  await log(supabase, admin, "contact_handled", contactId, contactName, {
     handled_by: handledByName,
     email: handledByEmail,
   });
@@ -54,6 +62,7 @@ export async function markContactHandled(
 }
 
 export async function reopenContact(contactId: string) {
+  const admin = await requireAdmin();
   const supabase = createServiceClient();
   const { data: contact } = await supabase
     .from("contact_submissions")
@@ -70,20 +79,18 @@ export async function reopenContact(contactId: string) {
   if (error) throw new Error(error.message);
 
   const name = contact ? `${contact.fornamn ?? ""} ${contact.efternamn ?? ""}`.trim() || contact.email : contactId;
-  await log(supabase, "contact_reopened", contactId, name);
+  await log(supabase, admin, "contact_reopened", contactId, name);
 
   revalidateAll();
 }
 
+// Admin accounts only — customers must never appear in the "handled by" list.
 export async function getAdminList(): Promise<{ email: string; name: string }[]> {
-  const supabase = createServiceClient();
+  const admin = await requireAdmin();
   try {
-    const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-    return (users ?? []).map(u => ({
-      email: u.email!,
-      name: u.user_metadata?.full_name || u.user_metadata?.name || u.email!,
-    }));
+    const users = await listAllUsers(createServiceClient());
+    return users.filter(u => isAdminUser(u)).map(u => ({ email: u.email!, name: adminDisplayName(u) }));
   } catch {
-    return [{ email: ADMIN_EMAIL, name: ADMIN_EMAIL }];
+    return [{ email: admin.email!, name: adminDisplayName(admin) }];
   }
 }
