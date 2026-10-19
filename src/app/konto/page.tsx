@@ -3,6 +3,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { requireCustomerPage } from "@/lib/auth/session";
+import { customerProfile, displayName } from "@/lib/auth/profile";
 import { createServiceClient } from "@/lib/supabase/server";
 import ChangePasswordForm from "./ChangePasswordForm";
 import LogoutButton from "./LogoutButton";
@@ -63,8 +64,8 @@ async function personalDiscountCodes(email: string): Promise<DiscountCode[]> {
 
 export default async function AccountPage() {
   const user = await requireCustomerPage("/konto");
-  const meta = user.user_metadata ?? {};
-  const name: string = meta.name || user.email?.split("@")[0] || "";
+  const meta = customerProfile(user);
+  const name = displayName(user);
   const firstName = name.split(/\s+/)[0];
   const codes = user.email ? await personalDiscountCodes(user.email) : [];
 

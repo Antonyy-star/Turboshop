@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { signInAccount } from "@/lib/auth/signIn";
+import { displayName } from "@/lib/auth/profile";
 
 export type AccountState =
   | { status: "loading" | "out" }
@@ -13,7 +14,7 @@ export type AccountState =
 
 function toState(user: User | null | undefined): AccountState {
   if (!user) return { status: "out" };
-  const name = user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split("@")[0] || "";
+  const name = displayName(user);
   const email = user.email ?? "";
   return user.app_metadata?.role === "admin"
     ? { status: "admin", name, email }

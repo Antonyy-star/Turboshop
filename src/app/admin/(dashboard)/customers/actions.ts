@@ -6,6 +6,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { requireAdmin, adminDisplayName } from "@/lib/auth/session";
 import { isAdminUser } from "@/lib/auth/roles";
 import { passwordProblem } from "@/lib/auth/messages";
+import { customerProfile, PROFILE_KEYS } from "@/lib/auth/profile";
 
 type Service = ReturnType<typeof createServiceClient>;
 type Result = { ok: true } | { ok: false; error: string };
@@ -108,9 +109,9 @@ export async function deleteDiscountCode(id: string) {
 
 // ── Customers ──────────────────────────────────────────────────────────────
 
-// Contact details live in user_metadata (shown on the customer's account page).
-// The internal note lives in app_metadata, which only the server can read and
-// write, so customers never see it.
+// Contact details live in app_metadata.profile and the internal note in
+// app_metadata.admin_note. Only the server can write app_metadata, so customers
+// cannot change their own details, and the note is never shown to them.
 export type CustomerInput = {
   name: string;
   email: string;
@@ -177,7 +178,7 @@ async function loadCustomer(supabase: Service, userId: string): Promise<User | n
 }
 
 function nameOf(user: User) {
-  return user.user_metadata?.name || user.email || user.id;
+  return customerProfile(user).name || user.email || user.id;
 }
 
 export async function createCustomer(input: CustomerInput, password: string): Promise<Result> {
@@ -191,8 +192,7 @@ export async function createCustomer(input: CustomerInput, password: string): Pr
     email: c.email,
     password,
     email_confirm: true,
-    app_metadata: { role: "customer", admin_note: c.anteckning },
-    user_metadata: profileOf(c),
+    app_metadata: { role: "customer", admin_note: c.anteckning, profile: profileOf(c) },
   });
   if (error || !data.user) return { ok: false, error: authErrorMessage(error?.message ?? "okänt fel") };
 
@@ -217,8 +217,9 @@ export async function updateCustomer(userId: string, input: CustomerInput): Prom
   const emailChanged = (existing.email ?? "").toLowerCase() !== c.email;
   const { error } = await supabase.auth.admin.updateUserById(userId, {
     ...(emailChanged ? { email: c.email, email_confirm: true } : {}),
-    user_metadata: { ...existing.user_metadata, ...profileOf(c) },
-    app_metadata: { ...existing.app_metadata, role: "customer", admin_note: c.anteckning },
+    app_metadata: { ...existing.app_metadata, role: "customer", admin_note: c.anteckning, profile: profileOf(c) },
+    // Remove the old copy that customers could edit; null deletes the key.
+    user_metadata: Object.fromEntries(PROFILE_KEYS.map(k => [k, null])),
   });
   if (error) return { ok: false, error: authErrorMessage(error.message) };
 

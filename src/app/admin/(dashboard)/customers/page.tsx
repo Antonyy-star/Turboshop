@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { listAllUsers } from "@/lib/supabase/users";
 import { isAdminUser, isBlocked } from "@/lib/auth/roles";
+import { customerProfile, displayName } from "@/lib/auth/profile";
 import CustomersManager, { type CustomerRow } from "@/components/admin/CustomersManager";
 import DiscountCodesManager from "@/components/admin/DiscountCodesManager";
 
@@ -17,17 +18,12 @@ export default async function AdminCustomers() {
   const customers: CustomerRow[] = allUsers
     .filter(u => !isAdminUser(u))
     .map((u): CustomerRow => {
-      const meta = u.user_metadata ?? {};
+      const p = customerProfile(u);
       return {
         id: u.id,
-        name: meta.name || u.email?.split("@")[0] || "—",
+        ...p,
+        name: p.name || u.email?.split("@")[0] || "—",
         email: u.email ?? "",
-        telefon: meta.telefon ?? "",
-        foretag: meta.foretag ?? "",
-        orgnr: meta.orgnr ?? "",
-        adress: meta.adress ?? "",
-        postnummer: meta.postnummer ?? "",
-        ort: meta.ort ?? "",
         anteckning: typeof u.app_metadata?.admin_note === "string" ? u.app_metadata.admin_note : "",
         createdAt: u.created_at,
         lastSignInAt: u.last_sign_in_at ?? null,
@@ -39,7 +35,7 @@ export default async function AdminCustomers() {
   // Discounts can be assigned to any account, admins included.
   const discountCustomers = allUsers.map(u => ({
     email: u.email!,
-    name: u.user_metadata?.name || u.email?.split("@")[0] || "—",
+    name: displayName(u) || "—",
   }));
 
   return (
