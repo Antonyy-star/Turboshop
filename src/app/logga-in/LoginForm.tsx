@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getAccountType } from "@/app/actions/auth";
-import { signInErrorMessage } from "@/lib/auth/messages";
+import { signInAccount } from "@/lib/auth/signIn";
 
 const inputClass =
   "w-full border border-gray-300 rounded-md px-4 py-2.5 text-sm text-black bg-white " +
@@ -34,33 +33,14 @@ export default function LoginForm({ next, notice, signOutFirst }: {
     setError("");
     setLoading(true);
 
-    const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
-    if (signInError) {
-      setError(signInErrorMessage(signInError));
+    const result = await signInAccount(email, password);
+    if (!result.ok) {
+      setError(result.error);
       setLoading(false);
       return;
     }
-
-    const type = await getAccountType().catch(() => "none" as const);
-    if (type === "customer") {
-      router.replace(next);
-      router.refresh();
-      return;
-    }
-    if (type === "admin") {
-      router.replace("/admin");
-      router.refresh();
-      return;
-    }
-
-    await supabase.auth.signOut();
-    setError("Kontot är inte aktiverat för inloggning än. Kontakta oss så hjälper vi dig.");
-    setPassword("");
-    setLoading(false);
+    router.replace(result.type === "admin" ? "/admin" : next);
+    router.refresh();
   }
 
   return (

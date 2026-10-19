@@ -7,28 +7,7 @@ import AdvancedBadge from "./AdvancedBadge";
 import LogoViewerWrapper from "./LogoViewerWrapper";
 import SearchBar from "./SearchBar";
 import { useCart } from "@/context/CartContext";
-import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
-
-type AccountLink = { href: string; label: string };
-const SIGNED_OUT: AccountLink = { href: "/logga-in", label: "Logga in" };
-
-// Cosmetic only: picks the right account link. Access is enforced on the server.
-function useAccountLink(): AccountLink {
-  const [link, setLink] = useState<AccountLink>(SIGNED_OUT);
-  useEffect(() => {
-    const supabase = createClient();
-    const apply = (user: User | null | undefined) => {
-      if (!user) setLink(SIGNED_OUT);
-      else if (user.app_metadata?.role === "admin") setLink({ href: "/admin", label: "Admin" });
-      else setLink({ href: "/konto", label: "Mitt konto" });
-    };
-    supabase.auth.getSession().then(({ data }) => apply(data.session?.user));
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => apply(session?.user));
-    return () => sub.subscription.unsubscribe();
-  }, []);
-  return link;
-}
+import AccountMenu, { useAccount, accountLink } from "./account/AccountMenu";
 
 const brandLogos = [
   { name: "Garrett", logo: "/brands/kisspng-turbocharger-garrett-airesearch-business-engine-in-garrett-5b3dfc697c5e14.6655578415307889695094.jpg" },
@@ -107,7 +86,8 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { count } = useCart();
-  const account = useAccountLink();
+  const account = useAccount();
+  const mobileAccount = accountLink(account);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -153,17 +133,7 @@ export default function Header() {
               )}
             </Link>
 
-            <Link
-              href={account.href}
-              aria-label={account.label}
-              title={account.label}
-              className="flex items-center gap-1.5 p-1 text-black hover:opacity-70 transition rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
-            >
-              <svg className="w-6 h-6" fill="black" stroke="black" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              {mounted && <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">{account.label}</span>}
-            </Link>
+            <AccountMenu account={account} mounted={mounted} />
 
             <button
               className="md:hidden p-2 text-gray-700"
@@ -311,14 +281,14 @@ export default function Header() {
 
           {/* Account */}
           <Link
-            href={account.href}
+            href={mobileAccount.href}
             onClick={() => setMenuOpen(false)}
             style={{ display: "flex", alignItems: "center", gap: 10, padding: "18px 20px", fontSize: 17, fontWeight: 600, color: "#ffffff", textDecoration: "none", borderTop: "1px solid #222" }}
           >
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            {account.label}
+            {mobileAccount.label}
           </Link>
 
           {/* Gå tillbaka */}
