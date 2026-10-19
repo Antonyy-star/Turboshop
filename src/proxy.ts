@@ -32,6 +32,12 @@ export async function proxy(request: NextRequest) {
   const isCustomer = isCustomerUser(user);
   const path = request.nextUrl.pathname;
 
+  // Only redirect page loads. Server actions are POST requests to the page's own
+  // URL: the login forms call one right after signing in, and redirecting that
+  // request (e.g. /admin/login → /admin) breaks the action, so the form signs
+  // the user out again. Actions and pages check access themselves.
+  if (request.method !== "GET" && request.method !== "HEAD") return response;
+
   // Redirect while keeping any refreshed session cookies.
   function redirectTo(pathname: string) {
     const target = NextResponse.redirect(new URL(pathname, request.url));
