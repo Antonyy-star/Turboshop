@@ -115,6 +115,11 @@ const STYLES = `
   .cm-row-del { color: #f87171; }
   .cm-row-del:hover { background: #2a1212; border-color: #4a1d1d; color: #fca5a5; }
   .cm-section + .cm-section { border-top: 1px solid ${C.border}; }
+  .cm-cards { display: none; }
+  @media (max-width: 700px) {
+    .cm-table { display: none; }
+    .cm-cards { display: block; }
+  }
   @media (max-width: 640px) {
     .cm-head { flex-direction: column; align-items: stretch !important; }
     .cm-grid2 { grid-template-columns: 1fr !important; }
@@ -716,7 +721,51 @@ export default function CustomersManager({ customers }: { customers: CustomerRow
               Ingen kund matchar ”{query}”.
             </p>
           ) : (
-            <div style={{ overflowX: "auto" }}>
+            <>
+            {/* Phones: one card per customer, with the actions always visible */}
+            <ul className="cm-cards" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+              {filtered.map((c, idx) => {
+                const s = STATUS[c.status];
+                return (
+                  <li key={c.id} style={{ padding: 16, borderBottom: idx < filtered.length - 1 ? "1px solid #1a1a1a" : "none" }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                      <div aria-hidden style={{
+                        width: 38, height: 38, borderRadius: "50%", background: "#1f1f1f", border: "1px solid #2a2a2a",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 12, fontWeight: 700, color: C.red, flexShrink: 0,
+                      }}>
+                        {initials(c.name)}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 15, fontWeight: 600 }}>{c.name}</span>
+                          <span title={s.hint} style={{ background: s.bg, color: s.fg, fontSize: 11, fontWeight: 600, padding: "2px 9px", borderRadius: 20 }}>
+                            {s.label}
+                          </span>
+                        </div>
+                        {c.foretag && <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{c.foretag}</div>}
+                        <a href={`mailto:${c.email}`} style={{ display: "block", fontSize: 13, color: "#60a5fa", textDecoration: "none", marginTop: 6, overflowWrap: "anywhere" }}>
+                          {c.email}
+                        </a>
+                        <div style={{ fontSize: 12, color: C.faint, marginTop: 4, display: "flex", flexWrap: "wrap", gap: "2px 14px" }}>
+                          {c.telefon && <a href={`tel:${c.telefon.replace(/\s+/g, "")}`} style={{ color: C.muted, textDecoration: "none" }}>{c.telefon}</a>}
+                          <span>{c.lastSignInAt ? `Senast inloggad ${formatDate(c.lastSignInAt)}` : "Har inte loggat in än"}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                      <button type="button" className="cm-btn cm-ghost" onClick={() => setManagingId(c.id)} style={{ flex: 1 }}>
+                        <Pencil size={14} /> Redigera
+                      </button>
+                      <button type="button" className="cm-btn cm-danger" onClick={() => setDeletingId(c.id)} aria-label={`Ta bort ${c.name}`}>
+                        <Trash2 size={14} /> Ta bort
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="cm-table" style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
                 <thead>
                   <tr style={{ background: C.surfaceDeep, borderBottom: `1px solid ${C.border}` }}>
@@ -781,6 +830,7 @@ export default function CustomersManager({ customers }: { customers: CustomerRow
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       )}

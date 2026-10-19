@@ -75,11 +75,11 @@ export default async function AdminDashboard() {
         </div>
         {recentContacts && recentContacts.length > 0 ? (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
+            <table className="sm:min-w-[560px]" style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #1f1f1f" }}>
                   {["Namn", "E-post", "Ämne", "Datum", "Status"].map(h => (
-                    <th key={h} style={{ textAlign: "left", padding: "8px 12px", color: "#666", fontSize: 12, fontWeight: 500 }}>{h}</th>
+                    <th key={h} className={h === "E-post" || h === "Datum" ? "hidden sm:table-cell" : undefined} style={{ textAlign: "left", padding: "8px 12px", color: "#666", fontSize: 12, fontWeight: 500 }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -89,9 +89,9 @@ export default async function AdminDashboard() {
                   return (
                     <tr key={row.id} style={{ borderBottom: "1px solid #1a1a1a" }}>
                       <td style={{ padding: "12px 12px", fontSize: 14 }}>{row.fornamn} {row.efternamn}</td>
-                      <td style={{ padding: "12px 12px", fontSize: 14, color: "#999" }}>{row.email}</td>
+                      <td className="hidden sm:table-cell" style={{ padding: "12px 12px", fontSize: 14, color: "#999" }}>{row.email}</td>
                       <td style={{ padding: "12px 12px", fontSize: 14, color: "#999" }}>{row.amne || "—"}</td>
-                      <td style={{ padding: "12px 12px", fontSize: 13, color: "#555" }}>{new Date(row.created_at).toLocaleDateString("sv-SE")}</td>
+                      <td className="hidden sm:table-cell" style={{ padding: "12px 12px", fontSize: 13, color: "#555" }}>{new Date(row.created_at).toLocaleDateString("sv-SE")}</td>
                       <td style={{ padding: "12px 12px" }}>
                         {isHandled ? (
                           <span style={{ background: "#14532d", color: "#4ade80", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>

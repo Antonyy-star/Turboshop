@@ -121,7 +121,7 @@ function CreateCodeForm({ assignedTo, onDone }: { assignedTo: string | null; onD
     <form action={action} style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
       <input type="hidden" name="assigned_to_email" value={assignedTo ?? ""} />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: 10 }}>
         {/* Code */}
         <div>
           <label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>Kod *</label>
@@ -230,19 +230,19 @@ export default function DiscountCodesManager({ customers, codes }: Props) {
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Rabattkoder</h2>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 16 }}>
 
         {/* Left: Global codes */}
-        <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, padding: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-            <div>
+        <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, padding: 20, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+            <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>Globala koder</p>
               <p style={{ fontSize: 11, color: "#555", margin: 0 }}>Alla kunder kan använda dessa</p>
             </div>
             <button onClick={() => setShowGlobalForm(v => !v)} style={{
               background: "#dc2626", color: "#fff", border: "none", borderRadius: 6,
               padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 5,
+              display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap", flexShrink: 0,
             }}>
               <Plus size={12} /> Ny kod
             </button>
@@ -262,13 +262,13 @@ export default function DiscountCodesManager({ customers, codes }: Props) {
         </div>
 
         {/* Right: Per-customer codes */}
-        <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, padding: 20 }}>
+        <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, padding: 20, minWidth: 0 }}>
           <div style={{ marginBottom: 14 }}>
             <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 10px" }}>Kund-specifika koder</p>
             <select
               value={selectedEmail ?? ""}
               onChange={e => { setSelectedEmail(e.target.value || null); setShowCustomerForm(false); }}
-              style={{ width: "100%", background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 7, padding: "8px 10px", color: selectedEmail ? "#fff" : "#666", fontSize: 13, cursor: "pointer" }}
+              style={{ width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box", background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 7, padding: "8px 10px", color: selectedEmail ? "#fff" : "#666", fontSize: 13, cursor: "pointer" }}
             >
               <option value="">Välj en kund...</option>
               {customers.map(c => (

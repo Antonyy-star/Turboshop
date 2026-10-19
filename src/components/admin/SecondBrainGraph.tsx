@@ -177,6 +177,13 @@ export default function SecondBrainGraph(props: Props) {
   } = props
 
   const containerRef    = useRef<HTMLDivElement>(null)
+  const scrollRef       = useRef<HTMLDivElement>(null)
+
+  // On narrow screens, start with the centre of the graph in view.
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el && el.scrollWidth > el.clientWidth) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2
+  }, [])
   const canvasRef       = useRef<HTMLCanvasElement>(null)
   const nodesRef        = useRef<GNode[]>([])
   const hoveredRef      = useRef<string | null>(null)
@@ -618,9 +625,12 @@ export default function SecondBrainGraph(props: Props) {
     <div style={{ position: "relative", width: "100%", height: "76vh", minHeight: 540, borderRadius: 16, overflow: "hidden", background: "#050505", border: "1px solid #1a1a1a" }}>
       <style>{`@keyframes sbSlide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}`}</style>
 
-      {/* Canvas */}
-      <div ref={containerRef} style={{ position: "absolute", inset: 0 }}>
-        <canvas ref={canvasRef} onClick={onCanvasClick} style={{ display: "block" }} />
+      {/* Canvas. The layout needs about 860px; narrower screens (phones)
+          keep full-size, readable nodes and swipe sideways to see the rest. */}
+      <div ref={scrollRef} style={{ position: "absolute", inset: 0, overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch" }}>
+        <div ref={containerRef} style={{ position: "relative", width: "max(100%, 860px)", height: "100%" }}>
+          <canvas ref={canvasRef} onClick={onCanvasClick} style={{ display: "block" }} />
+        </div>
       </div>
 
       {/* Toolbar */}
@@ -667,7 +677,7 @@ export default function SecondBrainGraph(props: Props) {
 
       {/* Side panel */}
       {panelOpen && (
-        <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 316, background: "#0f0f0f", borderLeft: "1px solid #1f1f1f", padding: 24, overflowY: "auto", zIndex: 10, animation: "sbSlide 0.2s ease" }}>
+        <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "min(316px, 100%)", boxSizing: "border-box", background: "#0f0f0f", borderLeft: "1px solid #1f1f1f", padding: 24, overflowY: "auto", zIndex: 10, animation: "sbSlide 0.2s ease" }}>
 
           {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>

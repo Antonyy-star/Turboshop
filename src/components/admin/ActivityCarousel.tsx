@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronLeft, ChevronRight, Trash2, Package, FileText, MessageSquare, Pencil, Plus, Tag, UserPlus, UserMinus, ToggleRight, ToggleLeft, KeyRound, Ban, ShieldCheck, UserCheck, UserPen } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Package, FileText, MessageSquare, Pencil, Plus, Tag, UserPlus, UserMinus, ToggleRight, ToggleLeft, KeyRound, Ban, ShieldCheck, UserCheck, UserPen, RefreshCw } from "lucide-react";
 import { deleteActivityLog } from "@/app/admin/(dashboard)/activity/actions";
 
 type Log = {
@@ -19,6 +19,9 @@ type DayGroup = { day: string; logs: Log[] };
 type Props = { groups: DayGroup[] };
 
 const ACTION_META: Record<string, { label: string; color: string; Icon: any }> = {
+  stock_sync:               { label: "Lagersynk",                  color: "#64748b", Icon: RefreshCw },
+  product_sync:             { label: "Produktsynk",                color: "#64748b", Icon: RefreshCw },
+  specs_sync:               { label: "Specifikationssynk",         color: "#64748b", Icon: RefreshCw },
   product_added:            { label: "Lade till produkt",          color: "#22c55e", Icon: Plus },
   product_updated:          { label: "Uppdaterade produkt",        color: "#3b82f6", Icon: Pencil },
   product_deleted:          { label: "Tog bort produkt",           color: "#ef4444", Icon: Trash2 },
@@ -96,7 +99,7 @@ export default function ActivityCarousel({ groups: initialGroups }: Props) {
         @media (max-width: 768px) {
           .ac-header { flex-wrap: wrap; row-gap: 4px; }
           .ac-log-row { padding: 10px 12px !important; gap: 10px !important; }
-          .ac-content { word-break: break-all; overflow-wrap: anywhere; }
+          .ac-content { overflow-wrap: anywhere; }
           .ac-admin-name { display: none !important; }
           .ac-admin-section { gap: 6px !important; }
           .ac-day-card { overflow: hidden; }
@@ -157,8 +160,8 @@ export default function ActivityCarousel({ groups: initialGroups }: Props) {
                   {log.entity_name && <span style={{ color: "#fff" }}> — {log.entity_name}</span>}
                 </p>
                 {log.metadata && Object.keys(log.metadata).length > 0 && (
-                  <p style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
-                    {Object.entries(log.metadata).map(([k, v]) => `${k}: ${v}`).join(" · ")}
+                  <p style={{ fontSize: 11, color: "#666", marginTop: 2, overflowWrap: "anywhere" }}>
+                    {describeMetadata(log.metadata)}
                   </p>
                 )}
               </div>
@@ -213,4 +216,49 @@ export default function ActivityCarousel({ groups: initialGroups }: Props) {
       )}
     </div>
   );
+}
+
+// ── Readable details for a log entry ───────────────────────────────────────
+
+const META_LABELS: Record<string, string> = {
+  email: "E-post",
+  previous_email: "Tidigare e-post",
+  foretag: "Företag",
+  total_checked: "Kontrollerade",
+  type: "Typ",
+  value: "Värde",
+  assigned_to: "Gäller",
+  applies_to: "Gäller för",
+  is_active: "Aktiv",
+};
+
+function formatValue(v: unknown): string {
+  if (v === null || v === undefined || v === "") return "—";
+  if (typeof v === "boolean") return v ? "ja" : "nej";
+  if (typeof v === "number") return v.toLocaleString("sv-SE");
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) return `${v.length} st`;
+  return "…";
+}
+
+// Stock changes look like [{ name, old, new }]: show "Name: slut → i lager".
+function describeStockChanges(changes: unknown[]): string {
+  const stock = (b: unknown) => (b ? "i lager" : "slut");
+  const items = changes.slice(0, 3).map(c => {
+    const x = (c ?? {}) as Record<string, unknown>;
+    const name = typeof x.name === "string" ? x.name : typeof x.id === "string" ? x.id : "Produkt";
+    return "old" in x || "new" in x ? `${name}: ${stock(x.old)} → ${stock(x.new)}` : name;
+  });
+  const more = changes.length - items.length;
+  return items.join(", ") + (more > 0 ? ` och ${more} till` : "");
+}
+
+function describeMetadata(meta: Record<string, unknown>): string {
+  return Object.entries(meta)
+    .filter(([, v]) => v !== null && v !== undefined && v !== "")
+    .map(([k, v]) => {
+      if (k === "changed" && Array.isArray(v)) return describeStockChanges(v);
+      return `${META_LABELS[k] ?? k}: ${formatValue(v)}`;
+    })
+    .join(" · ");
 }

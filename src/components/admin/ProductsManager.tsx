@@ -168,6 +168,16 @@ export default function ProductsManager({
 
   return (
     <div>
+      <style>{`
+        .pm-cards { display: none; }
+        .pm-chips { flex-wrap: wrap; }
+        @media (max-width: 767px) {
+          .pm-table { display: none; }
+          .pm-cards { display: block; }
+          .pm-chips { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-bottom: 4px; scrollbar-width: none; }
+          .pm-chips::-webkit-scrollbar { display: none; }
+        }
+      `}</style>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
@@ -199,7 +209,7 @@ export default function ProductsManager({
           </button>
         </form>
 
-        <div style={{ display: "flex", gap: 6 }}>
+        <div className="pm-chips" style={{ display: "flex", gap: 6 }}>
           {CATEGORIES.map(cat => (
             <button
               key={cat || "all"}
@@ -210,6 +220,7 @@ export default function ProductsManager({
                 border: "1px solid",
                 borderColor: category === cat ? "#dc2626" : "#2a2a2a",
                 borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 500, cursor: "pointer",
+                whiteSpace: "nowrap", flexShrink: 0,
               }}
             >
               {cat || "Alla"}
@@ -235,7 +246,7 @@ export default function ProductsManager({
         </div>
       ) : (
         <div style={{ background: "#141414", border: "1px solid #1f1f1f", borderRadius: 12, overflow: "hidden" }}>
-          <div style={{ overflowX: "auto" }}>
+          <div className="pm-table" style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #1f1f1f", background: "#0f0f0f" }}>
@@ -307,6 +318,55 @@ export default function ProductsManager({
               </tbody>
             </table>
           </div>
+
+          {/* Phones: one card per product, with every action visible */}
+          <ul className="pm-cards" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {initialProducts.map((p: any) => {
+              const inStock = p.in_stock !== false;
+              const busy = togglingStock === p.id;
+              return (
+                <li key={p.id} style={{ display: "flex", gap: 12, padding: 14, borderBottom: "1px solid #1a1a1a" }}>
+                  <div style={{ width: 56, height: 56, flexShrink: 0, borderRadius: 8, background: "#1a1a1a", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {p.images?.[0]
+                      ? <img src={p.images[0]} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", background: "#fff" }} />
+                      : <Package size={18} color="#555" />}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.35, overflowWrap: "anywhere" }}>{p.name}</p>
+                    <p style={{ fontSize: 12, color: "#777", marginTop: 3, overflowWrap: "anywhere" }}>
+                      {[p.sku, p.brand, p.category].filter(Boolean).join(" · ")}
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, marginRight: "auto" }}>
+                        {Number(p.price).toLocaleString("sv-SE")} kr
+                      </span>
+                      <button
+                        onClick={() => handleToggleStock(p.id, inStock)}
+                        disabled={busy}
+                        aria-label={inStock ? "I lager, tryck för att markera som slut" : "Slut, tryck för att markera som i lager"}
+                        style={{
+                          background: busy ? "#1a1a1a" : (inStock ? "#14532d" : "#450a0a"),
+                          color: inStock ? "#4ade80" : "#f87171",
+                          fontSize: 12, fontWeight: 600, padding: "8px 10px", borderRadius: 7, border: "none",
+                          cursor: busy ? "wait" : "pointer", opacity: busy ? 0.6 : 1, minHeight: 36,
+                        }}
+                      >
+                        {busy ? "..." : (inStock ? "I lager" : "Slut")}
+                      </button>
+                      <button onClick={() => setEditProduct(p)} aria-label={`Redigera ${p.name}`}
+                        style={{ background: "#1f1f1f", border: "1px solid #2a2a2a", borderRadius: 7, width: 38, height: 36, cursor: "pointer", color: "#ccc", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Pencil size={15} />
+                      </button>
+                      <button onClick={() => setDeleteId(p.id)} aria-label={`Ta bort ${p.name}`}
+                        style={{ background: "#1a0000", border: "1px solid #3a0000", borderRadius: 7, width: 38, height: 36, cursor: "pointer", color: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
 
           {/* Pagination */}
           {totalPages > 1 && (
