@@ -45,3 +45,5 @@ scripts/*.log
 scripts/*progress*.json
 scripts/audit-report.json
 scripts/backup-*/
+
+scripts/convert-images-progress.json

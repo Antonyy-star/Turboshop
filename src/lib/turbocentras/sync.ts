@@ -2,11 +2,12 @@
 // Same rules as scripts/sync-turbocentras.mjs:
 //  - imports/updates every active product, never deletes
 //  - never touches badge, original_price or specs
-//  - keeps mirrored Supabase image URLs; mirrors new images into Supabase Storage
+//  - keeps mirrored Supabase image URLs; mirrors new images into Supabase Storage (as WebP)
 //  - discontinued products already in the shop are kept but marked out of stock
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchAll } from "@/lib/supabase/fetchAll";
 import { authHeader } from "./api";
+import { compressProductImage, PRODUCT_IMAGE_EXT, PRODUCT_IMAGE_TYPE } from "@/lib/images/compress";
 
 const API_BASE = "https://turbocentras.com/api";
 const API_UA = "PsWs TurboTeknik";
@@ -157,9 +158,10 @@ async function mirrorImages(supabase: SupabaseClient, rows: Row[], max: number, 
           headers: { Authorization: auth(), "User-Agent": API_UA }, cache: "no-store",
         });
         if (!res.ok) { next.push(u); continue; }
-        const path = `products/${row.id}/${imageId}.jpg`;
-        const { error } = await supabase.storage.from(BUCKET).upload(path, Buffer.from(await res.arrayBuffer()), {
-          contentType: res.headers.get("content-type") ?? "image/jpeg", upsert: true,
+        const path = `products/${row.id}/${imageId}.${PRODUCT_IMAGE_EXT}`;
+        const image = await compressProductImage(Buffer.from(await res.arrayBuffer()));
+        const { error } = await supabase.storage.from(BUCKET).upload(path, image, {
+          contentType: PRODUCT_IMAGE_TYPE, upsert: true, cacheControl: "31536000",
         });
         if (error) { next.push(u); continue; }
         next.push(supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl);
