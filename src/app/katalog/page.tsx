@@ -116,12 +116,12 @@ export default async function KatalogPage() {
             <div key={sec.label} style={{ marginBottom: 32 }}>
 
               {/* Section heading */}
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111", margin: "0 0 10px 0" }}>
+              <h2 style={{ fontSize: 22, fontWeight: 500, color: "#111", margin: "0 0 14px 0" }}>
                 {sec.label}
               </h2>
 
-              {/* Product cards */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+              {/* Product cards: 6 per row on desktop, like turbocentras.com */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 lg:gap-5">
                 {sec.products.map((p) => (
                   <Link
                     key={p.id}
@@ -129,55 +129,29 @@ export default async function KatalogPage() {
                     target="_blank"
                     rel="noopener"
                     title={`${p.sku} (öppnas i ny flik)`}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      width: 112,
-                      border: "1px solid #d1d5db",
-                      background: "#fff",
-                      textDecoration: "none",
-                      flexShrink: 0,
-                    }}
+                    className="group flex flex-col bg-white border border-gray-200 hover:border-gray-400 hover:shadow-md transition min-w-0"
                   >
                     {/* SKU */}
-                    <div style={{ padding: "3px 5px", borderBottom: "1px solid #e5e7eb" }}>
-                      <span style={{
-                        fontSize: 10,
-                        color: "#0891b2",
-                        fontWeight: 500,
-                        display: "block",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        lineHeight: "1.3",
-                      }}>
+                    <div className="px-2 py-1 border-b border-gray-200 text-center">
+                      <span className="block truncate text-[13px] leading-5 text-[#0891b2] group-hover:text-red-600">
                         {p.sku || "—"}
                       </span>
                     </div>
                     {/* Image */}
-                    <div style={{
-                      width: 112,
-                      height: 90,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: "#fff",
-                      padding: 5,
-                    }}>
+                    <div className="relative h-32 sm:h-36 flex items-center justify-center p-2 bg-white">
                       {p.images[0] ? (
                         <Image
                           src={p.images[0]}
                           alt={p.sku}
-                          width={100}
-                          height={80}
-                          style={{ objectFit: "contain", maxWidth: "100%", maxHeight: "100%" }}
+                          width={240}
+                          height={180}
+                          sizes="(min-width: 1024px) 220px, (min-width: 640px) 30vw, 45vw"
+                          className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
                           loading="lazy"
-                          quality={75}
+                          quality={80}
                         />
                       ) : (
-                        <span style={{ fontSize: 9, color: "#9ca3af", textAlign: "center", lineHeight: 1.4 }}>
-                          No image<br />available
-                        </span>
+                        <span className="text-lg leading-tight text-gray-400 text-center">No image<br />available</span>
                       )}
                     </div>
                   </Link>
