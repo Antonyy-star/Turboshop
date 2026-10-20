@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CatalogSearchBox from "@/components/catalog/CatalogSearchBox";
 import { PartResults, TurboResults } from "@/components/catalog/CatalogResults";
+import { QuickViewProvider } from "@/components/catalog/QuickView";
 import { createServiceClient } from "@/lib/supabase/server";
 import { MIN_QUERY_LENGTH, normaliseNumber, searchCatalog, type CatalogSearchResult } from "@/lib/catalog/search";
 
@@ -74,13 +75,13 @@ export default async function CatalogSearchPage({ searchParams }: { searchParams
               <Examples />
             </>
           ) : result ? (
-            <>
+            <QuickViewProvider>
               {result.turbos.length > 0 && <TurboResults turbos={result.turbos} total={result.turbosTotal} />}
               {result.parts.length > 0 && <PartResults parts={result.parts} total={result.partsTotal} />}
               {(result.turbosTotal > result.turbos.length || result.partsTotal > result.parts.length) && (
                 <p className="text-sm text-gray-500">Många träffar. Skriv ett längre nummer för att begränsa sökningen.</p>
               )}
-            </>
+            </QuickViewProvider>
           ) : null}
         </div>
       </main>

@@ -125,7 +125,10 @@ export default async function KatalogPage() {
                 {sec.products.map((p) => (
                   <Link
                     key={p.id}
-                    href={`/produkt/${p.id}`}
+                    href={`/katalog/produkt/${p.id}`}
+                    target="_blank"
+                    rel="noopener"
+                    title={`${p.sku} (öppnas i ny flik)`}
                     style={{
                       display: "flex",
                       flexDirection: "column",

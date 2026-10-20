@@ -40,6 +40,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (hydrated) localStorage.setItem("tt-cart", JSON.stringify(items));
   }, [items, hydrated]);
 
+  // Keep every open window in step, e.g. when an item is added from a catalog quick view.
+  useEffect(() => {
+    function onStorage(e: StorageEvent) {
+      if (e.key !== "tt-cart") return;
+      try { setItems(e.newValue ? JSON.parse(e.newValue) : []); } catch {}
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   const addItem = useCallback((item: Omit<CartItem, "quantity">, qty = 1) => {
     setItems(prev => {
       const existing = prev.find(i => i.id === item.id);

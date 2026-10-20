@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import type { CatalogPart, CatalogTurbo, CatalogTurboPart } from "@/lib/catalog/search";
+import { EyeIcon, QuickViewLink } from "./QuickView";
 
-// The part types shown as their own columns, in the order a rebuild goes.
+// Same columns as the turbocentras.com catalog search.
 const MAIN_COLUMNS: { type: string; label: string }[] = [
   { type: "Cartridge",            label: "Patron" },
   { type: "Nozzle ring assembly", label: "Munstycksring" },
@@ -13,210 +14,92 @@ const MAIN_COLUMNS: { type: string; label: string }[] = [
   { type: "Compressor housing",   label: "Kompressorhus" },
   { type: "Actuator",             label: "Ställdon" },
 ];
-const MAIN_TYPES = new Set(MAIN_COLUMNS.map(c => c.type));
 
-const PART_TYPE_SV: Record<string, string> = {
-  ...Object.fromEntries(MAIN_COLUMNS.map(c => [c.type, c.label])),
-  "Bearing housing": "Lagerhus",
-  "Shaft and wheel": "Axel och turbinhjul",
-  "Compressor wheel": "Kompressorhjul",
-  "Heat shield": "Värmesköld",
-  "Compressor plate": "Kompressorplatta",
-  "Gasket kit": "Packningssats",
-  "VNT nozzle cage": "VNT-bur",
-};
-const typeLabel = (t: string | null) => (t ? PART_TYPE_SV[t] ?? t : "Del");
+const linkCls = "text-[#0891b2] hover:text-red-600";
 
-const linkCls = "text-[#0891b2] hover:text-red-600 hover:underline";
-
-function PartRef({ part }: { part: Pick<CatalogTurboPart, "ref" | "pid"> }) {
-  return part.pid
-    ? <Link href={`/produkt/${part.pid}`} className={`${linkCls} font-mono`}>{part.ref}</Link>
-    : <span className="font-mono text-gray-700">{part.ref}</span>;
-}
-
-function TurboRef({ reference, productId }: { reference: string | null; productId: string | null }) {
-  const label = reference ?? "—";
-  return productId
-    ? <Link href={`/produkt/${productId}`} className={`${linkCls} font-mono font-semibold`}>{label}</Link>
-    : <span className="font-mono font-semibold text-black">{label}</span>;
-}
-
-function partsOfType(t: CatalogTurbo, type: string) {
-  return t.parts.filter(p => p.type === type);
-}
-
-function groupParts(parts: CatalogTurboPart[]) {
-  const groups = new Map<string, CatalogTurboPart[]>();
-  for (const p of parts) groups.set(p.type, [...(groups.get(p.type) ?? []), p]);
-  return [...groups.entries()].sort(([a], [b]) => {
-    const ia = MAIN_COLUMNS.findIndex(c => c.type === a), ib = MAIN_COLUMNS.findIndex(c => c.type === b);
-    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || typeLabel(a).localeCompare(typeLabel(b), "sv");
-  });
-}
-
-// All numbers and every part of one turbo.
-function TurboDetails({ turbo }: { turbo: CatalogTurbo }) {
-  const groups = groupParts(turbo.parts);
+// A part number: opens the part's catalog page in the quick view.
+function PartRef({ part }: { part: Pick<CatalogTurboPart, "ref" | "pid" | "type"> }) {
+  if (!part.pid) return <span className="font-mono text-gray-700">{part.ref}</span>;
   return (
-    <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] text-sm">
-      <div>
-        <h4 className="text-xs font-semibold text-gray-500 mb-2">Nummer</h4>
-        {turbo.numbers.length === 0 ? (
-          <p className="text-gray-500">Inga andra nummer registrerade.</p>
-        ) : (
-          <ul className="space-y-0.5">
-            {turbo.numbers.map((n, i) => (
-              <li key={i} className="flex gap-3">
-                <span className="w-10 shrink-0 text-gray-400">{n.t}</span>
-                <span className="font-mono text-black">{n.n}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div>
-        <h4 className="text-xs font-semibold text-gray-500 mb-2">Alla delar ({turbo.parts.length})</h4>
-        {groups.length === 0 ? (
-          <p className="text-gray-500">Inga delar registrerade för den här turbon än.</p>
-        ) : (
-          <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-1">
-            {groups.map(([type, parts]) => (
-              <div key={type} className="flex gap-3 py-0.5">
-                <dt className="w-40 shrink-0 text-gray-500">{typeLabel(type)}</dt>
-                <dd className="flex flex-wrap gap-x-3 gap-y-0.5">
-                  {parts.map(p => <PartRef key={p.ref} part={p} />)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )}
-      </div>
-    </div>
+    <QuickViewLink href={`/katalog/produkt/${part.pid}`} title={`${part.type} ${part.ref}`} className={`${linkCls} font-mono`}>
+      {part.ref}
+    </QuickViewLink>
   );
 }
 
-function ToggleButton({ open, onClick, label }: { open: boolean; onClick: () => void; label: string }) {
+// A turbo number: the eye opens a quick view, the number opens the turbo's catalog page.
+function TurboRef({ turbo }: { turbo: Pick<CatalogTurbo, "id" | "reference"> }) {
+  const ref = turbo.reference ?? String(turbo.id);
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-expanded={open}
-      aria-label={label}
-      className="inline-flex items-center justify-center w-7 h-7 rounded border border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-600 transition"
-    >
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
-        {open ? <path d="M5 12h14" /> : <path d="M12 5v14M5 12h14" />}
-      </svg>
-    </button>
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+      <QuickViewLink href={`/katalog/turbo/${turbo.id}`} title={`Turbocharger ${ref}`} className={`${linkCls} p-0.5`}>
+        <EyeIcon /><span className="sr-only">Snabbvy {ref}</span>
+      </QuickViewLink>
+      <Link href={`/katalog/turbo/${turbo.id}`} className={`${linkCls} font-mono`}>{ref}</Link>
+    </span>
   );
 }
+
+const partsOfType = (t: CatalogTurbo, type: string) => t.parts.filter(p => p.type === type);
 
 export function TurboResults({ turbos, total }: { turbos: CatalogTurbo[]; total: number }) {
-  const [openId, setOpenId] = useState<number | null>(turbos.length === 1 ? turbos[0].id : null);
-  const toggle = (id: number) => setOpenId(o => (o === id ? null : id));
-
   return (
     <section aria-labelledby="turbo-results" className="mb-10">
       <div className="flex items-baseline justify-between gap-4 mb-3">
-        <h2 id="turbo-results" className="text-lg font-bold text-black">Turboladdare</h2>
+        <h2 id="turbo-results" className="text-sm font-bold uppercase tracking-wide text-black">Turboladdare som matchar sökningen</h2>
         <p className="text-sm text-gray-500">
           {total > turbos.length ? `Visar ${turbos.length} av ${total.toLocaleString("sv-SE")}` : `${total} st`}
         </p>
       </div>
 
-      {/* Desktop: one row per turbo, one column per main part */}
-      <div className="hidden md:block overflow-x-auto border border-gray-200 rounded-lg">
-        <table className="w-full text-sm border-collapse">
+      <div className="hidden md:block overflow-x-auto border border-gray-200">
+        <table className="w-full text-[13px] border-collapse">
           <thead>
-            <tr className="bg-gray-50 text-left text-xs text-gray-500">
-              <th className="px-3 py-2.5 font-semibold w-10"><span className="sr-only">Detaljer</span></th>
-              <th className="px-3 py-2.5 font-semibold">Serie</th>
-              <th className="px-3 py-2.5 font-semibold">Modell</th>
-              <th className="px-3 py-2.5 font-semibold">Turbo</th>
-              {MAIN_COLUMNS.map(c => <th key={c.type} className="px-3 py-2.5 font-semibold">{c.label}</th>)}
-              <th className="px-3 py-2.5 font-semibold">Övriga delar</th>
+            <tr className="bg-gray-50 text-[11px] uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2.5 font-semibold text-center">Serie</th>
+              <th className="px-3 py-2.5 font-semibold text-center">Modell</th>
+              <th className="px-3 py-2.5 font-semibold text-center">Turbo</th>
+              {MAIN_COLUMNS.map(c => <th key={c.type} className="px-3 py-2.5 font-semibold text-center">{c.label}</th>)}
             </tr>
           </thead>
           <tbody>
-            {turbos.map(t => {
-              const open = openId === t.id;
-              const others = t.parts.filter(p => !MAIN_TYPES.has(p.type)).length;
-              return (
-                <Fragment key={t.id}>
-                  <tr className={`border-t border-gray-100 align-top ${open ? "bg-red-50/40" : "hover:bg-gray-50"}`}>
-                    <td className="px-3 py-2">
-                      <ToggleButton open={open} onClick={() => toggle(t.id)} label={`${open ? "Dölj" : "Visa"} alla nummer och delar för ${t.reference ?? "turbon"}`} />
-                    </td>
-                    <td className="px-3 py-2.5 text-gray-700">{t.series ?? "—"}</td>
-                    <td className="px-3 py-2.5 text-gray-700">{t.model ?? "—"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      <TurboRef reference={t.reference} productId={t.product_id} />
-                      {t.brand && <div className="text-xs text-gray-400">{t.brand}</div>}
-                    </td>
-                    {MAIN_COLUMNS.map(c => {
-                      const ps = partsOfType(t, c.type);
-                      return (
-                        <td key={c.type} className="px-3 py-2.5 whitespace-nowrap">
-                          {ps.length ? (
-                            <div className="flex flex-col gap-0.5">{ps.map(p => <PartRef key={p.ref} part={p} />)}</div>
-                          ) : <span className="text-gray-300">—</span>}
-                        </td>
-                      );
-                    })}
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      {others > 0 ? (
-                        <button type="button" onClick={() => toggle(t.id)} className={`${linkCls} text-sm`}>{others} st</button>
-                      ) : <span className="text-gray-300">—</span>}
-                    </td>
-                  </tr>
-                  {open && (
-                    <tr className="bg-red-50/40">
-                      <td />
-                      <td colSpan={MAIN_COLUMNS.length + 4} className="px-3 pb-5 pt-1">
-                        <TurboDetails turbo={t} />
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              );
-            })}
+            {turbos.map(t => (
+              <tr key={t.id} className="border-t border-gray-200 hover:bg-gray-50 text-center align-top">
+                <td className="px-3 py-2 text-gray-700">{t.series ?? ""}</td>
+                <td className="px-3 py-2 text-gray-700">{t.model ?? ""}</td>
+                <td className="px-3 py-2"><TurboRef turbo={t} /></td>
+                {MAIN_COLUMNS.map(c => (
+                  <td key={c.type} className="px-3 py-2 whitespace-nowrap">
+                    <div className="flex flex-col items-center gap-0.5">
+                      {partsOfType(t, c.type).map(p => <PartRef key={p.ref} part={p} />)}
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
       {/* Phones: one card per turbo */}
-      <ul className="md:hidden space-y-3">
+      <ul className="md:hidden space-y-2">
         {turbos.map(t => {
-          const open = openId === t.id;
           const main = MAIN_COLUMNS.map(c => ({ ...c, parts: partsOfType(t, c.type) })).filter(c => c.parts.length);
           return (
-            <li key={t.id} className="border border-gray-200 rounded-lg bg-white">
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <TurboRef reference={t.reference} productId={t.product_id} />
-                    <p className="text-xs text-gray-500 mt-0.5">{[t.brand, t.series, t.model].filter(Boolean).join(" · ")}</p>
-                  </div>
-                  <ToggleButton open={open} onClick={() => toggle(t.id)} label={`${open ? "Dölj" : "Visa"} alla nummer och delar för ${t.reference ?? "turbon"}`} />
-                </div>
-                {main.length > 0 ? (
-                  <dl className="mt-3 space-y-1 text-sm">
-                    {main.map(c => (
-                      <div key={c.type} className="flex gap-3">
-                        <dt className="w-32 shrink-0 text-gray-500">{c.label}</dt>
-                        <dd className="flex flex-wrap gap-x-3">{c.parts.map(p => <PartRef key={p.ref} part={p} />)}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                ) : (
-                  <p className="mt-3 text-sm text-gray-500">Inga huvuddelar registrerade.</p>
-                )}
+            <li key={t.id} className="border border-gray-200 bg-white p-3 text-sm">
+              <div className="flex items-baseline justify-between gap-3">
+                <TurboRef turbo={t} />
+                <span className="text-xs text-gray-500 text-right">{[t.series, t.model].filter(Boolean).join(" · ")}</span>
               </div>
-              {open && (
-                <div className="border-t border-gray-100 p-4 bg-red-50/40">
-                  <TurboDetails turbo={t} />
-                </div>
+              {main.length > 0 && (
+                <dl className="mt-2 space-y-1">
+                  {main.map(c => (
+                    <div key={c.type} className="flex gap-3">
+                      <dt className="w-32 shrink-0 text-gray-500">{c.label}</dt>
+                      <dd className="flex flex-wrap gap-x-3">{c.parts.map(p => <PartRef key={p.ref} part={p} />)}</dd>
+                    </div>
+                  ))}
+                </dl>
               )}
             </li>
           );
@@ -234,18 +117,16 @@ function FitsTurbos({ part }: { part: CatalogPart }) {
   const hidden = part.turboCount - shown.length;
   if (part.turboCount === 0) return <span className="text-gray-400">—</span>;
   return (
-    <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+    <div className="flex flex-wrap justify-center gap-x-3 gap-y-0.5">
       {shown.map(t => (
-        <Link key={t.id} href={`/katalog/sok?s=${encodeURIComponent(t.reference ?? "")}`} className={`${linkCls} font-mono`}
+        <Link key={t.id} href={`/katalog/turbo/${t.id}`} className={`${linkCls} font-mono`}
           title={[t.brand, t.model].filter(Boolean).join(" ")}>
           {t.reference}
         </Link>
       ))}
       {hidden > 0 && (
         !all && part.turbos.length > shown.length ? (
-          <button type="button" onClick={() => setAll(true)} className="text-gray-500 hover:text-red-600 underline">
-            visa fler
-          </button>
+          <button type="button" onClick={() => setAll(true)} className="text-gray-500 hover:text-red-600 underline">visa fler</button>
         ) : (
           <span className="text-gray-500">och {hidden.toLocaleString("sv-SE")} till</span>
         )
@@ -254,58 +135,61 @@ function FitsTurbos({ part }: { part: CatalogPart }) {
   );
 }
 
+function PartWithEye({ part }: { part: CatalogPart }) {
+  if (!part.product_id) return <span className="font-mono text-gray-700">{part.reference}</span>;
+  return (
+    <QuickViewLink href={`/katalog/produkt/${part.product_id}`} title={`${part.type ?? "Part"} ${part.reference}`}
+      className={`${linkCls} inline-flex items-center gap-1.5 font-mono`}>
+      <EyeIcon />{part.reference}
+    </QuickViewLink>
+  );
+}
+
 export function PartResults({ parts, total }: { parts: CatalogPart[]; total: number }) {
   return (
     <section aria-labelledby="part-results" className="mb-10">
       <div className="flex items-baseline justify-between gap-4 mb-3">
-        <h2 id="part-results" className="text-lg font-bold text-black">Reservdelar</h2>
+        <h2 id="part-results" className="text-sm font-bold uppercase tracking-wide text-black">Turbodelar som matchar sökningen</h2>
         <p className="text-sm text-gray-500">
           {total > parts.length ? `Visar ${parts.length} av ${total.toLocaleString("sv-SE")}` : `${total} st`}
         </p>
       </div>
 
-      <div className="hidden md:block overflow-x-auto border border-gray-200 rounded-lg">
-        <table className="w-full text-sm border-collapse">
+      <div className="hidden md:block overflow-x-auto border border-gray-200">
+        <table className="w-full text-[13px] border-collapse">
           <thead>
-            <tr className="bg-gray-50 text-left text-xs text-gray-500">
-              <th className="px-3 py-2.5 font-semibold">Typ</th>
-              <th className="px-3 py-2.5 font-semibold">Artikelnummer</th>
-              <th className="px-3 py-2.5 font-semibold">Märke</th>
-              <th className="px-3 py-2.5 font-semibold">Alternativa nummer</th>
-              <th className="px-3 py-2.5 font-semibold">Passar turboladdare</th>
+            <tr className="bg-gray-50 text-[11px] uppercase tracking-wide text-gray-600">
+              <th className="px-3 py-2.5 font-semibold text-center">Märke</th>
+              <th className="px-3 py-2.5 font-semibold text-center">Typ</th>
+              <th className="px-3 py-2.5 font-semibold text-center">Artikelnummer</th>
+              <th className="px-3 py-2.5 font-semibold text-center">Alternativa nummer</th>
+              <th className="px-3 py-2.5 font-semibold text-center">Turboladdare</th>
             </tr>
           </thead>
           <tbody>
             {parts.map(p => (
-              <tr key={p.id} className="border-t border-gray-100 align-top hover:bg-gray-50">
-                <td className="px-3 py-2.5 text-gray-700 whitespace-nowrap">{typeLabel(p.type)}</td>
-                <td className="px-3 py-2.5 whitespace-nowrap font-semibold"><PartRef part={{ ref: p.reference, pid: p.product_id }} /></td>
-                <td className="px-3 py-2.5 text-gray-700 whitespace-nowrap">{p.brand ?? "—"}</td>
-                <td className="px-3 py-2.5 text-gray-700">
-                  {p.numbers.length ? p.numbers.map(n => n.n).join(", ") : <span className="text-gray-300">—</span>}
-                </td>
-                <td className="px-3 py-2.5 min-w-[280px]">
-                  <p className="text-xs text-gray-500 mb-1">{p.turboCount.toLocaleString("sv-SE")} st</p>
-                  <FitsTurbos part={p} />
-                </td>
+              <tr key={p.id} className="border-t border-gray-200 hover:bg-gray-50 text-center align-top">
+                <td className="px-3 py-2 text-gray-700 whitespace-nowrap">{p.brand ?? ""}</td>
+                <td className="px-3 py-2 text-gray-700 whitespace-nowrap">{p.type ?? ""}</td>
+                <td className="px-3 py-2 whitespace-nowrap"><PartWithEye part={p} /></td>
+                <td className="px-3 py-2 text-gray-700">{p.numbers.map(n => n.n).join(", ")}</td>
+                <td className="px-3 py-2 min-w-[280px]"><FitsTurbos part={p} /></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <ul className="md:hidden space-y-3">
+      <ul className="md:hidden space-y-2">
         {parts.map(p => (
-          <li key={p.id} className="border border-gray-200 rounded-lg bg-white p-4 text-sm">
+          <li key={p.id} className="border border-gray-200 bg-white p-3 text-sm">
             <div className="flex items-baseline justify-between gap-3">
-              <span className="font-semibold"><PartRef part={{ ref: p.reference, pid: p.product_id }} /></span>
-              <span className="text-gray-500">{typeLabel(p.type)}</span>
+              <PartWithEye part={p} />
+              <span className="text-gray-500">{p.type}</span>
             </div>
-            {p.numbers.length > 0 && (
-              <p className="mt-1 text-gray-600">Även: {p.numbers.map(n => n.n).join(", ")}</p>
-            )}
-            <p className="mt-3 text-xs text-gray-500">Passar {p.turboCount.toLocaleString("sv-SE")} turboladdare</p>
-            <div className="mt-1"><FitsTurbos part={p} /></div>
+            {p.numbers.length > 0 && <p className="mt-1 text-gray-600">Även: {p.numbers.map(n => n.n).join(", ")}</p>}
+            <p className="mt-2 text-xs text-gray-500">Passar {p.turboCount.toLocaleString("sv-SE")} turboladdare</p>
+            <div className="mt-1 text-left [&>div]:justify-start"><FitsTurbos part={p} /></div>
           </li>
         ))}
       </ul>
