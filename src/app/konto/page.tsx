@@ -4,7 +4,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { requireCustomerPage } from "@/lib/auth/session";
 import { customerProfile, displayName } from "@/lib/auth/profile";
-import { discountPercentOf, formatPercent } from "@/lib/pricing";
+import { discountPercentOf, formatKr, formatPercent } from "@/lib/pricing";
+import { ORDER_STATUS, PAYMENT_METHOD, PAYMENT_STATUS, type Order } from "@/lib/orders";
 import { createServiceClient } from "@/lib/supabase/server";
 import ChangePasswordForm from "./ChangePasswordForm";
 import LogoutButton from "./LogoutButton";
@@ -69,6 +70,13 @@ export default async function AccountPage() {
   const name = displayName(user);
   const firstName = name.split(/\s+/)[0];
   const codes = user.email ? await personalDiscountCodes(user.email) : [];
+  const { data: orderRows } = await createServiceClient().from("orders")
+    .select("id, order_number, created_at, total, status, payment_method, payment_status, items")
+    .eq("user_id", user.id)
+    .neq("payment_status", "failed")
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const orders = (orderRows ?? []) as Pick<Order, "id" | "order_number" | "created_at" | "total" | "status" | "payment_method" | "payment_status" | "items">[];
 
   const postort = [meta.postnummer, meta.ort].filter(Boolean).join(" ");
   const address = [meta.adress, postort].filter(Boolean).join(", ");
@@ -100,6 +108,37 @@ export default async function AccountPage() {
 
           <div className="grid gap-6 md:grid-cols-3 items-start">
             <div className="md:col-span-2 space-y-6">
+
+              <section aria-labelledby="orders-title" className="bg-white border border-gray-200 rounded-xl">
+                <div className="px-6 pt-6 pb-4">
+                  <h2 id="orders-title" className="text-lg font-black text-black">Mina beställningar</h2>
+                </div>
+                {orders.length === 0 ? (
+                  <p className="px-6 pb-6 text-sm text-gray-500">
+                    Du har inga beställningar än. <Link href="/katalog" className="text-red-600 hover:text-red-700 font-medium">Till katalogen</Link>
+                  </p>
+                ) : (
+                  <ul className="border-t border-gray-100">
+                    {orders.map(o => (
+                      <li key={o.id} className="border-b border-gray-100 last:border-0">
+                        <Link href={`/kassa/klar?order=${o.id}`} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-black">#{o.order_number}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {new Date(o.created_at).toLocaleDateString("sv-SE")} · {o.items.reduce((s, i) => s + i.qty, 0)} st · {PAYMENT_METHOD[o.payment_method]}
+                              {o.payment_status === "paid" ? " · Betald" : o.payment_method === "card" && o.payment_status === "pending" ? ` · ${PAYMENT_STATUS.pending}` : ""}
+                            </p>
+                          </div>
+                          <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${o.status === "cancelled" ? "bg-gray-100 text-gray-500" : o.status === "completed" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                            {ORDER_STATUS[o.status].customerText}
+                          </span>
+                          <span className="text-sm font-bold text-black w-24 text-right">{formatKr(o.total)}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
 
               <section aria-labelledby="codes-title" className="bg-white border border-gray-200 rounded-xl">
                 <div className="px-6 pt-6 pb-4">

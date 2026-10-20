@@ -6,11 +6,13 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import { Trash2 } from "lucide-react";
 import { useCustomerDiscount } from "@/context/PricingContext";
+import { useAccount } from "@/components/account/AccountMenu";
 import { discountedPrice, formatKr, formatPercent } from "@/lib/pricing";
 
 export default function CartPage() {
   const { items, removeItem, updateQty, total, count } = useCart();
   const discount = useCustomerDiscount();
+  const account = useAccount();
   // The customer's own price per unit, rounded to whole kronor like everywhere else.
   const unitPrice = (price: number) => discountedPrice(price, discount);
   const payTotal = items.reduce((sum, i) => sum + unitPrice(i.price) * i.quantity, 0);
@@ -156,11 +158,14 @@ export default function CartPage() {
                 </div>
 
                 <Link
-                  href="/kontakt"
+                  href="/kassa"
                   className="block w-full text-center bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-lg transition text-sm mb-3"
                 >
-                  Gå till kassan →
+                  Gå till kassan
                 </Link>
+                {account.status === "out" && (
+                  <p className="text-xs text-gray-500 text-center mb-2">Du loggar in med ditt kundkonto i nästa steg.</p>
+                )}
                 <Link
                   href="/kategori/turboladdare"
                   className="block w-full text-center text-sm text-gray-500 hover:text-red-600 transition py-2"

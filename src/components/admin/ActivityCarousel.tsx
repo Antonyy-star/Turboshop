@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronLeft, ChevronRight, Trash2, Package, FileText, MessageSquare, Pencil, Plus, Tag, UserPlus, UserMinus, ToggleRight, ToggleLeft, KeyRound, Ban, ShieldCheck, UserCheck, UserPen, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Package, FileText, MessageSquare, Pencil, Plus, Tag, UserPlus, UserMinus, ToggleRight, ToggleLeft, KeyRound, Ban, ShieldCheck, UserCheck, UserPen, RefreshCw, ShoppingBag } from "lucide-react";
 import { deleteActivityLog } from "@/app/admin/(dashboard)/activity/actions";
 
 type Log = {
@@ -19,6 +19,7 @@ type DayGroup = { day: string; logs: Log[] };
 type Props = { groups: DayGroup[] };
 
 const ACTION_META: Record<string, { label: string; color: string; Icon: any }> = {
+  update_order:             { label: "Uppdaterade beställning",    color: "#f59e0b", Icon: ShoppingBag },
   stock_sync:               { label: "Lagersynk",                  color: "#64748b", Icon: RefreshCw },
   product_sync:             { label: "Produktsynk",                color: "#64748b", Icon: RefreshCw },
   specs_sync:               { label: "Specifikationssynk",         color: "#64748b", Icon: RefreshCw },
@@ -231,6 +232,8 @@ const META_LABELS: Record<string, string> = {
   applies_to: "Gäller för",
   is_active: "Aktiv",
   rabatt: "Kundrabatt",
+  status: "Status",
+  betalning: "Betalning",
 };
 
 function formatValue(v: unknown): string {

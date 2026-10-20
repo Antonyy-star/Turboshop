@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, Package, MessageSquare, Users, FileText, LogOut, ClipboardList, Menu, X, Brain } from "lucide-react";
+import { LayoutDashboard, Package, MessageSquare, Users, FileText, LogOut, ClipboardList, Menu, X, Brain, ShoppingBag } from "lucide-react";
 
 const navItems = [
   { href: "/admin",               label: "Översikt",             Icon: LayoutDashboard },
   { href: "/admin/products",      label: "Produkter",            Icon: Package },
+  { href: "/admin/bestallningar", label: "Beställningar",        Icon: ShoppingBag },
   { href: "/admin/orders",        label: "Kontaktförfrågningar", Icon: MessageSquare },
   { href: "/admin/customers",     label: "Kunder",               Icon: Users },
   { href: "/admin/content",       label: "Innehåll",             Icon: FileText },
