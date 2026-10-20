@@ -28,7 +28,7 @@ async function pagedList(resource: string, tag: string, display: string, extraFi
 }
 
 // Full records by id. Needed because paged (limit=) full listings come back with EMPTY associations.
-async function fullByIds(resource: string, tag: string, ids: string[], batch = 80) {
+export async function fullByIds(resource: string, tag: string, ids: string[], batch = 80) {
   const out: string[] = [];
   for (let i = 0; i < ids.length; i += batch) {
     const xml = await api(`${resource}?display=full&filter%5Bid%5D=%5B${ids.slice(i, i + batch).join("%7C")}%5D`);
@@ -37,7 +37,7 @@ async function fullByIds(resource: string, tag: string, ids: string[], batch = 8
   return out;
 }
 
-const assocItems =(block: string, wrapper: string, item: string) => {
+export const assocItems = (block: string, wrapper: string, item: string) => {
   const inner = block.match(new RegExp(`<${wrapper}[^>]*>([\\s\\S]*?)</${wrapper}>`))?.[1] ?? "";
   // Items carry xlink:href attributes, e.g. <turbocharger xlink:href="...">
   return [...inner.matchAll(new RegExp(`<${item}(?:\\s[^>]*)?>([\\s\\S]*?)</${item}>`, "g"))].map(m => m[1]);

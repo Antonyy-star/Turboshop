@@ -5,6 +5,7 @@ import Image from "next/image";
 import { createServiceClient } from "@/lib/supabase/server";
 import { fetchAll } from "@/lib/supabase/fetchAll";
 import type { Metadata } from "next";
+import CatalogSearchBox from "@/components/catalog/CatalogSearchBox";
 
 export const revalidate = 3600;
 
@@ -92,6 +93,20 @@ export default async function KatalogPage() {
             <p style={{ color: "#6b7280", fontSize: 13, margin: "4px 0 0" }}>
               {fmt(countTotal)} produkter — turboladdare, patroner och reservdelar.
             </p>
+          </div>
+        </div>
+
+        {/* Advanced search: which parts fit which turbo */}
+        <div style={{ background: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
+          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "20px 20px 22px" }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>Avancerad delsökning</h2>
+            <p style={{ color: "#4b5563", fontSize: 13, margin: "0 0 12px", maxWidth: 640, lineHeight: 1.5 }}>
+              Sök på turbonummer, OEM-nummer eller modell för att se alla delar som passar turbon,
+              eller på ett artikelnummer för att se vilka turboladdare delen passar i.
+            </p>
+            <div style={{ maxWidth: 680 }}>
+              <CatalogSearchBox />
+            </div>
           </div>
         </div>
 

@@ -29,9 +29,10 @@ export async function api(path: string): Promise<string> {
   throw new Error(`Turbocentras API failed: ${path.slice(0, 80)}`);
 }
 
-/** Value of a simple <tag><![CDATA[...]]></tag> field. */
+/** Value of a simple <tag><![CDATA[...]]></tag> field. The tag name must match
+ *  exactly: <id_turbo> must not match <id_turbo_number_type>. */
 export const cdata = (block: string, tag: string) =>
-  block.match(new RegExp(`<${tag}[^>]*>\\s*<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>`))?.[1]?.trim() ?? "";
+  block.match(new RegExp(`<${tag}(?:\\s[^>]*)?>\\s*<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>`))?.[1]?.trim() ?? "";
 
 /** English (language 1) value of a multilingual field, falling back to the first language. */
 export const lang = (block: string, tag: string) => {
