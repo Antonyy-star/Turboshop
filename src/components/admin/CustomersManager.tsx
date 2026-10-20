@@ -23,6 +23,7 @@ export type CustomerRow = {
   postnummer: string;
   ort: string;
   anteckning: string;
+  rabatt: string;
   createdAt: string;
   lastSignInAt: string | null;
   status: "active" | "blocked";
@@ -309,10 +310,10 @@ function CredentialsPanel({ creds, onDone }: { creds: Credentials; onDone: () =>
 
 // ── Create customer ────────────────────────────────────────────────────────
 
-const DETAIL_KEYS = ["name", "email", "telefon", "foretag", "orgnr", "adress", "postnummer", "ort", "anteckning"] as const;
+const DETAIL_KEYS = ["name", "email", "telefon", "foretag", "orgnr", "adress", "postnummer", "ort", "rabatt", "anteckning"] as const;
 
 const EMPTY: CustomerInput = {
-  name: "", email: "", telefon: "", foretag: "", orgnr: "", adress: "", postnummer: "", ort: "", anteckning: "",
+  name: "", email: "", telefon: "", foretag: "", orgnr: "", adress: "", postnummer: "", ort: "", rabatt: "", anteckning: "",
 };
 
 function detailsOf(c: CustomerRow): CustomerInput {
@@ -366,6 +367,16 @@ function DetailsFields({ value, onChange, idPrefix }: {
           <input id={id("ort")} className="cm-input" value={value.ort} onChange={set("ort")} autoComplete="off" />
         </Field>
       </div>
+
+      <GroupLabel>Kundrabatt</GroupLabel>
+      <Field label="Rabatt på alla produkter" htmlFor={id("rabatt")}
+        hint="Kunden ser sitt rabatterade pris på hela sajten när hen är inloggad. Lämna tomt för ingen rabatt.">
+        <div style={{ position: "relative", maxWidth: 160 }}>
+          <input id={id("rabatt")} className="cm-input" inputMode="decimal" placeholder="0" value={value.rabatt}
+            onChange={set("rabatt")} autoComplete="off" style={{ paddingRight: 32 }} />
+          <span aria-hidden style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "#888", fontSize: 13 }}>%</span>
+        </div>
+      </Field>
 
       <GroupLabel>Intern anteckning</GroupLabel>
       <Field label="Syns bara för admins, aldrig för kunden" htmlFor={id("note")}>
@@ -742,6 +753,11 @@ export default function CustomersManager({ customers }: { customers: CustomerRow
                           <span title={s.hint} style={{ background: s.bg, color: s.fg, fontSize: 11, fontWeight: 600, padding: "2px 9px", borderRadius: 20 }}>
                             {s.label}
                           </span>
+                          {c.rabatt && (
+                            <span title="Kundrabatt på alla produkter" style={{ background: "#3a2a07", color: C.amber, fontSize: 11, fontWeight: 600, padding: "2px 9px", borderRadius: 20 }}>
+                              {c.rabatt} % rabatt
+                            </span>
+                          )}
                         </div>
                         {c.foretag && <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{c.foretag}</div>}
                         <a href={`mailto:${c.email}`} style={{ display: "block", fontSize: 13, color: "#60a5fa", textDecoration: "none", marginTop: 6, overflowWrap: "anywhere" }}>
@@ -771,7 +787,7 @@ export default function CustomersManager({ customers }: { customers: CustomerRow
                   <tr style={{ background: C.surfaceDeep, borderBottom: `1px solid ${C.border}` }}>
                     {[
                       { h: "Kund" }, { h: "E-post" }, { h: "Telefon", cls: "cm-hide-sm" },
-                      { h: "Status" }, { h: "Senast inloggad", cls: "cm-hide-sm" }, { h: "" },
+                      { h: "Rabatt" }, { h: "Status" }, { h: "Senast inloggad", cls: "cm-hide-sm" }, { h: "" },
                     ].map(({ h, cls }, i) => (
                       <th key={i} className={cls} scope="col" style={{ textAlign: "left", padding: "11px 16px", color: C.faint, fontSize: 12, fontWeight: 500 }}>
                         {h || <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Åtgärder</span>}
@@ -803,6 +819,9 @@ export default function CustomersManager({ customers }: { customers: CustomerRow
                           <a href={`mailto:${c.email}`} style={{ color: "#60a5fa", textDecoration: "none" }}>{c.email}</a>
                         </td>
                         <td className="cm-hide-sm" style={{ padding: "12px 16px", fontSize: 13, color: C.muted }}>{c.telefon || "—"}</td>
+                        <td style={{ padding: "12px 16px", fontSize: 13 }}>
+                          {c.rabatt ? <span style={{ color: C.amber, fontWeight: 600 }}>{c.rabatt} %</span> : <span style={{ color: "#555" }}>—</span>}
+                        </td>
                         <td style={{ padding: "12px 16px" }}>
                           <span title={s.hint} style={{ background: s.bg, color: s.fg, fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>
                             {s.label}

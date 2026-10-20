@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ImageGallery from "@/components/ImageGallery";
 import AddToCartButton from "@/components/AddToCartButton";
+import Price from "@/components/Price";
 import Link from "next/link";
 import { getProductById } from "@/lib/realProducts";
 import { getRealProductById } from "@/lib/parseProducts";
@@ -372,11 +373,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
               <p className="text-sm text-gray-400 mb-1">{[product.brand, product.sku].filter(Boolean).join(" · ")}</p>
               <h1 className="text-2xl font-black text-black mb-4 leading-snug">{product.name}</h1>
 
-              <div className="flex items-baseline gap-3 mb-5">
-                <span className="text-3xl font-bold text-black">{Number(product.price).toLocaleString("sv-SE")} kr</span>
-                {product.originalPrice && (
-                  <span className="text-lg text-gray-400 line-through">{Number(product.originalPrice).toLocaleString("sv-SE")} kr</span>
-                )}
+              <div className="mb-5">
+                <Price amount={product.price} original={product.originalPrice}
+                  className="text-3xl font-bold text-black" strikeClassName="text-lg text-gray-400 line-through" />
               </div>
 
               <div className="flex items-center gap-2 mb-5">

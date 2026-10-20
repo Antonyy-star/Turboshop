@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BorderBeam } from "@/components/ui/border-beam-search";
+import Price from "@/components/Price";
 
 interface SearchResult {
   id: string;
@@ -250,7 +251,7 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
                   {/* Price + stock */}
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
-                      {Number(r.price).toLocaleString("sv-SE")} kr
+                      <Price amount={Number(r.price)} strikeClassName="text-[11px] font-normal text-gray-400 line-through" showBadge={false} />
                     </p>
                     <p style={{
                       fontSize: 10,

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createServiceClient } from "@/lib/supabase/server";
 import ProductImage from "@/components/ProductImage";
 import { normalizeRef } from "@/lib/normalize";
+import Price from "@/components/Price";
 
 const PAGE_SIZE = 40;
 
@@ -142,8 +143,8 @@ export default async function SearchPage({
                     <div className="p-3">
                       <p className="text-xs text-gray-400 mb-1">{p.brand}{p.sku ? ` · ${p.sku}` : ""}</p>
                       <h3 className="font-semibold text-sm text-black group-hover:text-red-600 transition leading-tight mb-2 line-clamp-2">{p.name}</h3>
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-base font-bold text-black">{Number(p.price).toLocaleString("sv-SE")} kr</span>
+                      <div className="mb-2">
+                        <Price amount={Number(p.price)} className="text-base font-bold text-black" strikeClassName="text-xs text-gray-400 line-through" />
                       </div>
                       <button className="w-full bg-black hover:bg-red-600 text-white text-xs font-medium py-2 rounded transition">Lägg i varukorg</button>
                     </div>

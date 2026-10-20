@@ -2,6 +2,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { listAllUsers } from "@/lib/supabase/users";
 import { isAdminUser, isBlocked } from "@/lib/auth/roles";
 import { customerProfile, displayName } from "@/lib/auth/profile";
+import { discountPercentOf } from "@/lib/pricing";
 import CustomersManager, { type CustomerRow } from "@/components/admin/CustomersManager";
 import DiscountCodesManager from "@/components/admin/DiscountCodesManager";
 
@@ -25,6 +26,7 @@ export default async function AdminCustomers() {
         name: p.name || u.email?.split("@")[0] || "—",
         email: u.email ?? "",
         anteckning: typeof u.app_metadata?.admin_note === "string" ? u.app_metadata.admin_note : "",
+        rabatt: discountPercentOf(u.app_metadata) ? String(discountPercentOf(u.app_metadata)).replace(".", ",") : "",
         createdAt: u.created_at,
         lastSignInAt: u.last_sign_in_at ?? null,
         status: isBlocked(u) ? "blocked" : "active",

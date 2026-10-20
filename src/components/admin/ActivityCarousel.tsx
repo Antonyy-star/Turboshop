@@ -230,6 +230,7 @@ const META_LABELS: Record<string, string> = {
   assigned_to: "Gäller",
   applies_to: "Gäller för",
   is_active: "Aktiv",
+  rabatt: "Kundrabatt",
 };
 
 function formatValue(v: unknown): string {

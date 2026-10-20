@@ -5,6 +5,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import ProductImage from "@/components/ProductImage";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Price from "@/components/Price";
 
 export const revalidate = 3600;
 
@@ -229,11 +230,9 @@ export default async function BrandPage({
                   <div className="p-3">
                     <p className="text-xs text-gray-400 mb-1">{product.brand} · {product.sku}</p>
                     <h3 className="font-semibold text-sm text-black group-hover:text-red-600 transition leading-tight mb-2 line-clamp-2">{product.name}</h3>
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-base font-bold text-black">{product.price.toLocaleString("sv-SE")} kr</span>
-                      {product.originalPrice && (
-                        <span className="text-xs text-gray-400 line-through">{product.originalPrice.toLocaleString("sv-SE")} kr</span>
-                      )}
+                    <div className="mb-2">
+                      <Price amount={product.price} original={product.originalPrice}
+                        className="text-base font-bold text-black" strikeClassName="text-xs text-gray-400 line-through" />
                     </div>
                     <button className="w-full bg-black hover:bg-red-600 text-white text-xs font-medium py-2 rounded transition">Lägg i varukorg</button>
                   </div>

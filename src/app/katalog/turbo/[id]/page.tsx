@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AddToCartButton from "@/components/AddToCartButton";
+import Price from "@/components/Price";
 import CatalogThumbs from "@/components/catalog/CatalogThumbs";
 import CatalogBuyButton from "@/components/catalog/CatalogBuyButton";
 import { InfoBox, InfoRow } from "@/components/catalog/InfoBox";
@@ -65,7 +66,6 @@ export default async function CatalogTurboPage({ params, searchParams }: {
   const parts = [...turbo.parts].sort((a, b) => order(a.type) - order(b.type) || a.type.localeCompare(b.type) || a.ref.localeCompare(b.ref));
   const own = turbo.product_id ? products.get(turbo.product_id) ?? null : null;
   const ref = turbo.reference ?? String(turbo.id);
-  const kr = (n: number) => `${Number(n).toLocaleString("sv-SE")} kr`;
   const th = "text-left px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-600 border-b border-gray-200";
   const td = "px-3 py-2 border-b border-gray-100";
 
@@ -117,7 +117,7 @@ export default async function CatalogTurboPage({ params, searchParams }: {
                             <td className={td}>
                               <PartRef part={p} quick={quick} />
                             </td>
-                            <td className={`${td} whitespace-nowrap font-semibold`}>{prod ? kr(prod.price) : "—"}</td>
+                            <td className={`${td} whitespace-nowrap`}>{prod ? <Price amount={prod.price} className="font-semibold" strikeClassName="text-xs text-gray-400 line-through" showBadge={false} /> : "—"}</td>
                             <td className={`${td} whitespace-nowrap`}>
                               {prod ? (
                                 <span className={prod.in_stock !== false ? "text-green-700" : "text-red-600"}>
@@ -149,7 +149,7 @@ export default async function CatalogTurboPage({ params, searchParams }: {
                         </div>
                         <div className="flex items-center justify-between gap-3 mt-2">
                           <span>
-                            <span className="font-semibold">{prod ? kr(prod.price) : "—"}</span>{" "}
+                            {prod ? <Price amount={prod.price} className="font-semibold" strikeClassName="text-xs text-gray-400 line-through" showBadge={false} /> : <span className="font-semibold">—</span>}{" "}
                             {prod ? (
                               <span className={prod.in_stock !== false ? "text-green-700" : "text-red-600"}>
                                 · {prod.in_stock !== false ? "I lager" : "Slut"}
@@ -192,7 +192,7 @@ export default async function CatalogTurboPage({ params, searchParams }: {
               {own ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <div style={{ fontSize: 12 }}><span style={{ color: "#666" }}>Reference: </span><span style={{ fontWeight: 600 }}>{own.sku}</span></div>
-                  <div style={{ fontSize: 12 }}><span style={{ color: "#666" }}>Price: </span><span style={{ fontWeight: 700, fontSize: 15 }}>{kr(own.price)}</span></div>
+                  <div style={{ fontSize: 12 }}><span style={{ color: "#666" }}>Price: </span><Price amount={own.price} original={own.original_price} className="font-bold text-[15px]" strikeClassName="text-xs text-gray-400 line-through" /></div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: own.in_stock !== false ? "#16a34a" : "#dc2626" }}>
                     {own.in_stock !== false ? "In stock" : "Out of stock"}
                   </div>

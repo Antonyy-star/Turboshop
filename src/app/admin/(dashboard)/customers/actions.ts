@@ -7,6 +7,7 @@ import { requireAdmin, adminDisplayName } from "@/lib/auth/session";
 import { isAdminUser } from "@/lib/auth/roles";
 import { passwordProblem } from "@/lib/auth/messages";
 import { customerProfile, PROFILE_KEYS } from "@/lib/auth/profile";
+import { discountPercentOf, MAX_DISCOUNT_PERCENT } from "@/lib/pricing";
 
 type Service = ReturnType<typeof createServiceClient>;
 type Result = { ok: true } | { ok: false; error: string };
@@ -122,6 +123,7 @@ export type CustomerInput = {
   postnummer: string;
   ort: string;
   anteckning: string;
+  rabatt: string; // customer discount in percent on all products, "" = none
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -138,7 +140,16 @@ function cleanInput(input: CustomerInput) {
     postnummer: (input.postnummer ?? "").trim().slice(0, 12),
     ort: (input.ort ?? "").trim().slice(0, 80),
     anteckning: (input.anteckning ?? "").trim().slice(0, 2000),
+    rabatt: (input.rabatt ?? "").trim().replace(",", ".").replace(/\s*%$/, ""),
   };
+}
+
+// "" or "0" = no discount. Up to one decimal, at most MAX_DISCOUNT_PERCENT.
+function discountOf(c: { rabatt: string }): number | null {
+  if (!c.rabatt) return 0;
+  if (!/^\d{1,2}(\.\d)?$/.test(c.rabatt)) return null;
+  const n = Number(c.rabatt);
+  return n >= 0 && n <= MAX_DISCOUNT_PERCENT ? n : null;
 }
 
 type Clean = ReturnType<typeof cleanInput>;
@@ -156,6 +167,7 @@ function inputProblem(c: Clean): string | null {
   if (!EMAIL_RE.test(c.email)) return "E-postadressen ser inte giltig ut.";
   if (c.orgnr && !/^[0-9\s-]{6,20}$/.test(c.orgnr)) return "Organisationsnumret får bara innehålla siffror och bindestreck.";
   if (c.postnummer && !/^[0-9A-Za-z\s-]{3,12}$/.test(c.postnummer)) return "Postnumret ser inte giltigt ut.";
+  if (discountOf(c) === null) return `Rabatten ska vara ett tal mellan 0 och ${MAX_DISCOUNT_PERCENT} procent, till exempel 10 eller 12,5.`;
   return null;
 }
 
@@ -192,7 +204,7 @@ export async function createCustomer(input: CustomerInput, password: string): Pr
     email: c.email,
     password,
     email_confirm: true,
-    app_metadata: { role: "customer", admin_note: c.anteckning, profile: profileOf(c) },
+    app_metadata: { role: "customer", admin_note: c.anteckning, profile: profileOf(c), discount_percent: discountOf(c) || 0 },
   });
   if (error || !data.user) return { ok: false, error: authErrorMessage(error?.message ?? "okänt fel") };
 
@@ -217,7 +229,7 @@ export async function updateCustomer(userId: string, input: CustomerInput): Prom
   const emailChanged = (existing.email ?? "").toLowerCase() !== c.email;
   const { error } = await supabase.auth.admin.updateUserById(userId, {
     ...(emailChanged ? { email: c.email, email_confirm: true } : {}),
-    app_metadata: { ...existing.app_metadata, role: "customer", admin_note: c.anteckning, profile: profileOf(c) },
+    app_metadata: { ...existing.app_metadata, role: "customer", admin_note: c.anteckning, profile: profileOf(c), discount_percent: discountOf(c) || 0 },
     // Remove the old copy that customers could edit; null deletes the key.
     user_metadata: Object.fromEntries(PROFILE_KEYS.map(k => [k, null])),
   });
@@ -233,6 +245,9 @@ export async function updateCustomer(userId: string, input: CustomerInput): Prom
   await logActivity(supabase, admin, "update_customer", "customer", userId, c.name, {
     email: c.email,
     ...(emailChanged ? { previous_email: existing.email } : {}),
+    ...(discountPercentOf(existing.app_metadata) !== (discountOf(c) || 0)
+      ? { rabatt: `${discountPercentOf(existing.app_metadata)} % → ${discountOf(c) || 0} %` }
+      : {}),
   });
   revalidateAll();
   return { ok: true };

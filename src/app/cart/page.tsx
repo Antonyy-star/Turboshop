@@ -5,9 +5,16 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { Trash2 } from "lucide-react";
+import { useCustomerDiscount } from "@/context/PricingContext";
+import { discountedPrice, formatKr, formatPercent } from "@/lib/pricing";
 
 export default function CartPage() {
   const { items, removeItem, updateQty, total, count } = useCart();
+  const discount = useCustomerDiscount();
+  // The customer's own price per unit, rounded to whole kronor like everywhere else.
+  const unitPrice = (price: number) => discountedPrice(price, discount);
+  const payTotal = items.reduce((sum, i) => sum + unitPrice(i.price) * i.quantity, 0);
+  const savings = total - payTotal;
 
   if (items.length === 0) {
     return (
@@ -80,10 +87,13 @@ export default function CartPage() {
                     </Link>
                     <p className="text-xs text-gray-400 mt-0.5">{item.brand} · {item.sku}</p>
                     <p className="text-sm md:text-base font-bold text-black mt-1">
-                      {(item.price * item.quantity).toLocaleString("sv-SE")} kr
+                      {formatKr(unitPrice(item.price) * item.quantity)}
+                      {discount > 0 && (
+                        <span className="ml-2 text-xs font-normal text-gray-400 line-through">{formatKr(item.price * item.quantity)}</span>
+                      )}
                     </p>
                     {item.quantity > 1 && (
-                      <p className="text-xs text-gray-400">{item.price.toLocaleString("sv-SE")} kr/st</p>
+                      <p className="text-xs text-gray-400">{formatKr(unitPrice(item.price))}/st</p>
                     )}
                     {/* Qty controls inline on mobile for better space usage */}
                     <div className="flex items-center gap-1.5 mt-2">
@@ -123,8 +133,14 @@ export default function CartPage() {
                 <div className="space-y-2.5 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Produkter ({count} st)</span>
-                    <span className="text-black font-medium">{total.toLocaleString("sv-SE")} kr</span>
+                    <span className="text-black font-medium">{formatKr(total)}</span>
                   </div>
+                  {discount > 0 && savings > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Din kundrabatt ({formatPercent(discount)})</span>
+                      <span className="text-red-600 font-medium">−{formatKr(savings)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Frakt</span>
                     <span className="text-gray-400">Beräknas i kassan</span>
@@ -134,7 +150,7 @@ export default function CartPage() {
                 <div className="border-t border-gray-200 pt-3.5 mb-5">
                   <div className="flex justify-between items-baseline">
                     <span className="font-bold text-black">Totalt</span>
-                    <span className="font-bold text-black text-xl">{total.toLocaleString("sv-SE")} kr</span>
+                    <span className="font-bold text-black text-xl">{formatKr(payTotal)}</span>
                   </div>
                   <p className="text-xs text-gray-400 mt-1">Inkl. moms · Exkl. frakt</p>
                 </div>

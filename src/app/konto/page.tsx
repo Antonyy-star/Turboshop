@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { requireCustomerPage } from "@/lib/auth/session";
 import { customerProfile, displayName } from "@/lib/auth/profile";
+import { discountPercentOf, formatPercent } from "@/lib/pricing";
 import { createServiceClient } from "@/lib/supabase/server";
 import ChangePasswordForm from "./ChangePasswordForm";
 import LogoutButton from "./LogoutButton";
@@ -79,6 +80,7 @@ export default async function AccountPage() {
     ...(meta.orgnr ? [["Organisationsnummer", meta.orgnr] as [string, string]] : []),
     ["Adress", address || "—"],
   ];
+  const discount = discountPercentOf(user.app_metadata);
 
   return (
     <>
@@ -134,6 +136,12 @@ export default async function AccountPage() {
 
             <section aria-labelledby="details-title" className="bg-white border border-gray-200 rounded-xl p-6">
               <h2 id="details-title" className="text-lg font-black text-black">Dina uppgifter</h2>
+              {discount > 0 && (
+                <p className="mt-3 rounded-lg bg-red-50 border border-red-100 px-3 py-2.5 text-sm text-black">
+                  <span className="font-bold text-red-600">{formatPercent(discount)} kundrabatt</span> på alla produkter.
+                  Priserna på sajten visar ditt pris när du är inloggad.
+                </p>
+              )}
               <dl className="mt-4 divide-y divide-gray-100">
                 {details.map(([k, v]) => (
                   <div key={k} className="py-3 first:pt-0">

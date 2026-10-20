@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AddToCartButton from "@/components/AddToCartButton";
 import CatalogThumbs from "@/components/catalog/CatalogThumbs";
+import Price from "@/components/Price";
 import { InfoBox, InfoRow } from "@/components/catalog/InfoBox";
 import { QuickViewFrameBridge } from "@/components/catalog/QuickView";
 import Link from "next/link";
@@ -366,12 +367,8 @@ export default async function CatalogPartPage({ params, searchParams }: {
                 </div>
                 <div style={{ fontSize: 12 }}>
                   <span style={{ color: "#666" }}>Price: </span>
-                  <span style={{ fontWeight: 700, fontSize: 15 }}>{Number(product.price).toLocaleString("sv-SE")} kr</span>
-                  {product.originalPrice && (
-                    <span style={{ color: "#999", textDecoration: "line-through", marginLeft: 6, fontSize: 12 }}>
-                      {Number(product.originalPrice).toLocaleString("sv-SE")} kr
-                    </span>
-                  )}
+                  <Price amount={product.price} original={product.originalPrice}
+                    className="font-bold text-[15px]" strikeClassName="text-xs text-gray-400 line-through" />
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: product.in_stock ? "#16a34a" : "#dc2626" }}>
                   {product.in_stock ? "In stock" : "Out of stock"}
